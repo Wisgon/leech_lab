@@ -4,7 +4,7 @@ type BrainGraph struct {
 	EyeEntries  []*Node // 視覺神經的觸發神經元
 	TalkExport  []*Node // 說話的output
 	EarEntries  []*Node // 聽覺神經的觸發神經元
-	ReadEntries []*Node // 閱讀文字的觸發神經元
+	WordEntries []*Node // 閱讀文字的觸發神經元
 }
 
 func (b *BrainGraph) Think() {
