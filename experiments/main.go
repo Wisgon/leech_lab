@@ -1,10 +1,6 @@
 package main
 
-import (
-	"crypto/md5"
-	"fmt"
-	"time"
-)
+import "fmt"
 
 func main() {
 	// random number
@@ -19,11 +15,15 @@ func main() {
 	// fmt.Println(bbb == nil)
 	// fmt.Println(aaa)
 
-	now := time.Now().UnixNano()
-	data := []byte(fmt.Sprint(now))
-	aa := fmt.Sprintf("%x", md5.Sum(data))
-	fmt.Println(aa)
+	// now := time.Now().UnixNano()
+	// data := []byte(fmt.Sprint(now))
+	// aa := fmt.Sprintf("%x", md5.Sum(data))
+	// fmt.Println(aa)
 
+	// test map
+	aaa := TsetMap()
+	// b := aaa["111"]
+	fmt.Printf("outside:%p", &aaa)
 }
 
 type AAA struct {
@@ -32,4 +32,11 @@ type AAA struct {
 
 func DeletePointer(aaa *AAA) {
 	aaa = nil
+}
+
+func TsetMap() map[string]int {
+	aaa := make(map[string]int)
+	aaa["111"] = 111
+	fmt.Printf("inside:%p", &aaa)
+	return aaa
 }
