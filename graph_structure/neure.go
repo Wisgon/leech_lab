@@ -1,8 +1,7 @@
 package graph_structure
 
 import (
-	"bytes"
-	"encoding/gob"
+	"encoding/json"
 )
 
 // Synapse /ˈsɪnæps/ 突触
@@ -16,16 +15,16 @@ import (
 
 type Synapse struct {
 	// 突觸，連接兩個Neure
-	NextNeureID int64 // 突觸後神經元，是這個軸突所連接的神經元
-	Weight      int32 // 與nextNeure的連接權重
+	NextNeureID int64 `json:"n1"` // 突觸後神經元，是這個軸突所連接的神經元
+	Weight      int32 `json:"iw"` // 與nextNeure的連接權重
 }
 
 type Neure struct {
-	AxonSynapse            Synapse // 軸突連接的突觸
-	DendritesLinkNum       int32   // 樹突的數量
-	NowLinkedDendritesNum  int32   // 現在已連接的樹突的數量
-	NeureType              bool    // true為激發神經元，false為抑制神經元
-	ElectricalConductivity int32   // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值
+	AxonSynapse            Synapse `json:"sa"`  // 軸突連接的突觸
+	DendritesLinkNum       int32   `json:"ld"`  // 樹突的數量
+	NowLinkedDendritesNum  int32   `json:"ndn"` // 現在已連接的樹突的數量
+	NeureType              bool    `json:"tn"`  // true為激發神經元，false為抑制神經元
+	ElectricalConductivity int32   `json:"ce"`  // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值
 }
 
 func (n *Neure) IncreaseDendritesNum() {
@@ -49,24 +48,31 @@ func (n *Neure) IncreaseDendritesNum() {
 // }
 
 func Struct2Byte(neureStruct *Neure) []byte {
-	var neure bytes.Buffer
-	enc := gob.NewEncoder(&neure)
-	err := enc.Encode(*neureStruct)
-	if err != nil {
-		panic(err)
-	}
-	return neure.Bytes()
+	// var neure bytes.Buffer
+	// enc := gob.NewEncoder(&neure)
+	// err := enc.Encode(*neureStruct)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// return neure.Bytes()
+
+	nb, _ := json.Marshal(*neureStruct)
+	return nb
 }
 
 func Byte2Struct(neureByte []byte) *Neure {
-	var neure bytes.Buffer
-	neure.Write(neureByte)
-	dec := gob.NewDecoder(&neure)
+	// var neure bytes.Buffer
+	// neure.Write(neureByte)
+	// dec := gob.NewDecoder(&neure)
 
-	var n Neure
-	err := dec.Decode(&n)
-	if err != nil {
-		panic(err)
-	}
-	return &n
+	// var n Neure
+	// err := dec.Decode(&n)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// return &n
+
+	var neure Neure
+	_ = json.Unmarshal(neureByte, &neure)
+	return &neure
 }
