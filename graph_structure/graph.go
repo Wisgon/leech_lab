@@ -5,13 +5,15 @@ type BrainGraph struct {
 	TalkExport  []int // 說話的output
 	EarEntries  []int // 聽覺神經的觸發神經元
 	WordEntries []int // 閱讀文字的觸發神經元
+	ValueArea   []int // 價值判斷區，負責給與反饋，反饋大小取決於給與的電流強弱（分數的正負，負數越多越不好，到某種程度就是恐懼感,正數越大越好），是一組預先定義好的神經元,如果某個動作是正確的，則要把這個動作的神經元組連到這個區域中鞏固下來,以後想到這個動作就會得到這個value反饋
 }
 
-func (b *BrainGraph) Think() {
-	// 啟動一個永不停歇的攜程，作為思考的一個神經衝動
-	// 靈感是隨機觸發think相關的神經元，以觸發神經元為起點，終點為思考結果output
+func (b *BrainGraph) TalkExportToString() (result string) {
+	// 語言的output神經元轉化為string輸出
+	return
 }
 
-func (b *BrainGraph) Thalamus() {
-	// 丘腦區，丘腦是負責匯集身體各部分的感覺器官傳過來的神經衝動，然後傳給大腦皮層處理
+func (b *BrainGraph) WordsToActivateNeure(words string) {
+	// 文字轉化為開始的觸發神經元
+	return
 }
