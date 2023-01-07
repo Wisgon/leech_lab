@@ -26,10 +26,10 @@ func (nw *NetWork) SaveNetwork() {
 		needUpdateNeures[index] = nw.Neures[index]
 	}
 	for id, neure := range needUpdateNeures {
-		var neure = database.Neures{
+		var neureDb = database.NeureDb{
 			ID:    id,
 			Neure: Struct2Byte(neure),
 		}
-		database.UpdateNeures([]database.Neures{neure})
+		database.UpdateNeures([]database.NeureDb{neureDb})
 	}
 }

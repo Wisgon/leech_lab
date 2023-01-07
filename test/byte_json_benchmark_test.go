@@ -11,7 +11,7 @@ var Neure = graph_structure.Neure{
 		NextNeureID: 432432424,
 		Weight:      435435,
 	},
-	DendritesLinkNum:       33344,
+	// DendritesLinkNum:       33344,
 	NowLinkedDendritesNum:  4343,
 	NeureType:              true,
 	ElectricalConductivity: 4423423,

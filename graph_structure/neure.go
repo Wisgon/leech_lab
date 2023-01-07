@@ -2,6 +2,7 @@ package graph_structure
 
 import (
 	"encoding/json"
+	"graph_robot/database"
 )
 
 // Synapse /ˈsɪnæps/ 突触
@@ -20,17 +21,18 @@ type Synapse struct {
 }
 
 type Neure struct {
-	AxonSynapse            Synapse `json:"sa"`  // 軸突連接的突觸
-	DendritesLinkNum       int32   `json:"ld"`  // 樹突的數量
-	NowLinkedDendritesNum  int32   `json:"ndn"` // 現在已連接的樹突的數量
-	NeureType              bool    `json:"tn"`  // true為激發神經元，false為抑制神經元
-	ElectricalConductivity int32   `json:"ce"`  // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值
+	AxonSynapse Synapse `json:"sa"` // 軸突連接的突觸
+	// dendrites number should be infinite, so next line is commented
+	// DendritesLinkNum       int32   `json:"ld"`  // 樹突的數量
+	NowLinkedDendritesNum  int32 `json:"ndn"` // 現在已連接的樹突的數量
+	NeureType              bool  `json:"tn"`  // true為激發神經元，false為抑制神經元
+	ElectricalConductivity int32 `json:"ce"`  // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值
 }
 
-func (n *Neure) IncreaseDendritesNum() {
-	// 神經元的樹突與其他神經元的軸突連接時要加1，返回連接成功或失敗的結果
-	n.NowLinkedDendritesNum += 1
-}
+// func (n *Neure) IncreaseDendritesNum() {
+// 	// 神經元的樹突與其他神經元的軸突連接時要加1，返回連接成功或失敗的結果
+// 	n.NowLinkedDendritesNum += 1
+// }
 
 // func (n *Neure) LinkNextNeure(nextNeure int, weight int) (linkSuccessed bool) {
 // 	if nextNeure.NowLinkedDendritesNum < nextNeure.DendritesLinkNum {
@@ -46,6 +48,11 @@ func (n *Neure) IncreaseDendritesNum() {
 // 	}
 // 	return false
 // }
+
+func (n *Neure) ConnectNextNuere(thisId int64, nextId int64) {
+	n.AxonSynapse.NextNeureID = nextId
+	database.UpdateLinked(thisId)
+}
 
 func Struct2Byte(neureStruct *Neure) []byte {
 	// var neure bytes.Buffer

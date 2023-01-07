@@ -13,11 +13,11 @@ func TestCreate(t *testing.T) {
 			NextNeureID: 1,
 			Weight:      222,
 		},
-		DendritesLinkNum:       3,
+		// DendritesLinkNum:       3,
 		NeureType:              true,
 		ElectricalConductivity: 443,
 	}
-	neureByte := database.Neures{
+	neureByte := database.NeureDb{
 		Neure: graph_structure.Struct2Byte(&neure),
 	}
 	id := database.SaveNeure(neureByte)
@@ -86,4 +86,15 @@ func TestToByte(t *testing.T) {
 	t.Log("length of byte:", len(b))
 
 	_ = graph_structure.Byte2Struct(b)
+}
+
+func TestGetUnlinked(t *testing.T) {
+	amount := 3
+	neures := database.GetUnlinkedNeures(amount)
+	t.Log("length of neures:", len(neures))
+}
+
+func TestUpdateLinked(t *testing.T) {
+	neureDb := database.GetNeureById(1)
+	database.UpdateLinked(neureDb.ID)
 }
