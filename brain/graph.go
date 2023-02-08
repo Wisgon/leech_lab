@@ -26,3 +26,15 @@ func (b *Brain) Think() {
 	// 可以與價值區域相關聯，如果想到之前的某段情景記憶，可以觸發價值判斷區域，就感受到了這個情景的好壞的感受
 	// 大概率會去執行那些好的感受，小概率執行中性的，不執行不好的感受，極力避開非常不好的感受
 }
+
+func (b *Brain) Output2ValueNetwork(resultNetwork gs.NetWork, value int) {
+	// 这是把神经元的output和value网络连接起来，value是这个result返回的结果，可以是人工返回的，也可以是环境返回的
+	// 这个方法将结果和value网络连接起来，每次触发出这个result，都会连接到这个value，如果相同的事情，环境返回了不同的value，则会加强或者削弱value值
+	var newValueNetwork gs.NetWork
+}
+
+func (b *Brain) Output2SceneNetwork(resultNetwork gs.NetWork) {
+	// 这是把output链接到场景神经元的方法，也是记忆单词的必要步骤，把单词链接到学单词时的场景
+	// 目前还不清楚场景是否就是视觉记忆，有待思考：todo:
+	var newSceneNetwork gs.NetWork
+}
