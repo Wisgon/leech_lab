@@ -18,7 +18,7 @@ var Neure = graph_structure.Neure{
 }
 
 func BenchmarkJson(*testing.B) {
-	// use json is 10 times faster than benchmarkSB
+	// use json is more faster
 	for i := 0; i < 1000; i++ {
 		nb, _ := json.Marshal(Neure)
 		_ = string(nb)
@@ -27,9 +27,10 @@ func BenchmarkJson(*testing.B) {
 	}
 
 }
-func BenchmarkSb(*testing.B) {
-	for i := 0; i < 1000; i++ {
-		sb := graph_structure.Struct2Byte(&Neure)
-		_ = graph_structure.Byte2Struct(sb)
-	}
-}
+
+// func BenchmarkSb(*testing.B) {
+// 	for i := 0; i < 1000; i++ {
+// 		sb := graph_structure.Struct2Byte(&Neure)
+// 		_ = graph_structure.Byte2Struct(sb)
+// 	}
+// }

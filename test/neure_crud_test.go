@@ -42,27 +42,29 @@ func TestLoad(t *testing.T) {
 	t.Log("$$$", network.NeureOrder)
 }
 
-func TestNetworkUpdate(t *testing.T) {
-	firstLink := []int64{4}
-	network := graph_structure.NetWork{
-		Neures: make(map[int64]*graph_structure.Neure),
-	}
-	network.LoadNetwork(firstLink[0])
-	t.Logf("$$$$%d", network.Neures[4].AxonSynapse.Weight)
-	network.Neures[4].AxonSynapse.Weight = 777
-	network.NeedUpdateNeures = append(network.NeedUpdateNeures, firstLink[0])
-	network.SaveNetwork()
+// notice: Network was abandoned
 
-	network2 := graph_structure.NetWork{
-		Neures: make(map[int64]*graph_structure.Neure),
-	}
-	network2.LoadNetwork(firstLink[0])
-	if network2.Neures[4].AxonSynapse.Weight != 777 {
-		t.Error("update fail")
-	}
-	t.Logf("###%+d", network2.Neures[4].AxonSynapse.Weight)
+// func TestNetworkUpdate(t *testing.T) {
+// 	firstLink := []int64{4}
+// 	network := graph_structure.NetWork{
+// 		Neures: make(map[int64]*graph_structure.Neure),
+// 	}
+// 	network.LoadNetwork(firstLink[0])
+// 	t.Logf("$$$$%d", network.Neures[4].AxonSynapse.Weight)
+// 	network.Neures[4].AxonSynapse.Weight = 777
+// 	network.NeedUpdateNeures = append(network.NeedUpdateNeures, firstLink[0])
+// 	network.SaveNetwork()
 
-}
+// 	network2 := graph_structure.NetWork{
+// 		Neures: make(map[int64]*graph_structure.Neure),
+// 	}
+// 	network2.LoadNetwork(firstLink[0])
+// 	if network2.Neures[4].AxonSynapse.Weight != 777 {
+// 		t.Error("update fail")
+// 	}
+// 	t.Logf("###%+d", network2.Neures[4].AxonSynapse.Weight)
+
+// }
 
 func TestToByte(t *testing.T) {
 	n := &Neure
