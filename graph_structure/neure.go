@@ -24,10 +24,10 @@ type Neure struct {
 	AxonSynapse Synapse `json:"sa"` // 軸突連接的突觸
 	// dendrites number should be infinite, so next line is commented
 	// DendritesLinkNum       int32   `json:"ld"`  // 樹突的數量
-	NowLinkedDendritesNum  int32              `json:"ndn"` // 現在已連接的樹突的數量
-	NeureType              bool               `json:"tn"`  // true為激發神經元，false為抑制神經元
-	ElectricalConductivity int32              `json:"ce"`  // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值
-	DatabaseModel          database.NeureData // the operation of database
+	NowLinkedDendritesNum  int32 `json:"ndn"` // 現在已連接的樹突的數量
+	NeureType              bool  `json:"tn"`  // true為激發神經元，false為抑制神經元
+	ElectricalConductivity int32 `json:"ce"`  // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值
+	ThisNeureId            int64 `json:"did"` // the id of database
 }
 
 // func (n *Neure) IncreaseDendritesNum() {
@@ -50,14 +50,32 @@ type Neure struct {
 // 	return false
 // }
 
+func (n *Neure) CreateNeureInDB() {
+	databaseModel := database.NeureData{Neure: []byte{}}
+	id := databaseModel.Create()
+	n.ThisNeureId = id
+	// to update neure because the neure byte of databaseModel which created in first step is empty, n.ThisNeureId is 0
+	n.SaveNeure2DB()
+}
+
+func (n *Neure) SaveNeure2DB() {
+	databaseModel := database.NeureData{
+		ID:     n.ThisNeureId,
+		Neure:  n.Struct2Byte(),
+		Linked: n.AxonSynapse.NextNeureID != 0,
+	}
+	databaseModel.Save()
+}
+
 func (n *Neure) GetNeureFromDatabaseById(id int64) {
-	n.DatabaseModel.GetNeureDataById(id)
-	n.Byte2Struct(n.DatabaseModel.Neure)
+	databaseModel := database.NeureData{}
+	databaseModel.GetNeureDataById(id)
+	n.Byte2Struct(databaseModel.Neure)
 }
 
 func (n *Neure) ConnectNextNuere(nextId int64) {
 	n.AxonSynapse.NextNeureID = nextId
-	n.DatabaseModel.UpdateLinked(nextId)
+	n.SaveNeure2DB()
 }
 
 func (n *Neure) Struct2Byte() []byte {
@@ -69,10 +87,6 @@ func (n *Neure) Struct2Byte() []byte {
 }
 
 func (n *Neure) Byte2Struct(neureByte []byte) {
-	// usage:
-	// n1 = Neure{}
-	// n1.Byte2Struct(neureByte)
-
 	err := json.Unmarshal(neureByte, n)
 	if err != nil {
 		panic("json unmarshal error: " + err.Error())

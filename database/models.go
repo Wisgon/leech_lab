@@ -11,6 +11,14 @@ func (n *NeureData) TableName() string {
 	return "un"
 }
 
+func (n *NeureData) Create() int64 {
+	result := db.Create(n)
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	return n.ID
+}
+
 func (n *NeureData) Save() int64 {
 	result := db.Save(n)
 	if result.Error != nil {
@@ -19,15 +27,8 @@ func (n *NeureData) Save() int64 {
 	return n.ID
 }
 
-func (n *NeureData) Update() {
+func (n *NeureData) Update(neure []byte) {
 	result := db.Save(n)
-	if result.Error != nil {
-		panic(result.Error)
-	}
-}
-
-func (n *NeureData) UpdateLinked(nextId int64) {
-	result := db.Model(&NeureData{}).Where("id = ?", n.ID).Update("linked", nextId)
 	if result.Error != nil {
 		panic(result.Error)
 	}
