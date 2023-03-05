@@ -27,26 +27,9 @@ func (n *NeureData) Save() int64 {
 	return n.ID
 }
 
-func (n *NeureData) Update(neure []byte) {
-	result := db.Save(n)
-	if result.Error != nil {
-		panic(result.Error)
-	}
-}
-
 func (n *NeureData) GetNeureDataById(id int64) {
 	result := db.Where("id=?", id).First(n)
 	if result.Error != nil {
 		panic(result.Error)
 	}
-}
-
-// -------------------------NeureEntrance database model
-type NeureEntrance struct {
-	ID            int64  `gorm:"primary_key;AUTO_INCREMENT;column:id;type:int;"`
-	NeureEntrance []byte `gorm:"column:en;type:blob;"`
-}
-
-func (n *NeureEntrance) TableName() string {
-	return "en"
 }
