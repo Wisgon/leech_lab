@@ -20,6 +20,13 @@ type Brain struct {
 	MemoryArea   gs.NeureEntrance // 记忆网络
 }
 
+func (b *Brain) Think() {
+	// 啟動一個永不停歇的攜程，作為思考的一個神經衝動
+	// 靈感是隨機觸發think相關的神經元，以觸發神經元為起點，終點為思考結果output
+	// 可以與價值區域相關聯，如果想到之前的某段情景記憶，可以觸發價值判斷區域，就感受到了這個情景的好壞的感受
+	// 大概率會去執行那些好的感受，小概率執行中性的，不執行不好的感受，極力避開非常不好的感受
+}
+
 func (b *Brain) TalkExportToString() (result string) {
 	// 語言的output神經元轉化為string輸出
 	return
@@ -27,13 +34,6 @@ func (b *Brain) TalkExportToString() (result string) {
 
 func (b *Brain) WordsToActivateNeure(words string) {
 	// 文字轉化為開始的觸發神經元
-}
-
-func (b *Brain) Think() {
-	// 啟動一個永不停歇的攜程，作為思考的一個神經衝動
-	// 靈感是隨機觸發think相關的神經元，以觸發神經元為起點，終點為思考結果output
-	// 可以與價值區域相關聯，如果想到之前的某段情景記憶，可以觸發價值判斷區域，就感受到了這個情景的好壞的感受
-	// 大概率會去執行那些好的感受，小概率執行中性的，不執行不好的感受，極力避開非常不好的感受
 }
 
 func (b *Brain) Output2ValueNetwork(resultNetwork gs.NeureEntrance, value int) {
