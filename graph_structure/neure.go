@@ -21,7 +21,7 @@ type Synapse struct {
 }
 
 type Neure struct {
-	AxonSynapse Synapse `json:"sa"` // 軸突連接的突觸
+	AxonSynapse Synapse `json:"sa"` // 軸突連接的突觸，有些神经元有多个突触，但是现在还未明白多个或单个突触有什么影响
 	// dendrites number should be infinite, so next line is commented
 	// DendritesLinkNum       int32   `json:"ld"`  // 樹突的數量
 	NowLinkedDendritesNum  int32 `json:"ndn"` // 現在已連接的樹突的數量
