@@ -2,12 +2,12 @@ package test
 
 import (
 	"graph_robot/config"
-	"graph_robot/graph_structure"
+	"graph_robot/neure"
 	"testing"
 )
 
 func TestWrite2File(t *testing.T) {
-	ne := graph_structure.NeureEntrance{
+	ne := neure.NeureEntrance{
 		EntranceType: config.EntranceTypes["eyes"],
 		NeuresIds:    []int64{1, 2, 3},
 	}
@@ -15,7 +15,7 @@ func TestWrite2File(t *testing.T) {
 }
 
 func TestReadFile(t *testing.T) {
-	ne := graph_structure.NeureEntrance{
+	ne := neure.NeureEntrance{
 		EntranceType: config.EntranceTypes["eyes"],
 	}
 	ne.LoadFromFile()

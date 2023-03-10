@@ -1,4 +1,4 @@
-package graph_structure
+package neure
 
 // notice: NetWork was abandoned
 

@@ -11,4 +11,4 @@ def truncate(table_name: str):
 
 
 if __name__ == "__main__":
-    truncate("neures")
+    truncate("un")

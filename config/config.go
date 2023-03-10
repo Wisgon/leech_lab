@@ -6,3 +6,4 @@ var EntranceTypes = map[string]string{
 	"eyes":  "eyes",
 	"mouth": "mouth",
 }
+var DatabaseName = "leech"

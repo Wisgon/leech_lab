@@ -2,13 +2,13 @@ package test
 
 import (
 	"graph_robot/database"
-	"graph_robot/graph_structure"
+	"graph_robot/neure"
 	"testing"
 )
 
 func TestCreateOne(t *testing.T) {
-	neure := graph_structure.Neure{
-		AxonSynapse: graph_structure.Synapse{
+	neureIns := neure.Neure{
+		AxonSynapse: neure.Synapse{
 			NextNeureID: 1,
 			Weight:      222,
 		},
@@ -16,33 +16,33 @@ func TestCreateOne(t *testing.T) {
 		NeureType:              true,
 		ElectricalConductivity: 443,
 	}
-	neure.CreateNeureInDB()
+	neureIns.CreateNeureInDB()
 
-	if neure.ThisNeureId == 0 {
+	if neureIns.ThisNeureId == 0 {
 		t.Error("id is 0")
 	}
 
-	t.Logf("Success ####%+v", neure)
+	t.Logf("Success ####%+v", neureIns)
 }
 
 func TestCreateMulti(t *testing.T) {
-	neures := graph_structure.CreateNewNeures(10)
+	neures := neure.CreateNewNeures(10)
 	if len(neures) == 0 {
 		t.Error("nothing created")
 	}
 }
 
 func TestConnectNextNuere(t *testing.T) {
-	neure := graph_structure.Neure{}
-	neure.GetNeureFromDatabaseById(2)
-	neure.ConnectNextNuere(1)
+	neureIns := neure.Neure{}
+	neureIns.GetNeureFromDatabaseById(2)
+	neureIns.ConnectNextNuere(1)
 
-	neure = graph_structure.Neure{}
-	neure.GetNeureFromDatabaseById(2)
-	if neure.ThisNeureId != 2 {
+	neureIns = neure.Neure{}
+	neureIns.GetNeureFromDatabaseById(2)
+	if neureIns.ThisNeureId != 2 {
 		t.Error("this id is wrong id")
 	}
-	if neure.AxonSynapse.NextNeureID != 1 {
+	if neureIns.AxonSynapse.NextNeureID != 1 {
 		t.Error("Link fail")
 	}
 
@@ -54,10 +54,10 @@ func TestConnectNextNuere(t *testing.T) {
 }
 
 func TestLoadNeure(t *testing.T) {
-	neure := graph_structure.Neure{}
-	neure.GetNeureFromDatabaseById(1)
+	neureIns := neure.Neure{}
+	neureIns.GetNeureFromDatabaseById(1)
 
-	if neure.ThisNeureId != 1 {
+	if neureIns.ThisNeureId != 1 {
 		t.Error("get fail")
 	}
 }
@@ -74,8 +74,8 @@ func TestGetUnlinked(t *testing.T) {
 
 // func TestLoad(t *testing.T) {
 // 	firstLink := []int64{2}
-// 	network := graph_structure.NetWork{
-// 		Neures: make(map[int64]*graph_structure.Neure),
+// 	network := neure.NetWork{
+// 		Neures: make(map[int64]*neure.Neure),
 // 	}
 // 	network.LoadNetwork(firstLink[0])
 // 	if len(network.Neures) < 1 {
@@ -87,8 +87,8 @@ func TestGetUnlinked(t *testing.T) {
 
 // func TestNetworkUpdate(t *testing.T) {
 // 	firstLink := []int64{4}
-// 	network := graph_structure.NetWork{
-// 		Neures: make(map[int64]*graph_structure.Neure),
+// 	network := neure.NetWork{
+// 		Neures: make(map[int64]*neure.Neure),
 // 	}
 // 	network.LoadNetwork(firstLink[0])
 // 	t.Logf("$$$$%d", network.Neures[4].AxonSynapse.Weight)
@@ -96,8 +96,8 @@ func TestGetUnlinked(t *testing.T) {
 // 	network.NeedUpdateNeures = append(network.NeedUpdateNeures, firstLink[0])
 // 	network.SaveNetwork()
 
-// 	network2 := graph_structure.NetWork{
-// 		Neures: make(map[int64]*graph_structure.Neure),
+// 	network2 := neure.NetWork{
+// 		Neures: make(map[int64]*neure.Neure),
 // 	}
 // 	network2.LoadNetwork(firstLink[0])
 // 	if network2.Neures[4].AxonSynapse.Weight != 777 {
@@ -118,15 +118,15 @@ func TestGetUnlinked(t *testing.T) {
 // 	t.Log("length of string:", len(string(js)))
 
 // 	by := []byte{123, 34, 97, 115, 34, 58, 123, 34, 110, 110, 34, 58, 52, 51, 50, 52, 51, 50, 52, 50, 52, 44, 34, 119, 119, 34, 58, 52, 51, 53, 52, 51, 53, 125, 44, 34, 100, 108, 34, 58, 51, 51, 51, 52, 52, 44, 34, 110, 108, 100, 34, 58, 52, 51, 52, 51, 44, 34, 110, 116, 34, 58, 116, 114, 117, 101, 44, 34, 101, 108, 99, 34, 58, 52, 52, 50, 51, 52, 50, 51, 125}
-// 	var aaa graph_structure.Neure
+// 	var aaa neure.Neure
 // 	err = json.Unmarshal(by, &aaa)
 // 	if err != nil {
 // 		t.Error(err)
 // 	}
 // 	t.Log("aaa.Weight", aaa.AxonSynapse.Weight)
 
-// 	b := graph_structure.Struct2Byte(&Neure)
+// 	b := neure.Struct2Byte(&Neure)
 // 	t.Log("length of byte:", len(b))
 
-// 	_ = graph_structure.Byte2Struct(b)
+// 	_ = neure.Byte2Struct(b)
 // }

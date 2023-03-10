@@ -2,12 +2,12 @@ package test
 
 import (
 	"encoding/json"
-	"graph_robot/graph_structure"
+	"graph_robot/neure"
 	"testing"
 )
 
-var Neure = graph_structure.Neure{
-	AxonSynapse: graph_structure.Synapse{
+var Neure = neure.Neure{
+	AxonSynapse: neure.Synapse{
 		NextNeureID: 432432424,
 		Weight:      435435,
 	},
@@ -22,7 +22,7 @@ func BenchmarkJson(*testing.B) {
 	for i := 0; i < 1000; i++ {
 		nb, _ := json.Marshal(Neure)
 		_ = string(nb)
-		var neu graph_structure.Neure
+		var neu neure.Neure
 		_ = json.Unmarshal(nb, &neu)
 	}
 
@@ -30,7 +30,7 @@ func BenchmarkJson(*testing.B) {
 
 // func BenchmarkSb(*testing.B) {
 // 	for i := 0; i < 1000; i++ {
-// 		sb := graph_structure.Struct2Byte(&Neure)
-// 		_ = graph_structure.Byte2Struct(sb)
+// 		sb := neure.Struct2Byte(&Neure)
+// 		_ = neure.Byte2Struct(sb)
 // 	}
 // }

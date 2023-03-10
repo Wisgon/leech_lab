@@ -20,10 +20,14 @@ func main() {
 	// aa := fmt.Sprintf("%x", md5.Sum(data))
 	// fmt.Println(aa)
 
-	// test map
-	aaa := TsetMap()
-	// b := aaa["111"]
-	fmt.Printf("outside:%p", &aaa)
+	// // test map
+	// aaa := TsetMap()
+	// // b := aaa["111"]
+	// fmt.Printf("outside:%p", &aaa)
+
+	ccc := CCC{Foo: "foo"}
+	ccc.Say()
+	fmt.Println(ccc.Foo)
 }
 
 type AAA struct {
@@ -39,4 +43,21 @@ func TsetMap() map[string]int {
 	aaa["111"] = 111
 	fmt.Printf("inside:%p", &aaa)
 	return aaa
+}
+
+type BBB struct {
+	Content string
+}
+
+func (b *BBB) Say() {
+	fmt.Println("BBB")
+}
+
+type CCC struct {
+	BBB
+	Foo string
+}
+
+func NeedBBB(bbb BBB) {
+	bbb.Say()
 }

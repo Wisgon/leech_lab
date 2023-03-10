@@ -1,4 +1,4 @@
-package graph_structure
+package neure
 
 import (
 	"encoding/json"
@@ -45,4 +45,9 @@ func (n *NeureEntrance) Byte2Struct(neureByte []byte) {
 	if err != nil {
 		panic("json unmarshal error: " + err.Error())
 	}
+}
+
+func (n *NeureEntrance) GetEntranceOutput() (output []Neure) {
+	// 沿着入口的神经元执行，得到最后激活的神经元组
+	return
 }
