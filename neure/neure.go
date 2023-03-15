@@ -35,21 +35,6 @@ type Neure struct {
 // 	n.NowLinkedDendritesNum += 1
 // }
 
-// func (n *Neure) LinkNextNeure(nextNeure int, weight int) (linkSuccessed bool) {
-// 	if nextNeure.NowLinkedDendritesNum < nextNeure.DendritesLinkNum {
-// 		var snp Synapse
-// 		synapseID := utils.GetUniqueId(time.Now().UnixNano())
-// 		snp.PreNeureID = n.HashId
-// 		snp.NextNeureID = nextNeure.HashId
-// 		n.AxonSynapseID = synapseID
-// 		n.Weight = weight
-// 		nextNeure.IncreaseDendritesNum()
-// 		Synapses.Store(synapseID, snp)
-// 		return true
-// 	}
-// 	return false
-// }
-
 func (n *Neure) CreateNeureInDB() {
 	databaseModel := database.NeureData{Neure: []byte{}}
 	id := databaseModel.Create()
