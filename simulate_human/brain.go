@@ -49,5 +49,6 @@ func (b *HumanBrain) Output2SceneNetwork(resultNetwork neure.NeureEntrance) {
 	// var newSceneNeureEntrance neure.NeureEntrance
 }
 
-func (b *HumanBrain) Environment2Action(env interact.Environment) {
+func (b *HumanBrain) Environment2Action(env interact.Environment) string {
+	return ""
 }
