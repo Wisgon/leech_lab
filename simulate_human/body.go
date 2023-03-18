@@ -2,6 +2,7 @@ package human
 
 import (
 	"fmt"
+	"graph_robot/interact"
 	"graph_robot/neure"
 )
 
@@ -17,13 +18,13 @@ func (m *Mouth) Say() {
 }
 
 type Body struct {
+	Skin []neure.Neure // sensory organ of leech
 }
 
-// todo:temporally output a string like "touch", "hit" and so on, finally will connect to real action.
-func (b *Body) Convert(outputNeures []neure.Neure) string {
-	return ""
+func (b *Body) Action(command string) {
+
 }
 
-func (b *Body) Action() {
+func (b *Body) Sense(env interact.Environment) { // get environment info
 
 }

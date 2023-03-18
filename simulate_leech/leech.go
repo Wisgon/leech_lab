@@ -7,6 +7,10 @@ type Leech struct {
 	Body  LeechBody
 }
 
+func (l *Leech) InitLeech() {
+	// init a leech
+}
+
 func (l *Leech) Environment2Action(env interact.Environment) string { // get environment param and decide an action
 	return ""
 }

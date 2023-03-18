@@ -1,7 +1,6 @@
 package human
 
 import (
-	"graph_robot/interact"
 	"graph_robot/neure"
 )
 
@@ -12,7 +11,7 @@ type HumanBrain struct {
 	EyesEntrance     neure.NeureEntrance // 視覺神經的觸發神經元
 	EarEntrance      neure.NeureEntrance // 聽覺神經的觸發神經元
 	LanguageEntrance neure.NeureEntrance // language input entrance
-	SensoryOrgan     neure.NeureEntrance // sensory organ is use for input the env signal
+	SensoryEntrance  neure.NeureEntrance // sensory entrance is use for get the signal from sensory organ
 	ValueArea        neure.NeureEntrance // 價值判斷區，負責給與反饋，反饋大小取決於給與的電流強弱（分數的正負，負數越多越不好，到某種程度就是恐懼感,正數越大越好），是一組預先定義好的神經元,如果某個動作是正確的，則要把這個動作的神經元組連到這個區域中鞏固下來,以後想到這個動作就會得到這個value反饋
 	SenceArea        neure.NeureEntrance // 情景网络
 	MemoryArea       neure.NeureEntrance // 记忆网络
@@ -47,8 +46,4 @@ func (b *HumanBrain) Output2SceneNetwork(resultNetwork neure.NeureEntrance) {
 	// 这是把output链接到场景神经元的方法，也是记忆单词的必要步骤，把单词链接到学单词时的场景
 	// 目前还不清楚场景是否就是视觉记忆，有待思考：todo:
 	// var newSceneNeureEntrance neure.NeureEntrance
-}
-
-func (b *HumanBrain) Environment2Action(env interact.Environment) string {
-	return ""
 }

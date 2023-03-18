@@ -1,7 +1,10 @@
 package creature
 
-import "graph_robot/neure"
+import (
+	"graph_robot/interact"
+)
 
 type Body interface {
-	Convert([]neure.Neure) string
+	Sense(env interact.Environment) // get environment info
+	Action(command string)          // act an action to world and get response
 }
