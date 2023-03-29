@@ -1,0 +1,23 @@
+docker network create brain
+
+docker run -p 3306:3306 --network brain --name brain_mysql --restart=always --network-alias mysql -v /home/zhilong/Documents/docker_volumes/mysql_config:/etc/mysql/conf.d -v /home/zhilong/Documents/docker_volumes/mysql_data:/var/lib/mysql  -e MYSQL_ROOT_PASSWORD=123456 -d mysql:latest
+
+docker run -d --name phpmyadmin --restart=always --network brain -e PMA_ARBITRARY=1 --network-alias phpmyadmin -p 8081:80 phpmyadmin:latest
+
+但是，這時候phpmyadmin訪問不了mysql，要先執行如下命令
+docker exec -it brain_mysql bash
+mysql -u root -p
+ALTER USER root IDENTIFIED WITH mysql_native_password BY '123456';
+現在，可以訪問了
+
+
+dgraph:
+1. run zero
+docker run -dit -p 5080:5080 -p 6080:6080 -p 8080:8080 -p 9080:9080 -v /home/zhilong/Documents/my_projects/graph_robot/docker/dgraph:/dgraph --name dgraph dgraph/dgraph:latest dgraph zero
+
+2. run alpha
+docker exec -dit dgraph dgraph alpha --cache size-mb=2048 --zero localhost:5080 --security whitelist=0.0.0.0/0
+
+
+
+
