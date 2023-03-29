@@ -1,5 +1,5 @@
 build/*
 *.exe
 go.sum
-docker/dgraph
 __pycache__/
+datas/

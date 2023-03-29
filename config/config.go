@@ -14,3 +14,4 @@ var LeechCenterCor = [3]int64{0, 0, 0}
 var BodyActions = map[string]string{
 	"move_left": "move_left",
 }
+var DatasPath = "/home/zhilong/Documents/my_projects/graph_robot/simulate_leech/datas"
