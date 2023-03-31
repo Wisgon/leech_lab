@@ -25,9 +25,31 @@ func main() {
 	// // b := aaa["111"]
 	// fmt.Printf("outside:%p", &aaa)
 
-	ccc := CCC{Foo: "foo"}
-	ccc.Say()
-	fmt.Println(ccc.Foo)
+	// ccc := CCC{Foo: "foo"}
+	// ccc.Say()
+	// fmt.Println(ccc.Foo)
+
+	// s := SliceTest{
+	// 	S1: []string{"11", "22", "33", "44"},
+	// }
+	// RemoveValueFromSlice("22", &s.S1)
+	// fmt.Println("s1:", s.S1)
+
+	s1 := Synapse1{
+		NextId: "11",
+	}
+	s2 := Synapse1{
+		NextId: "22",
+	}
+	s3 := Synapse1{
+		NextId: "44",
+	}
+	s4 := Synapse1{
+		NextId: "55",
+	}
+	sslice := []Synapse1{s1, s2, s3, s4}
+	RemoveValueFromSynapse("44", &sslice)
+	fmt.Printf("!!!%+v", sslice)
 }
 
 type AAA struct {
@@ -60,4 +82,38 @@ type CCC struct {
 
 func NeedBBB(bbb BBB) {
 	bbb.Say()
+}
+
+type SliceTest struct {
+	S1 []string
+}
+
+func RemoveValueFromSlice(value string, slice *[]string) {
+	for i, v := range *slice {
+		if v == value {
+			*slice = append((*slice)[:i], (*slice)[i+1:]...)
+			break
+		}
+	}
+}
+
+type Synapse interface {
+	GetNextId() string
+}
+
+type Synapse1 struct {
+	NextId string
+}
+
+func (s Synapse1) GetNextId() string {
+	return s.NextId
+}
+
+func RemoveValueFromSynapse[T Synapse](value string, s *[]T) {
+	for i, v := range *s {
+		if v.GetNextId() == value {
+			*s = append((*s)[:i], (*s)[i+1:]...)
+			break
+		}
+	}
 }

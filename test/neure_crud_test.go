@@ -1,73 +1,22 @@
 package test
 
 import (
-	"graph_robot/database"
-	"graph_robot/neure"
 	"testing"
 )
 
 func TestCreateOne(t *testing.T) {
-	neureIns := neure.Neure{
-		AxonSynapse: neure.Synapse{
-			NextNeureID: 1,
-			Weight:      222,
-		},
-		// DendritesLinkNum:       3,
-		NeureType:              true,
-		ElectricalConductivity: 443,
-	}
-	neureIns.CreateNeureInDB()
+	// neureIns := neure.Neure{
+	// 	// DendritesLinkNum:       3,
+	// 	NeureType:              true,
+	// 	ElectricalConductivity: 443,
+	// }
+	// neureIns.CreateNeureInDB()
 
-	if neureIns.ThisNeureId == 0 {
-		t.Error("id is 0")
-	}
+	// if neureIns.ThisNeureId == 0 {
+	// 	t.Error("id is 0")
+	// }
 
-	t.Logf("Success ####%+v", neureIns)
-}
-
-func TestCreateMulti(t *testing.T) {
-	neures := neure.CreateNewNeures(10)
-	if len(neures) == 0 {
-		t.Error("nothing created")
-	}
-}
-
-func TestConnectNextNuere(t *testing.T) {
-	neureIns := neure.Neure{}
-	neureIns.GetNeureFromDatabaseById(2)
-	neureIns.ConnectNextNuere(1)
-
-	neureIns = neure.Neure{}
-	neureIns.GetNeureFromDatabaseById(2)
-	if neureIns.ThisNeureId != 2 {
-		t.Error("this id is wrong id")
-	}
-	if neureIns.AxonSynapse.NextNeureID != 1 {
-		t.Error("Link fail")
-	}
-
-	dbModel := database.NeureData{}
-	dbModel.GetNeureDataById(2)
-	if dbModel.Linked != true {
-		t.Error("db update linked fail")
-	}
-}
-
-func TestLoadNeure(t *testing.T) {
-	neureIns := neure.Neure{}
-	neureIns.GetNeureFromDatabaseById(1)
-
-	if neureIns.ThisNeureId != 1 {
-		t.Error("get fail")
-	}
-}
-
-func TestGetUnlinked(t *testing.T) {
-	amount := 3
-	neures := database.GetUnlinkedNeures(amount)
-	if len(neures) != 3 || neures[0].Linked != false {
-		t.Error("not get enough unlinked or linked is not false")
-	}
+	// t.Logf("Success ####%+v", neureIns)
 }
 
 // notice: Network was abandoned

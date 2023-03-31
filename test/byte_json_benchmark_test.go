@@ -7,12 +7,7 @@ import (
 )
 
 var Neure = neure.Neure{
-	AxonSynapse: neure.Synapse{
-		NextNeureID: 432432424,
-		Weight:      435435,
-	},
 	// DendritesLinkNum:       33344,
-	NowLinkedDendritesNum:  4343,
 	NeureType:              true,
 	ElectricalConductivity: 4423423,
 }

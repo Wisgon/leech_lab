@@ -3,6 +3,7 @@ package neure
 import (
 	"encoding/json"
 	"graph_robot/database"
+	"graph_robot/utils"
 )
 
 // Synapse /ˈsɪnæps/ 突触
@@ -16,18 +17,22 @@ import (
 
 type Synapse struct {
 	// 突觸，連接兩個Neure
-	NextNeureID int64 `json:"n1"` // 突觸後神經元，是這個軸突所連接的神經元
-	Weight      int32 `json:"iw"` // 與nextNeure的連接權重
+	NextNeureID string `json:"n1"` // 突觸後神經元，是這個軸突所連接的神經元
+	Weight      int32  `json:"iw"` // 與nextNeure的連接權重
 }
 
+func (s Synapse) GetNextId() string {
+	return s.NextNeureID
+} // use to fit an interface
+
 type Neure struct {
-	AxonSynapse Synapse `json:"sa"` // 軸突連接的突觸，有些神经元有多个突触，但是现在还未明白多个或单个突触有什么影响
+	AxonSynapse []Synapse `json:"sa"` // 軸突連接的突觸，有些神经元有多个突触，但是现在还未明白多个或单个突触有什么影响
 	// dendrites number should be infinite, so next line is commented
 	// DendritesLinkNum       int32   `json:"ld"`  // 樹突的數量
-	NowLinkedDendritesNum  int32 `json:"ndn"` // 現在已連接的樹突的數量
-	NeureType              bool  `json:"tn"`  // true為激發神經元，false為抑制神經元
-	ElectricalConductivity int32 `json:"ce"`  // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值
-	ThisNeureId            int64 `json:"did"` // the id of database
+	NowLinkedDendritesIds  []string `json:"ndn"` // 現在已連接的樹突的數量
+	NeureType              bool     `json:"tn"`  // true為激發神經元，false為抑制神經元
+	ElectricalConductivity int32    `json:"ce"`  // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值
+	ThisNeureId            string   `json:"did"` // the id of database
 }
 
 // func (n *Neure) IncreaseDendritesNum() {
@@ -35,32 +40,50 @@ type Neure struct {
 // 	n.NowLinkedDendritesNum += 1
 // }
 
-func (n *Neure) CreateNeureInDB() {
-	databaseModel := database.NeureData{Neure: []byte{}}
-	id := databaseModel.Create()
+func (n *Neure) CreateNeureInDB(keyPrefix string) {
+	id := database.CreateNeure(n.Struct2Byte(), keyPrefix)
 	n.ThisNeureId = id
-	// to update neure because the neure byte of databaseModel which created in first step is empty, n.ThisNeureId is 0
-	n.SaveNeure2DB()
 }
 
-func (n *Neure) SaveNeure2DB() {
-	databaseModel := database.NeureData{
-		ID:     n.ThisNeureId,
-		Neure:  n.Struct2Byte(),
-		Linked: n.AxonSynapse.NextNeureID != 0,
+func (n *Neure) UpdateNeure2DB() {
+	database.UpdateNeure(n.Struct2Byte(), n.ThisNeureId)
+}
+
+func (n *Neure) GetNeureFromDatabaseById(id string) {
+	neureByte := database.GetNeure(id)
+	n.Byte2Struct(neureByte)
+}
+
+func (n *Neure) DeleteNeure() {
+	// delete the dendrites of next neures
+	for _, synapse := range n.AxonSynapse {
+		nextNeureByte := database.GetNeure(synapse.NextNeureID)
+		nextNeure := Neure{}
+		nextNeure.Byte2Struct(nextNeureByte)
+		utils.RemoveValueFromSlice(n.ThisNeureId, &nextNeure.NowLinkedDendritesIds)
+		nextNeure.UpdateNeure2DB()
 	}
-	databaseModel.Save()
+
+	// delete the synapse of pre neures
+	for _, dendriteId := range n.NowLinkedDendritesIds {
+		preNeureByte := database.GetNeure(dendriteId)
+		preNeure := Neure{}
+		preNeure.Byte2Struct(preNeureByte)
+		utils.RemoveValueFromSynapse(n.ThisNeureId, &preNeure.AxonSynapse)
+		preNeure.UpdateNeure2DB()
+	}
+
+	// finally, delete this neure
+	database.DeleteNeure(n.ThisNeureId)
 }
 
-func (n *Neure) GetNeureFromDatabaseById(id int64) {
-	databaseModel := database.NeureData{}
-	databaseModel.GetNeureDataById(id)
-	n.Byte2Struct(databaseModel.Neure)
-}
-
-func (n *Neure) ConnectNextNuere(nextId int64) {
-	n.AxonSynapse.NextNeureID = nextId
-	n.SaveNeure2DB()
+func (n *Neure) ConnectNextNuere(nextNeure *Neure) {
+	synapse := Synapse{}
+	synapse.NextNeureID = nextNeure.ThisNeureId
+	n.AxonSynapse = append(n.AxonSynapse, synapse)
+	n.UpdateNeure2DB()
+	nextNeure.NowLinkedDendritesIds = append(nextNeure.NowLinkedDendritesIds, n.ThisNeureId) // next neure dendrites append
+	nextNeure.UpdateNeure2DB()
 }
 
 func (n *Neure) Struct2Byte() []byte {

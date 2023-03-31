@@ -1,6 +1,6 @@
 module graph_robot
 
-go 1.17
+go 1.18
 
 require (
 	gorm.io/driver/mysql v1.4.4
@@ -8,9 +8,10 @@ require (
 )
 
 require (
+	github.com/AndreasBriese/bbloom v0.0.0-20190825152654-46b345b51c96 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
-	github.com/cespare/xxhash/v2 v2.1.1 // indirect
-	github.com/dgraph-io/badger/v3 v3.2103.5 // indirect
+	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/dgraph-io/badger/v4 v4.0.1 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
@@ -25,6 +26,7 @@ require (
 	github.com/klauspost/compress v1.12.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	go.opencensus.io v0.22.5 // indirect
+	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
 	golang.org/x/net v0.0.0-20201021035429-f5854403a974 // indirect
-	golang.org/x/sys v0.0.0-20221010170243-090e33056c14 // indirect
+	golang.org/x/sys v0.1.0 // indirect
 )

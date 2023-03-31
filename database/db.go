@@ -1,23 +1,35 @@
 package database
 
 import (
-	"fmt"
 	"graph_robot/config"
 
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	"github.com/dgraph-io/badger/v4"
 )
 
 var db = getDB()
+var seqMap = getSequenceObject()
 
-func getDB() *gorm.DB {
-	dsn := fmt.Sprintf("root:123456@tcp(127.0.0.1:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local", config.DatabaseName)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Silent),
-	})
+func getDB() *badger.DB {
+	db, err := badger.Open(badger.DefaultOptions(config.DatasPath))
 	if err != nil {
 		panic(err)
 	}
 	return db
+}
+
+func getSequenceObject() map[string]*badger.Sequence {
+	seqMap := make(map[string]*badger.Sequence)
+	for i := 0; i < len(config.NeurePrefix); i++ {
+		keyPrefix := config.NeurePrefix[i]
+		seq, err := db.GetSequence([]byte(keyPrefix), 1000)
+		if err != nil {
+			panic(err)
+		}
+		seqMap[keyPrefix] = seq
+	}
+	return seqMap
+}
+
+func CloseDb() {
+	db.Close()
 }
