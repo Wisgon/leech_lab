@@ -6,11 +6,16 @@ import (
 	"github.com/dgraph-io/badger/v4"
 )
 
-var db = getDB()
-var seqMap = getSequenceObject()
+var db *badger.DB
+var seqMap map[string]*badger.Sequence
 
-func getDB() *badger.DB {
-	db, err := badger.Open(badger.DefaultOptions(config.DatasPath))
+func InitDb(dbPath string) {
+	db = getDB(dbPath)
+	seqMap = getSequenceObject()
+}
+
+func getDB(dbPath string) *badger.DB {
+	db, err := badger.Open(badger.DefaultOptions(dbPath))
 	if err != nil {
 		panic(err)
 	}

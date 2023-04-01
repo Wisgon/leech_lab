@@ -62,3 +62,7 @@ func GetSeqNum(keyPrefix string) string {
 	}
 	return fmt.Sprint(uniqueNum)
 }
+
+func KeyOnlyPrefixScan(keyPrefix string) (resultKeys []string) {
+	return
+}
