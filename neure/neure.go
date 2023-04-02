@@ -2,6 +2,8 @@ package neure
 
 import (
 	"encoding/json"
+	"fmt"
+	"graph_robot/config"
 	"graph_robot/database"
 	"graph_robot/utils"
 )
@@ -41,8 +43,11 @@ type Neure struct {
 // }
 
 func (n *Neure) CreateNeureInDB(keyPrefix string) {
-	id := database.CreateNeure(n.Struct2Byte(), keyPrefix)
-	n.ThisNeureId = id
+	uniqueNum := database.GetSeqNum(keyPrefix)
+	key := keyPrefix + config.PrefixNumSplitSymbol + fmt.Sprint(uniqueNum)
+	n.ThisNeureId = key
+	database.CreateNeure(n.Struct2Byte(), key)
+
 }
 
 func (n *Neure) UpdateNeure2DB() {

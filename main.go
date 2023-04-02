@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"graph_robot/config"
 	"graph_robot/database"
 	"graph_robot/utils"
 	"os"
@@ -13,17 +14,19 @@ import (
 func cleanup() {
 	fmt.Println("closing db~~~")
 	database.CloseDb()
+	// some other cleanup here ~~~
 }
 
 func main() {
+	database.InitDb(config.LeechDatasPath, config.SeqBandwidth)
 	defer func() {
 		if r := recover(); r != nil {
 			cleanup()
 		}
 	}()
 
-	// get control c signal and invole cleanup, because control c will not exec defer function
-	c := make(chan os.Signal)
+	// get control c signal and invole cleanup, because control c will not execute the defer function
+	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c

@@ -54,6 +54,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	err = txn.Set([]byte("empty"), []byte{})
+	if err != nil {
+		panic(err)
+	}
 	// err = db.Update(func(txn *badger.Txn) error {
 	// 	err := txn.Delete([]byte("aaa2"))
 	// 	if err != nil {
@@ -85,6 +90,18 @@ func main() {
 	})
 	fmt.Println("after get value~~~")
 
+	txn2.Set([]byte("not_commit3"), []byte("aaa"))
+	item, err = txn2.Get([]byte("not_commit3"))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("before get value~~~")
+	_ = item.Value(func(val []byte) error {
+		fmt.Println("val:@@@", string(val))
+		return nil
+	})
+	fmt.Println("after get value~~~")
+
 	_ = db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
 		opts.PrefetchSize = 10
@@ -107,11 +124,12 @@ func main() {
 	_ = db.View(func(txn *badger.Txn) error {
 		it := txn.NewIterator(badger.DefaultIteratorOptions)
 		defer it.Close()
-		prefix := []byte("st")
+		prefix := []byte("empty")
 		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
 			item := it.Item()
 			k := item.Key()
 			err := item.Value(func(v []byte) error {
+				fmt.Println("~~~~~empty:", len(v))
 				fmt.Printf("key=%s, value=%s\n", k, v)
 				return nil
 			})
@@ -122,23 +140,17 @@ func main() {
 		return nil
 	})
 
-	txn2.Set([]byte("not_commit3"), []byte("aaa"))
-	item, err = txn2.Get([]byte("not_commit3"))
+	seq, err := db.GetSequence([]byte("aaa"), 1024)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("before get value~~~")
-	_ = item.Value(func(val []byte) error {
-		fmt.Println("val:@@@", string(val))
-		return nil
-	})
-	fmt.Println("after get value~~~")
-
-	// seq, err := db.GetSequence([]byte("aaa"), 1000)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer seq.Release()
+	defer seq.Release()
+	num, err := seq.Next()
+	_, _ = seq.Next()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("num:!!!!:", num)
 	// var i = 0
 	// for {
 	// 	num, err := seq.Next()
@@ -146,7 +158,7 @@ func main() {
 	// 		panic(err)
 	// 	}
 	// 	if err = txn2.Set([]byte("aaa"+fmt.Sprint(num)), []byte("aaa")); err == badger.ErrTxnTooBig {
-	// 		fmt.Print("~~~i:", i)  // test max i, result is more than 100000
+	// 		fmt.Print("~~~i:", i) // test max i, result is more than 100000
 	// 		_ = txn2.Commit()
 	// 		break
 	// 	}

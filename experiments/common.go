@@ -35,21 +35,29 @@ func main() {
 	// RemoveValueFromSlice("22", &s.S1)
 	// fmt.Println("s1:", s.S1)
 
-	s1 := Synapse1{
-		NextId: "11",
-	}
-	s2 := Synapse1{
-		NextId: "22",
-	}
-	s3 := Synapse1{
-		NextId: "44",
-	}
-	s4 := Synapse1{
-		NextId: "55",
-	}
-	sslice := []Synapse1{s1, s2, s3, s4}
-	RemoveValueFromSynapse("44", &sslice)
-	fmt.Printf("!!!%+v", sslice)
+	// s1 := Synapse1{
+	// 	NextId: "11",
+	// }
+	// s2 := Synapse1{
+	// 	NextId: "22",
+	// }
+	// s3 := Synapse1{
+	// 	NextId: "44",
+	// }
+	// s4 := Synapse1{
+	// 	NextId: "55",
+	// }
+	// sslice := []Synapse1{s1, s2, s3, s4}
+	// RemoveValueFromSynapse("44", &sslice)
+	// fmt.Printf("!!!%+v", sslice)
+
+	// test byte append
+	var result [][]byte
+	result = append(result, []byte{116, 101, 115, 116, 105, 110, 103, 95, 110, 101, 117, 114, 101, 64, 48})
+	result = append(result, []byte{116, 101, 115, 116, 105, 110, 103, 95, 110, 101, 117, 114, 101, 64, 50})
+	result = append(result, []byte{116, 101, 115, 116, 105, 110, 103, 95, 110, 101, 117, 114, 101, 64, 51})
+	fmt.Println("resul:", result)
+
 }
 
 type AAA struct {

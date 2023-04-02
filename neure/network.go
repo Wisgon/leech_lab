@@ -1,6 +1,6 @@
 package neure
 
-// notice: NetWork was abandoned
+// notice: NetWork was deprecated
 
 // import (
 // 	"graph_robot/database"

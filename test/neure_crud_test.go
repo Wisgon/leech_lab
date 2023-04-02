@@ -1,81 +1,150 @@
 package test
 
 import (
+	"fmt"
 	"testing"
+
+	"graph_robot/config"
+	"graph_robot/database"
+	"graph_robot/neure"
 )
 
 func TestCreateOne(t *testing.T) {
-	// neureIns := neure.Neure{
-	// 	// DendritesLinkNum:       3,
-	// 	NeureType:              true,
-	// 	ElectricalConductivity: 443,
-	// }
-	// neureIns.CreateNeureInDB()
+	neureIns := neure.Neure{
+		NeureType:              true,
+		ElectricalConductivity: 443,
+	}
+	neureIns.CreateNeureInDB("testing_neure")
 
-	// if neureIns.ThisNeureId == 0 {
-	// 	t.Error("id is 0")
-	// }
+	if neureIns.ThisNeureId == "" {
+		t.Error("id is 0")
+	}
 
-	// t.Logf("Success ####%+v", neureIns)
+	t.Logf("Success ####%+v", neureIns)
 }
 
-// notice: Network was abandoned
+func TestGetNeure(t *testing.T) {
+	key := "testing_neure@1"
+	neureByte := database.GetNeure(key)
+	neureObj := neure.Neure{}
+	neureObj.Byte2Struct(neureByte)
+	if neureObj.ThisNeureId != key {
+		t.Error("get wrong data")
+	}
+	t.Log("Success~~")
+}
 
-// func TestLoad(t *testing.T) {
-// 	firstLink := []int64{2}
-// 	network := neure.NetWork{
-// 		Neures: make(map[int64]*neure.Neure),
-// 	}
-// 	network.LoadNetwork(firstLink[0])
-// 	if len(network.Neures) < 1 {
-// 		t.Error("no data")
-// 	}
-// 	t.Logf("###%+v", network.Neures)
-// 	t.Log("$$$", network.NeureOrder)
-// }
+func TestUpdateNeure(t *testing.T) {
+	key := "testing_neure@1"
+	neureByte := database.GetNeure(key)
+	neureObj := neure.Neure{}
+	neureObj.Byte2Struct(neureByte)
 
-// func TestNetworkUpdate(t *testing.T) {
-// 	firstLink := []int64{4}
-// 	network := neure.NetWork{
-// 		Neures: make(map[int64]*neure.Neure),
-// 	}
-// 	network.LoadNetwork(firstLink[0])
-// 	t.Logf("$$$$%d", network.Neures[4].AxonSynapse.Weight)
-// 	network.Neures[4].AxonSynapse.Weight = 777
-// 	network.NeedUpdateNeures = append(network.NeedUpdateNeures, firstLink[0])
-// 	network.SaveNetwork()
+	neureObj.ElectricalConductivity = 111
+	database.UpdateNeure(neureObj.Struct2Byte(), neureObj.ThisNeureId)
 
-// 	network2 := neure.NetWork{
-// 		Neures: make(map[int64]*neure.Neure),
-// 	}
-// 	network2.LoadNetwork(firstLink[0])
-// 	if network2.Neures[4].AxonSynapse.Weight != 777 {
-// 		t.Error("update fail")
-// 	}
-// 	t.Logf("###%+d", network2.Neures[4].AxonSynapse.Weight)
+	neureByte = database.GetNeure(key)
+	neureObj = neure.Neure{}
+	neureObj.Byte2Struct(neureByte)
+	if neureObj.ElectricalConductivity != 111 {
+		t.Error("update fail")
+	}
+	t.Log("Success ~~~")
+}
 
-// }
+func TestDelete(t *testing.T) {
+	defer func() {
+		if err := recover(); err != nil {
+			errMsg := fmt.Sprint(err)
+			if errMsg == "Key not found" {
+				t.Log("delete success~~~")
+			}
+		}
+	}()
+	key := "testing_neure@2"
+	database.DeleteNeure(key)
 
-// func TestToByte(t *testing.T) {
-// 	n := &Neure
-// 	js, err := json.Marshal(*n)
-// 	if err != nil {
-// 		t.Error(err)
-// 	}
-// 	t.Log("length of json:", len(js))
-// 	t.Log("js:", string(js))
-// 	t.Log("length of string:", len(string(js)))
+	_ = database.GetNeure(key)
+}
 
-// 	by := []byte{123, 34, 97, 115, 34, 58, 123, 34, 110, 110, 34, 58, 52, 51, 50, 52, 51, 50, 52, 50, 52, 44, 34, 119, 119, 34, 58, 52, 51, 53, 52, 51, 53, 125, 44, 34, 100, 108, 34, 58, 51, 51, 51, 52, 52, 44, 34, 110, 108, 100, 34, 58, 52, 51, 52, 51, 44, 34, 110, 116, 34, 58, 116, 114, 117, 101, 44, 34, 101, 108, 99, 34, 58, 52, 52, 50, 51, 52, 50, 51, 125}
-// 	var aaa neure.Neure
-// 	err = json.Unmarshal(by, &aaa)
-// 	if err != nil {
-// 		t.Error(err)
-// 	}
-// 	t.Log("aaa.Weight", aaa.AxonSynapse.Weight)
+func TestScanAll(t *testing.T) {
+	allNeuresBytes := database.ValueAllDbScan(func(result []byte) bool {
+		n := neure.Neure{}
+		if len(result) == 8 {
+			// raw prefix will set an empty value in db, if get in Byte2Struct, will panic
+			return false
+		}
+		n.Byte2Struct(result)
+		return n.ElectricalConductivity == 443
+	}, false)
+	if len(*allNeuresBytes) == 0 {
+		t.Errorf("get all fail...\n")
+	} else {
+		allNeures := neure.TurnNeureBytes2Neures(allNeuresBytes)
+		for _, v := range *allNeures {
+			t.Logf("key: %s", v.ThisNeureId)
+			if v.ElectricalConductivity != 443 {
+				t.Errorf("get wrong neure, filter not work, value is : %d", v.ElectricalConductivity)
+			}
+		}
+		t.Logf("neures are: %d\n", len(*allNeures))
+	}
 
-// 	b := neure.Struct2Byte(&Neure)
-// 	t.Log("length of byte:", len(b))
+	// test first flag
+	firstNeuresBytes := database.ValueAllDbScan(func(result []byte) bool {
+		n := neure.Neure{}
+		if len(result) == 8 {
+			// raw prefix will set an empty value in db, if get in Byte2Struct, will panic
+			return false
+		}
+		n.Byte2Struct(result)
+		return n.ElectricalConductivity == 443
+	}, true)
+	if len(*firstNeuresBytes) != 1 {
+		t.Error("len not equal 1")
+	} else {
+		t.Log("Ok getting first")
+	}
+}
 
-// 	_ = neure.Byte2Struct(b)
-// }
+func TestScanPrefixAll(t *testing.T) {
+	prefixedNeureBytes := database.ValueAndPrefixScan("testing_neure"+config.PrefixNumSplitSymbol, func(result []byte) bool {
+		n := neure.Neure{}
+		n.Byte2Struct(result)
+		return n.ElectricalConductivity == 443
+	}, false)
+	prefixedNeures := neure.TurnNeureBytes2Neures(prefixedNeureBytes)
+	if len(*prefixedNeures) == 0 {
+		t.Error("no data found")
+	} else {
+		for k := range *prefixedNeures {
+			t.Logf("key: %s", (*prefixedNeures)[k].ThisNeureId)
+			if (*prefixedNeures)[k].ElectricalConductivity != 443 {
+				t.Error("wrong data found")
+			}
+		}
+		t.Logf("neures are: %d", len(*prefixedNeures))
+	}
+
+	// test first flag
+	firstPrefixedNeureBytes := database.ValueAndPrefixScan("testing_neure"+config.PrefixNumSplitSymbol, func(result []byte) bool {
+		n := neure.Neure{}
+		n.Byte2Struct(result)
+		return n.ElectricalConductivity == 443
+	}, true)
+	if len(*firstPrefixedNeureBytes) != 1 {
+		t.Error("not found 1")
+	} else {
+		t.Logf("neures are: %d", len(*firstPrefixedNeureBytes))
+	}
+}
+
+func TestKeyOnlyPrefixScan(t *testing.T) {
+	neureBytesKeys := database.KeyOnlyPrefixScan("testing_neure" + config.PrefixNumSplitSymbol)
+	if len(*neureBytesKeys) == 0 {
+		t.Error("no data found")
+	}
+	for _, v := range *neureBytesKeys {
+		t.Logf("key: %s", v)
+	}
+}

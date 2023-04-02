@@ -1,6 +1,6 @@
 package neure
 
-// neure entrance has been abandoned
+// neure entrance has been deprecated
 // import (
 // 	"encoding/json"
 // 	"graph_robot/utils"

@@ -7,11 +7,11 @@ import (
 )
 
 var db *badger.DB
-var seqMap map[string]*badger.Sequence
+var seqMap *map[string]*badger.Sequence
 
-func InitDb(dbPath string) {
+func InitDb(dbPath string, seqBandwidth int) {
 	db = getDB(dbPath)
-	seqMap = getSequenceObject()
+	seqMap = getSequenceObject(seqBandwidth)
 }
 
 func getDB(dbPath string) *badger.DB {
@@ -22,19 +22,28 @@ func getDB(dbPath string) *badger.DB {
 	return db
 }
 
-func getSequenceObject() map[string]*badger.Sequence {
+func getSequenceObject(seqBandwidth int) *map[string]*badger.Sequence {
 	seqMap := make(map[string]*badger.Sequence)
 	for i := 0; i < len(config.NeurePrefix); i++ {
 		keyPrefix := config.NeurePrefix[i]
-		seq, err := db.GetSequence([]byte(keyPrefix), 1000)
+		seq, err := db.GetSequence([]byte(keyPrefix), uint64(seqBandwidth))
 		if err != nil {
 			panic(err)
 		}
 		seqMap[keyPrefix] = seq
 	}
-	return seqMap
+	return &seqMap
 }
 
 func CloseDb() {
-	db.Close()
+	for k := range *seqMap {
+		err := (*seqMap)[k].Release()
+		if err != nil {
+			panic(err)
+		}
+	}
+	err := db.Close()
+	if err != nil {
+		panic(err)
+	}
 }
