@@ -47,14 +47,13 @@ func (n *Neure) CreateNeureInDB(keyPrefix string) {
 	key := keyPrefix + config.PrefixNumSplitSymbol + fmt.Sprint(uniqueNum)
 	n.ThisNeureId = key
 	database.CreateNeure(n.Struct2Byte(), key)
-
 }
 
 func (n *Neure) UpdateNeure2DB() {
 	database.UpdateNeure(n.Struct2Byte(), n.ThisNeureId)
 }
 
-func (n *Neure) GetNeureFromDatabaseById(id string) {
+func (n *Neure) GetNeureFromDbById(id string) {
 	neureByte := database.GetNeure(id)
 	n.Byte2Struct(neureByte)
 }
@@ -62,19 +61,17 @@ func (n *Neure) GetNeureFromDatabaseById(id string) {
 func (n *Neure) DeleteNeure() {
 	// delete the dendrites of next neures
 	for _, synapse := range n.AxonSynapse {
-		nextNeureByte := database.GetNeure(synapse.NextNeureID)
 		nextNeure := Neure{}
-		nextNeure.Byte2Struct(nextNeureByte)
-		utils.RemoveValueFromSlice(n.ThisNeureId, &nextNeure.NowLinkedDendritesIds)
+		nextNeure.GetNeureFromDbById(synapse.NextNeureID)
+		utils.RemoveUniqueValueFromSlice(n.ThisNeureId, &nextNeure.NowLinkedDendritesIds)
 		nextNeure.UpdateNeure2DB()
 	}
 
 	// delete the synapse of pre neures
 	for _, dendriteId := range n.NowLinkedDendritesIds {
-		preNeureByte := database.GetNeure(dendriteId)
 		preNeure := Neure{}
-		preNeure.Byte2Struct(preNeureByte)
-		utils.RemoveValueFromSynapse(n.ThisNeureId, &preNeure.AxonSynapse)
+		preNeure.GetNeureFromDbById(dendriteId)
+		utils.RemoveUniqueValueFromSynapse(n.ThisNeureId, &preNeure.AxonSynapse)
 		preNeure.UpdateNeure2DB()
 	}
 

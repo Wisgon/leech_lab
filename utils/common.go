@@ -28,7 +28,7 @@ func GetProjectRoot() string {
 	return filepath.Dir(d) // this mechine is "/home/zhilong/Documents/my_projects/graph_robot"
 }
 
-func RemoveValueFromSlice[T constraints.Integer | constraints.Float | string](value T, s *[]T) {
+func RemoveUniqueValueFromSlice[T constraints.Integer | constraints.Float | string](value T, s *[]T) {
 	for i, v := range *s {
 		if v == value {
 			*s = append((*s)[:i], (*s)[i+1:]...)
@@ -37,7 +37,7 @@ func RemoveValueFromSlice[T constraints.Integer | constraints.Float | string](va
 	}
 }
 
-func RemoveValueFromSynapse[T Synapse](value string, s *[]T) {
+func RemoveUniqueValueFromSynapse[T Synapse](value string, s *[]T) {
 	for i, v := range *s {
 		if v.GetNextId() == value {
 			*s = append((*s)[:i], (*s)[i+1:]...)

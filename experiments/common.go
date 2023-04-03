@@ -32,7 +32,7 @@ func main() {
 	// s := SliceTest{
 	// 	S1: []string{"11", "22", "33", "44"},
 	// }
-	// RemoveValueFromSlice("22", &s.S1)
+	// RemoveUniqueValueFromSlice("22", &s.S1)
 	// fmt.Println("s1:", s.S1)
 
 	// s1 := Synapse1{
@@ -48,7 +48,7 @@ func main() {
 	// 	NextId: "55",
 	// }
 	// sslice := []Synapse1{s1, s2, s3, s4}
-	// RemoveValueFromSynapse("44", &sslice)
+	// RemoveUniqueValueFromSynapse("44", &sslice)
 	// fmt.Printf("!!!%+v", sslice)
 
 	// test byte append
@@ -96,7 +96,7 @@ type SliceTest struct {
 	S1 []string
 }
 
-func RemoveValueFromSlice(value string, slice *[]string) {
+func RemoveUniqueValueFromSlice(value string, slice *[]string) {
 	for i, v := range *slice {
 		if v == value {
 			*slice = append((*slice)[:i], (*slice)[i+1:]...)
@@ -117,7 +117,7 @@ func (s Synapse1) GetNextId() string {
 	return s.NextId
 }
 
-func RemoveValueFromSynapse[T Synapse](value string, s *[]T) {
+func RemoveUniqueValueFromSynapse[T Synapse](value string, s *[]T) {
 	for i, v := range *s {
 		if v.GetNextId() == value {
 			*s = append((*s)[:i], (*s)[i+1:]...)

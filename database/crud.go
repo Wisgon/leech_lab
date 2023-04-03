@@ -2,7 +2,6 @@ package database
 
 import (
 	"errors"
-	"fmt"
 	"graph_robot/config"
 
 	"github.com/dgraph-io/badger/v4"
@@ -54,14 +53,6 @@ func GetNeure(neureId string) []byte {
 		return nil
 	})
 	return neure
-}
-
-func GetSeqNum(keyPrefix string) string {
-	uniqueNum, err := (*seqMap)[keyPrefix].Next()
-	if err != nil {
-		panic(err)
-	}
-	return fmt.Sprint(uniqueNum)
 }
 
 func KeyOnlyPrefixScan(keyPrefix string) *[][]byte {
