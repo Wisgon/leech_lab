@@ -52,12 +52,30 @@ func main() {
 	// fmt.Printf("!!!%+v", sslice)
 
 	// test byte append
-	var result [][]byte
-	result = append(result, []byte{116, 101, 115, 116, 105, 110, 103, 95, 110, 101, 117, 114, 101, 64, 48})
-	result = append(result, []byte{116, 101, 115, 116, 105, 110, 103, 95, 110, 101, 117, 114, 101, 64, 50})
-	result = append(result, []byte{116, 101, 115, 116, 105, 110, 103, 95, 110, 101, 117, 114, 101, 64, 51})
-	fmt.Println("resul:", result)
+	// var result [][]byte
+	// result = append(result, []byte{116, 101, 115, 116, 105, 110, 103, 95, 110, 101, 117, 114, 101, 64, 48})
+	// result = append(result, []byte{116, 101, 115, 116, 105, 110, 103, 95, 110, 101, 117, 114, 101, 64, 50})
+	// result = append(result, []byte{116, 101, 115, 116, 105, 110, 103, 95, 110, 101, 117, 114, 101, 64, 51})
+	// fmt.Println("resul:", result)
 
+	// test map return copy or pointer
+	m := returnMapValue()
+	fmt.Printf("outside function: %p\n", m)
+	v := (*m)["111"]
+	fmt.Printf("outside function v: %p\n", v)
+}
+
+func returnMapValue() *map[string]*string {
+	m := make(map[string]*string)
+	v := "222"
+	m["111"] = &v
+	fmt.Printf("v point is: %p\n", &v)
+	v = "333"
+	fmt.Println("m[111] now is: ", m["111"])
+	fmt.Println("m[111] point is: ", *m["111"])
+	fmt.Printf("map in function:%p\n", &m)
+	fmt.Printf("value in function: %p\n", &v)
+	return &m
 }
 
 type AAA struct {

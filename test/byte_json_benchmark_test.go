@@ -11,7 +11,6 @@ import (
 
 var Neure = neure.Neure{
 	// DendritesLinkNum:       33344,
-	NeureType:              true,
 	ElectricalConductivity: 4423423,
 }
 

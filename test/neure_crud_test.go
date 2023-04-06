@@ -11,7 +11,6 @@ import (
 
 func TestCreateOne(t *testing.T) {
 	neureIns := neure.Neure{
-		NeureType:              true,
 		ElectricalConductivity: 443,
 	}
 	key := database.GetKeyFromPrefix("testing_neure")

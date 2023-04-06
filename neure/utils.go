@@ -14,3 +14,7 @@ func TurnNeureBytes2Neures(neureBytes *map[string][]byte) *map[string]*Neure {
 	}
 	return &neures
 }
+
+func CreateSkin2SelfConsciousnessConnection(position string) {
+
+}
