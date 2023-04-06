@@ -3,4 +3,3 @@ build/*
 go.sum
 __pycache__/
 datas/
-theory.md

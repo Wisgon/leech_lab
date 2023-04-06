@@ -13,6 +13,8 @@ var NeurePrefix = []string{
 	"testing_neure",
 	"eye_entrance",
 	"mouth_entrance",
+	"sense_entrance",
+	"sense_normal",
 }
 var PrefixNumSplitSymbol = "@"
 
