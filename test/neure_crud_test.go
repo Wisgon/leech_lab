@@ -63,6 +63,11 @@ func TestDelete(t *testing.T) {
 	_ = database.GetNeure(key)
 }
 
+func TestScanAllKey(t *testing.T) {
+	database.CheckAllKey()
+	t.Log("success~~~")
+}
+
 func TestScanAll(t *testing.T) {
 	allNeuresBytes := database.ValueAllDbScan(func(result []byte) bool {
 		n := neure.Neure{}

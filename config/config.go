@@ -28,6 +28,7 @@ var NeurePrefix = []string{
 	"nose_output",
 
 	// --------sense------
+	// sense is use to get signal from skin, nose, and other sense organ.
 	"sense_entrance",
 	"sense_normal",
 	"sense_output",
@@ -65,7 +66,33 @@ var NeurePrefix = []string{
 	// ------self consciousness----------
 	"selfConsciousness_entrance",
 }
+var PrefixFirst = []string{
+	"eye",
+	"mouth",
+	"nose",
+	"sense",
+	"senseMemory",
+	"sceneMemory",
+	"smellMemory",
+	"shortTermMemory",
+	"valuate",
+	"skin",
+	"selfConsciousness",
+}
+var PrefixSecond = []string{
+	"entrance",
+	"normal",
+	"output",
+}
+var PrefixSkinThird = []string{
+	"normalTemperature",
+	"hotTemperature",
+	"coldTemperature",
+	"extremelyHotTemp",
+	"extremelyColdTemp",
+}
 var PrefixNumSplitSymbol = "@"
+var PrefixNameSplitSymbol = "_"
 
 // database setting----------------------------------------------------
 var MaxTransactionNum = 100000 // according to experiments, this mechine can hold most 100000+ uncommit.
@@ -75,6 +102,7 @@ var PrefetchSize = 128         //By default, Badger prefetches the values of the
 
 // testing config----------------------------------------------
 var TestDataPath = ProjectRoot + "/test/datas"
+var TestPrefix = "testing_neure"
 
 // leech config------------------------------------------------
 var DatabaseName = "leech"

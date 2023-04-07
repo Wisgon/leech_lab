@@ -59,24 +59,35 @@ func main() {
 	// fmt.Println("resul:", result)
 
 	// test map return copy or pointer
-	m := returnMapValue()
-	fmt.Printf("outside function: %p\n", m)
-	v := (*m)["111"]
-	fmt.Printf("outside function v: %p\n", v)
+	// m := returnMapValue()
+	// fmt.Printf("outside function: %p\n", m)
+	// v := (*m)["111"]
+	// fmt.Printf("outside function v: %p\n", v)
+
+	// test switch
+	a := 3
+	switch {
+	case a < 2:
+		fmt.Println("a < 2")
+	case a > 4:
+		fmt.Println("a > 4")
+	case a == 3:
+		fmt.Println("a == 3")
+	}
 }
 
-func returnMapValue() *map[string]*string {
-	m := make(map[string]*string)
-	v := "222"
-	m["111"] = &v
-	fmt.Printf("v point is: %p\n", &v)
-	v = "333"
-	fmt.Println("m[111] now is: ", m["111"])
-	fmt.Println("m[111] point is: ", *m["111"])
-	fmt.Printf("map in function:%p\n", &m)
-	fmt.Printf("value in function: %p\n", &v)
-	return &m
-}
+// func returnMapValue() *map[string]*string {
+// 	m := make(map[string]*string)
+// 	v := "222"
+// 	m["111"] = &v
+// 	fmt.Printf("v point is: %p\n", &v)
+// 	v = "333"
+// 	fmt.Println("m[111] now is: ", m["111"])
+// 	fmt.Println("m[111] point is: ", *m["111"])
+// 	fmt.Printf("map in function:%p\n", &m)
+// 	fmt.Printf("value in function: %p\n", &v)
+// 	return &m
+// }
 
 type AAA struct {
 	Content string

@@ -44,6 +44,6 @@ package human
 
 // func (b *HumanBrain) Output2SceneNetwork(resultNetwork neure.NeureEntrance) {
 // 	// 这是把output链接到场景神经元的方法，也是记忆单词的必要步骤，把单词链接到学单词时的场景
-// 	// 目前还不清楚场景是否就是视觉记忆，有待思考：todo:
+// 	// 目前还不清楚场景是否就是视觉记忆，有待思考
 // 	// var newSceneNeureEntrance neure.NeureEntrance
 // }

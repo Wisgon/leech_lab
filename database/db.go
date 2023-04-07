@@ -24,8 +24,10 @@ func getDB(dbPath string) *badger.DB {
 
 func getSequenceObject(seqBandwidth int) *map[string]*badger.Sequence {
 	seqMap := make(map[string]*badger.Sequence)
-	for i := 0; i < len(config.NeurePrefix); i++ {
-		keyPrefix := config.NeurePrefix[i]
+	prefix := config.CombinePrefix()
+	prefix = append(prefix, config.TestPrefix) // use when testing
+	for i := 0; i < len(prefix); i++ {
+		keyPrefix := prefix[i]
 		seq, err := db.GetSequence([]byte(keyPrefix), uint64(seqBandwidth))
 		if err != nil {
 			panic(err)
