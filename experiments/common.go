@@ -65,16 +65,25 @@ func main() {
 	// fmt.Printf("outside function v: %p\n", v)
 
 	// test switch
-	a := 3
-	switch {
-	case a < 2:
-		fmt.Println("a < 2")
-	case a > 4:
-		fmt.Println("a > 4")
-	case a == 3:
-		fmt.Println("a == 3")
-	}
+	// a := 3
+	// switch {
+	// case a < 2:
+	// 	fmt.Println("a < 2")
+	// case a > 4:
+	// 	fmt.Println("a > 4")
+	// case a == 3:
+	// 	fmt.Println("a == 3")
+	// }
+
+	// test string array copy
+	// stringArray := []string{"11"}
+	// testStringArrayCopy(stringArray)
+	// fmt.Println("result:", stringArray[0])  // 22
 }
+
+// func testStringArrayCopy(stringArray []string) {
+// 	stringArray[0] = "22"
+// }
 
 // func returnMapValue() *map[string]*string {
 // 	m := make(map[string]*string)

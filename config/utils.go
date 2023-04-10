@@ -1,24 +1,36 @@
 package config
 
-import (
-	"strings"
-)
-
 func CombinePrefix() (prefix []string) {
 	for i := 0; i < len(PrefixFirst); i++ {
-		for j := 0; j < len(PrefixSecond); j++ {
-			prefix = append(prefix, PrefixFirst[i]+PrefixNameSplitSymbol+PrefixSecond[j])
+		// for j := 0; j < len(PrefixSecond); j++ {
+		// prefixFS := PrefixFirst[i] + PrefixNameSplitSymbol + PrefixSecond[j]
+		prefixFS := PrefixFirst[i]
+		if PrefixFirst[i] == "skin" {
+			skinPrefix := combinePrefixSkin(prefixFS)
+			prefix = append(prefix, skinPrefix...)
+		} else if PrefixFirst[i] == "movement" {
+			movementPrefix := combinePrefixMovement(prefixFS)
+			prefix = append(prefix, movementPrefix...)
+		} else {
+			prefix = append(prefix, prefixFS)
+		}
+		// }
+	}
+	return
+}
+
+func combinePrefixSkin(skinPrePrefix string) (skinPrefix []string) {
+	for _, t := range PrefixSkinThird {
+		for _, f := range SkinNeurePosition {
+			skinPrefix = append(skinPrefix, skinPrePrefix+PrefixNameSplitSymbol+t+PrefixNameSplitSymbol+f)
 		}
 	}
-	tmp := []string{}
-	for i := 0; i < len(prefix); i++ {
-		if strings.Contains(prefix[i], "skin") {
-			for j := 1; j < len(PrefixSkinThird); j++ {
-				tmp = append(tmp, prefix[i]+PrefixNameSplitSymbol+PrefixSkinThird[j])
-			}
-			prefix[i] = prefix[i] + PrefixNameSplitSymbol + PrefixSkinThird[0]
-		}
+	return
+}
+
+func combinePrefixMovement(movementPrePrefix string) (movementPrefix []string) {
+	for _, m := range Movements {
+		movementPrefix = append(movementPrefix, movementPrePrefix+PrefixNameSplitSymbol+m)
 	}
-	prefix = append(prefix, tmp...)
 	return
 }

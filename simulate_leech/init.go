@@ -3,9 +3,14 @@ package leech
 // this init.go is use for first time creating whole nervous system of leech
 
 func InitLeechFirstTime() {
-	createSkin2SelfConsciousnessConnection("left")
+	createValueArea()
+	createSkin2MovementConnection()
 }
 
-func createSkin2SelfConsciousnessConnection(position string) {
+func createValueArea() {
+
+}
+
+func createSkin2MovementConnection() {
 	// todo
 }

@@ -21,6 +21,7 @@ type Synapse struct {
 	// 突觸，連接兩個Neure
 	NextNeureID string `json:"n1"` // 突觸後神經元，是這個軸突所連接的神經元
 	Weight      int32  `json:"iw"` // 與nextNeure的連接權重
+	NowWeight   int32  `json:"tw"` // 现在的权重，每刺激一次，增加一点，直到超过weight就被激活
 }
 
 func (s Synapse) GetNextId() string {
@@ -31,8 +32,9 @@ type Neure struct {
 	AxonSynapse           []Synapse `json:"sa"`  // 軸突連接的突觸，有些神经元有多个突触，但是现在还未明白多个或单个突触有什么影响
 	NowLinkedDendritesIds []string  `json:"ndn"` // 現在已連接的樹突
 	// NeureType              bool     `json:"tn"`  // true為激發神經元，false為抑制神經元
-	ElectricalConductivity int32  `json:"ce"`  // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值
-	ThisNeureId            string `json:"did"` // the id of database
+	ElectricalConductivity int32   `json:"ce"`  // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值
+	ThisNeureId            string  `json:"did"` // the id of database
+	RefractoryPeriod       float64 `json:"ir"`  //不应期，不过是否有必要还有待商榷
 }
 
 func (n *Neure) CreateNeureInDB(keyPrefix string) {

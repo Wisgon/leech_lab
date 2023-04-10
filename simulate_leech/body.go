@@ -6,13 +6,15 @@ import (
 )
 
 type LeechBody struct {
-	Skin []*neure.Neure // sensory organ of leech
-	Nose []*neure.Neure
+	Skin     []*neure.Neure // sensory organ of leech
+	Nose     []*neure.Neure
+	Movement []*neure.Neure
 }
 
 func (lb *LeechBody) InitBody() {
 	lb.initSkin()
 	lb.initNose()
+	lb.initMovement()
 }
 
 func (lb *LeechBody) initSkin() {
@@ -20,6 +22,10 @@ func (lb *LeechBody) initSkin() {
 }
 
 func (lb *LeechBody) initNose() {
+
+}
+
+func (lb *LeechBody) initMovement() {
 
 }
 
