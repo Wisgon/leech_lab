@@ -12,20 +12,19 @@ var PrefixFirst = []string{
 	"mouth",
 	"nose",
 	"sense",
-	"senseMemory",
-	"sceneMemory",
-	"smellMemory",
+	"scene", //情景处理
 	"valuate",
 	"skin",
-	"selfConsciousness",
+	// "selfConsciousness",
 	"movement",
+	"reading",
+	"talking",
 }
 
-//	var PrefixSecond = []string{
-//		"entrance",
-//		"normal",
-//		"output",
-//	}
+var PrefixSecond = []string{
+	"normal",
+	"regulate", //调控神经元，是用来增强目标神经元的突触连接的
+}
 var PrefixSkinThird = []string{
 	"normalTemperature",
 	"hotTemperature",

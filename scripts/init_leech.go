@@ -1,4 +1,4 @@
-package leech
+package scripts
 
 // this init.go is use for first time creating whole nervous system of leech
 

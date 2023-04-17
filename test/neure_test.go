@@ -27,7 +27,7 @@ func TestNeureLink(t *testing.T) {
 	neure2.GetNeureFromDbById(key2)
 	neure3.GetNeureFromDbById(key3)
 
-	if len(neure1.AxonSynapse) != 0 && neure1.AxonSynapse[0].NextNeureID == key2 && len(neure2.NowLinkedDendritesIds) != 0 && neure2.NowLinkedDendritesIds[0] == key1 && len(neure3.NowLinkedDendritesIds) != 0 && neure3.NowLinkedDendritesIds[0] == key2 {
+	if len(neure1.Synapses) != 0 && neure1.Synapses[0].GetNextId() == key2 && len(neure2.NowLinkedDendritesIds) != 0 && neure2.NowLinkedDendritesIds[0] == key1 && len(neure3.NowLinkedDendritesIds) != 0 && neure3.NowLinkedDendritesIds[0] == key2 {
 		t.Logf("Success~~~~n1:%+v, n2:%+v", neure1, neure2)
 	} else {
 		t.Error("Link Fail")
@@ -48,7 +48,7 @@ func TestDeleteNeure(t *testing.T) {
 	neure3 := neure.Neure{}
 	neure3.GetNeureFromDbById(key3)
 
-	if len(neure1.AxonSynapse) == 0 && len(neure3.NowLinkedDendritesIds) == 0 {
+	if len(neure1.Synapses) == 0 && len(neure3.NowLinkedDendritesIds) == 0 {
 		t.Log("Success~~~~~:)")
 	} else {
 		t.Error("Fail!!!:(")
