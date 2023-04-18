@@ -1,4 +1,4 @@
-package nervous_system
+package utils
 
 import "graph_robot/neure"
 

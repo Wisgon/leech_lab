@@ -5,7 +5,6 @@ import (
 	"graph_robot/config"
 	"graph_robot/database"
 	"graph_robot/interact"
-	"graph_robot/utils"
 	"os"
 	"os/signal"
 	"syscall"
@@ -40,7 +39,6 @@ func main() {
 
 	for {
 		fmt.Println("thinking...")
-		fmt.Println(utils.GetProjectRoot())
 		time.Sleep(10 * time.Second) // or runtime.Gosched() or similar per @misterbee
 		done <- 0
 		// panic("dfdfdf")

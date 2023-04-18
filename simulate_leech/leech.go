@@ -1,6 +1,36 @@
 package leech
 
-import "graph_robot/interact"
+import (
+	"graph_robot/interact"
+	"graph_robot/neure"
+)
+
+type LeechBody struct {
+	Skin     []*neure.Neure // sensory organ of leech
+	Nose     []*neure.Neure
+	Movement []*neure.Neure
+}
+
+func (lb *LeechBody) InitBody() {
+}
+
+func (lb *LeechBody) Action(command string) {
+
+}
+
+func (lb *LeechBody) Sense(env interact.Environment) { // get environment info
+}
+
+type LeechBrain struct {
+}
+
+func (lb *LeechBrain) InitBrain() {
+
+}
+
+func (lb *LeechBrain) Sense2Action() (bodyAction string) {
+	return
+}
 
 type Leech struct {
 	brain LeechBrain

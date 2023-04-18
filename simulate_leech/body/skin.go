@@ -1,7 +1,8 @@
-package nervous_system
+package body
 
 import (
 	"graph_robot/neure"
+	"graph_robot/simulate_leech/utils"
 )
 
 type Skin struct {
@@ -19,7 +20,7 @@ func (s *Skin) Temperature2NeuralSignal(temperature float64) {
 	case temperature > 12 && temperature < 45:
 		// normal temp, activate normal temp neure
 		for _, n := range s.Entrance["skin_entrance_normalTemperature"] {
-			go SignalPass(n)
+			go utils.SignalPass(n)
 		}
 		// todo: next entrance
 	}
