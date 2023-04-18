@@ -14,16 +14,11 @@ import (
 // Dendrite /ˈdendraɪt/ 樹突
 // axon /ˈæksɑːn/ 軸突
 
-// 小知識：
-// 1. 神經元神經衝動傳導方向是樹突傳向軸突然後傳到下一個神經元的樹突
-// 2. 一個神經元的軸突只能連接一個神經元的樹突或細胞體，但是樹突可以連接多個神經元，將這些神經元的信號通過軸突傳給下一個神經元
-// 3. 神經元現在海馬體形成短時記憶，然後再在皮質層形成長期記憶
-
 type Synapse struct {
 	// 突觸，連接兩個Neure
-	NextNeureID  string `json:"n1"` // 突觸後神經元，是這個軸突所連接的神經元
-	LinkStrength int32  `json:"gn"` // 连接的强度，这个强度是要和next neure的
-	SynapseNum   int32  `json:"uy"` // 连接到next neure的突触数量，跟长时记忆有关，长时记忆的连接突触数量会变多
+	NextNeureID string `json:"n1"` // 突觸後神經元，是這個軸突所連接的神經元
+	SynapseNum  int32  `json:"uy"` // 连接到next neure的突触数量，跟长时记忆有关，长时记忆的连接突触数量会变多
+	Status      string `json:"us"` // 该突触所处的状态，如强化态，弱化态，生长态等，生长态会持续一段较长的时间
 }
 
 func (s *Synapse) GetNextId() string {
@@ -57,17 +52,17 @@ func (s *RegulateSynapse) ActivateNextNeure() {
 
 type Neure struct {
 	mu                     sync.Mutex
-	Synapses               []creature.Synapse `json:"sa"`  // 軸突連接的突觸，有些神经元有多个突触，但是现在还未明白多个或单个突触有什么影响，一旦激发，所有连接的突触都会激活，这里尽量只连接一个突触
+	Synapses               []creature.Synapse `json:"sa"`  // 軸突連接的突觸，有些神经元有多个突触，但是现在还未明白多个或单个突触有什么影响，一旦激发，所有连接的突触都会激活
 	NowLinkedDendritesIds  []string           `json:"ndn"` // 現在已連接的樹突
 	ElectricalConductivity int32              `json:"ce"`  // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值，但好像对程序模拟的大脑没什么作用。
 	ThisNeureId            string             `json:"did"` // the id of database
-	Weight                 int32              `json:"iw"`  //触发这个神经元产生动作电位的weight
-	NowWeight              int32              `json:"tw"`  // 现在的权重，每刺激一次，增加一点，直到超过weight就被激活
+	Weight                 float32            `json:"iw"`  //触发这个神经元产生动作电位的weight
+	NowWeight              float32            `json:"tw"`  // 现在的权重，每刺激一次，增加一点，直到超过weight就被激活
 	NeureType              string             `json:"tn"`
 	// RefractoryPeriod float64 `json:"ir"`  //不应期，不过是否有必要还有待商榷
 }
 
-func (n *Neure) AddNowWeight(weight int32) (activate bool) {
+func (n *Neure) AddNowWeight(weight float32) (activate bool) {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 	n.NowWeight += weight

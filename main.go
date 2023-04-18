@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"graph_robot/config"
 	"graph_robot/database"
+	"graph_robot/interact"
 	"graph_robot/utils"
 	"os"
 	"os/signal"
@@ -34,10 +35,14 @@ func main() {
 		os.Exit(1)
 	}()
 
+	done := make(chan int, 1)
+	go interact.StartInteract(done)
+
 	for {
 		fmt.Println("thinking...")
 		fmt.Println(utils.GetProjectRoot())
-		time.Sleep(2 * time.Second) // or runtime.Gosched() or similar per @misterbee
-		panic("dfdfdf")
+		time.Sleep(10 * time.Second) // or runtime.Gosched() or similar per @misterbee
+		done <- 0
+		// panic("dfdfdf")
 	}
 }
