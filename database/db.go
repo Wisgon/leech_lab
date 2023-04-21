@@ -24,7 +24,7 @@ func getDB(dbPath string) *badger.DB {
 
 func getSequenceObject(seqBandwidth int) *map[string]*badger.Sequence {
 	seqMap := make(map[string]*badger.Sequence)
-	prefix := config.CombinePrefix()
+	prefix := config.GetAllPrefix()
 	prefix = append(prefix, config.TestPrefix) // use when testing
 	for i := 0; i < len(prefix); i++ {
 		keyPrefix := prefix[i]

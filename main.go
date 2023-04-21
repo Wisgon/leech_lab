@@ -5,6 +5,7 @@ import (
 	"graph_robot/config"
 	"graph_robot/database"
 	"graph_robot/interact"
+	"math/rand"
 	"os"
 	"os/signal"
 	"syscall"
@@ -18,6 +19,7 @@ func cleanup() {
 }
 
 func main() {
+	rand.Seed(time.Now().UnixNano()) // set rand seed
 	database.InitDb(config.LeechDatasPath, config.SeqBandwidth)
 	defer func() {
 		if r := recover(); r != nil {

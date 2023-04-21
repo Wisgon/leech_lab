@@ -7,7 +7,7 @@ import (
 )
 
 func TestCombinePrefix(t *testing.T) {
-	prefix := config.CombinePrefix()
+	prefix := config.GetAllPrefix()
 	skinPrefix := []string{}
 	for _, v := range prefix {
 		if strings.Contains(v, "movement") {

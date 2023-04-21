@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math/rand"
+	"time"
+)
 
 func main() {
 	// random number
@@ -79,6 +83,31 @@ func main() {
 	// stringArray := []string{"11"}
 	// testStringArrayCopy(stringArray)
 	// fmt.Println("result:", stringArray[0])  // 22
+
+	// seed test
+	// rand.Seed(time.Now().UnixNano())
+	// biggerthan := []bool{}
+	// for i := 0; i < 100000; i++ {
+	// 	if rand.Float32() > 0.5 {
+	// 		biggerthan = append(biggerthan, true)
+	// 	}
+	// }
+	// fmt.Println(len(biggerthan))
+	// fmt.Println(float32(len(biggerthan)) / 100000)
+
+	rand.Seed(2)
+	go get_rand_num()
+	for i := 0; i < 10; i++ {
+		fmt.Println(rand.Intn(10), " in main routine")
+		time.Sleep(1 * time.Microsecond)
+	}
+	time.Sleep(1 * time.Second)
+}
+
+func get_rand_num() {
+	for i := 0; i < 10; i++ {
+		fmt.Println(rand.Intn(10), " in go routine")
+	}
 }
 
 // func testStringArrayCopy(stringArray []string) {

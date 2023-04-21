@@ -1,26 +1,25 @@
 package config
 
-func CombinePrefix() (prefix []string) {
-	for i := 0; i < len(PrefixFirst); i++ {
-		// for j := 0; j < len(PrefixSecond); j++ {
-		// prefixFS := PrefixFirst[i] + PrefixNameSplitSymbol + PrefixSecond[j]
-		prefixFS := PrefixFirst[i]
-		if PrefixFirst[i] == "skin" {
-			skinPrefix := combinePrefixSkin(prefixFS)
-			prefix = append(prefix, skinPrefix...)
-		} else if PrefixFirst[i] == "movement" {
-			movementPrefix := combinePrefixMovement(prefixFS)
-			prefix = append(prefix, movementPrefix...)
-		} else {
-			prefix = append(prefix, prefixFS)
+func GetAllPrefix() (prefix []string) {
+	for i := 0; i < len(PrefixArea); i++ {
+		for k := 0; k < len(PrefixNeureType); k++ {
+			prefixFS := PrefixArea[i] + PrefixNameSplitSymbol + PrefixNeureType[k]
+			if PrefixArea[i] == "skin" {
+				skinPrefix := combinePrefixSkin(prefixFS)
+				prefix = append(prefix, skinPrefix...)
+			} else if PrefixArea[i] == "movement" {
+				movementPrefix := combinePrefixMovement(prefixFS)
+				prefix = append(prefix, movementPrefix...)
+			} else {
+				prefix = append(prefix, prefixFS)
+			}
 		}
-		// }
 	}
 	return
 }
 
 func combinePrefixSkin(skinPrePrefix string) (skinPrefix []string) {
-	for _, t := range PrefixSkinThird {
+	for _, t := range PrefixSkinKind {
 		for _, f := range SkinNeurePosition {
 			skinPrefix = append(skinPrefix, skinPrePrefix+PrefixNameSplitSymbol+t+PrefixNameSplitSymbol+f)
 		}

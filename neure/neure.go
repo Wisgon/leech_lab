@@ -7,6 +7,7 @@ import (
 	"graph_robot/creature"
 	"graph_robot/database"
 	"graph_robot/utils"
+	"math/rand"
 	"sync"
 )
 
@@ -16,9 +17,10 @@ import (
 
 type Synapse struct {
 	// 突觸，連接兩個Neure
-	NextNeureID string `json:"n1"` // 突觸後神經元，是這個軸突所連接的神經元
-	SynapseNum  int32  `json:"uy"` // 连接到next neure的突触数量，跟长时记忆有关，长时记忆的连接突触数量会变多
-	Status      string `json:"us"` // 该突触所处的状态，如强化态，弱化态，生长态等，生长态会持续一段较长的时间
+	NextNeureID      string  `json:"n1"` // 突觸後神經元，是這個軸突所連接的神經元
+	SynapseNum       int32   `json:"uy"` // 连接到next neure的突触数量，跟长时记忆有关，长时记忆的连接突触数量会变多
+	LinkStrength     float32 `json:"gk"` // 连接强度
+	LastTimeActivate float32 `json:"ii"` // 最后一次激活的时间，单位为纳秒
 }
 
 func (s *Synapse) GetNextId() string {
@@ -31,6 +33,26 @@ func (s *Synapse) SetNextId(nextNeureId string) {
 
 func (s *Synapse) CheckLinkStrength() {
 	// 设计一个函数，连接强度越小越容易被清除，强度越大越难清除
+}
+
+func (s *Synapse) ActivateWeight() float32 {
+	//这个weight是与下一个神经元的weight相比来决定激不激活
+	return s.LinkStrength * float32(s.SynapseNum)
+}
+
+func (s *Synapse) CanNextNeureActivate() (ok bool, nextNeure Neure) {
+	nextNeure = Neure{}
+	nextNeure.GetNeureFromDbById(s.NextNeureID)
+	difference := nextNeure.Weight - s.LinkStrength*float32(s.SynapseNum)
+	if difference <= 0 { // LinkStrength > weight
+		ok = true
+	} else {
+		if (1-difference/nextNeure.Weight)*config.BreakThroughCoefficient > rand.Float32() {
+			// difference越小，也就是LinkStrength与weight越接近，变为true的概率越大，但最大不会超过设置值（如0.3）
+			ok = true
+		}
+	}
+	return
 }
 
 type NormalSynapse struct {
@@ -57,26 +79,8 @@ type Neure struct {
 	ElectricalConductivity int32              `json:"ce"`  // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值，但好像对程序模拟的大脑没什么作用。
 	ThisNeureId            string             `json:"did"` // the id of database
 	Weight                 float32            `json:"iw"`  //触发这个神经元产生动作电位的weight
-	NowWeight              float32            `json:"tw"`  // 现在的权重，每刺激一次，增加一点，直到超过weight就被激活
 	NeureType              string             `json:"tn"`
 	// RefractoryPeriod float64 `json:"ir"`  //不应期，不过是否有必要还有待商榷
-}
-
-func (n *Neure) AddNowWeight(weight float32) (activate bool) {
-	n.mu.Lock()
-	defer n.mu.Unlock()
-	n.NowWeight += weight
-	if n.NowWeight > n.Weight {
-		activate = true
-		n.ResetNowWeight()
-	}
-	return
-}
-
-func (n *Neure) ResetNowWeight() {
-	n.mu.Lock()
-	defer n.mu.Unlock()
-	n.NowWeight = 0
 }
 
 func (n *Neure) CreateNeureInDB(keyPrefix string) {
