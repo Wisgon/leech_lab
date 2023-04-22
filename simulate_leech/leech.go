@@ -2,13 +2,12 @@ package leech
 
 import (
 	"graph_robot/interact"
-	"graph_robot/neure"
+	"graph_robot/simulate_leech/body"
 )
 
 type LeechBody struct {
-	Skin     []*neure.Neure // sensory organ of leech
-	Nose     []*neure.Neure
-	Movement []*neure.Neure
+	Skin     body.Skin // sensory organ of leech
+	Movement body.Movement
 }
 
 func (lb *LeechBody) InitBody() {
@@ -39,8 +38,8 @@ type Leech struct {
 
 func (l *Leech) InitLeech() {
 	// init a leech
-	go l.brain.InitBrain()
-	go l.body.InitBody()
+	l.brain.InitBrain()
+	l.body.InitBody()
 }
 
 func (l *Leech) Environment2Action(env interact.Environment) string { // get environment param and decide an action

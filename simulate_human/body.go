@@ -1,30 +1,24 @@
 package human
 
-import (
-	"fmt"
-	"graph_robot/interact"
-	"graph_robot/neure"
-)
+// type Mouth struct {
+// }
 
-type Mouth struct {
-}
+// func (m *Mouth) Convert(outputNeures []neure.Neure) string {
+// 	return ""
+// }
 
-func (m *Mouth) Convert(outputNeures []neure.Neure) string {
-	return ""
-}
+// func (m *Mouth) Say() {
+// 	fmt.Println("")
+// }
 
-func (m *Mouth) Say() {
-	fmt.Println("")
-}
+// type Body struct {
+// 	Skin []neure.Neure // sensory organ of leech
+// }
 
-type Body struct {
-	Skin []neure.Neure // sensory organ of leech
-}
+// func (b *Body) Action(command string) {
 
-func (b *Body) Action(command string) {
+// }
 
-}
+// func (b *Body) Sense(env interact.Environment) { // get environment info
 
-func (b *Body) Sense(env interact.Environment) { // get environment info
-
-}
+// }

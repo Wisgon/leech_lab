@@ -19,8 +19,8 @@ func GetAllPrefix() (prefix []string) {
 }
 
 func combinePrefixSkin(skinPrePrefix string) (skinPrefix []string) {
-	for _, t := range PrefixSkinKind {
-		for _, f := range SkinNeurePosition {
+	for _, t := range PrefixSkinAndSenseType {
+		for _, f := range SkinAndSenseNeurePosition {
 			skinPrefix = append(skinPrefix, skinPrePrefix+PrefixNameSplitSymbol+t+PrefixNameSplitSymbol+f)
 		}
 	}

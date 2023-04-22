@@ -27,19 +27,28 @@ var PrefixNeureType = []string{
 	"inborn",   // 天生的
 	"acquired", // 后天获得的
 }
-var PrefixSkinKind = []string{
+var PrefixSkinAndSenseType = []string{
 	"normalTemperature",
 	"hotTemperature",
 	"coldTemperature",
 	"extremelyHotTemp",
 	"extremelyColdTemp",
+	"normalPress",
+	"biggerPress",
+	"extremelyPress",
+}
+var PrefixSenseType = []string{
+	"touchType",
+	"painfulType", // painfulType had more higher weight
 }
 var PrefixNumSplitSymbol = "@"
 var PrefixNameSplitSymbol = "_"
+var RefractoryPeriod = 5 * time.Millisecond // 神经元的不应期
 
 var LinkStrengthInc = 3.2                  // 长时程增强一次的强度
 var LinkStrengthIncTime = 60 * time.Minute // 长时程增强一次的时间，以分钟为单位
 var BreakThroughCoefficient = float32(0.3) // 突破系数，越大的话，与next weight越接近越容易突破
+var Weight = float32(100)                  // 每个神经元的激活权重都是固定的，会变化的是连接强度
 
 // database setting------------------------------------------------------------------------------------------------------
 var MaxTransactionNum = 100000 // according to experiments, this mechine can hold most 100000+ uncommit.
@@ -53,8 +62,6 @@ var TestPrefix = "testing_neure"
 
 // leech config------------------------------------------------------------------------------------------------------
 var DatabaseName = "leech"
-var LeechSize = [3]int64{100, 100, 100}
-var LeechCenterCor = [3]int64{0, 50, 0}
 var Movements = []string{
 	"move_left_front_up",
 	"move_left_front_down",
@@ -70,7 +77,7 @@ var Movements = []string{
 	"move_right_back_down",
 }
 var LeechDatasPath = ProjectRoot + "/simulate_leech/datas" // leech DatasPath
-var SkinNeurePosition = []string{
+var SkinAndSenseNeurePosition = []string{
 	"left_front_up",
 	"left_front_down",
 	"left_middle_up",
@@ -84,4 +91,5 @@ var SkinNeurePosition = []string{
 	"right_back_up",
 	"right_back_down",
 }
-var EachSkinPositionNeureNum = 10
+var EachSkinPositionSurfaceNeureNum = 10 //每个skin的area的表层神经元数量
+var EachSkinPositionDeepNeureNum = 100   // 每个skin的area的深层神经元数量

@@ -9,8 +9,8 @@ import (
 	"testing"
 )
 
-var Neure = neure.Neure{
-	// DendritesLinkNum:       33344,
+var Neure = neure.Neure[*neure.NormalSynapse]{
+	Synapses:               []*neure.NormalSynapse{},
 	ElectricalConductivity: 4423423,
 }
 
@@ -19,7 +19,7 @@ func BenchmarkJson(*testing.B) {
 		// use json is more faster
 		nb, _ := json.Marshal(Neure)
 		_ = string(nb)
-		var neu neure.Neure
+		var neu neure.Neure[*neure.NormalSynapse]
 		_ = json.Unmarshal(nb, &neu)
 	}
 	// result BenchmarkJson
@@ -42,7 +42,7 @@ func BenchmarkGob(*testing.B) {
 		_ = network.Bytes()
 
 		// Decode (receive) the value.
-		var q neure.Neure
+		var q neure.Neure[*neure.NormalSynapse]
 		err = dec.Decode(&q)
 		if err != nil {
 			log.Fatal("decode error:", err)

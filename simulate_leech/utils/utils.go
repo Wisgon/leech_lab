@@ -2,6 +2,6 @@ package utils
 
 import "graph_robot/neure"
 
-func SignalPass(entranceNeure *neure.Neure) {
+func SignalPass[T neure.ST](entranceNeure *neure.Neure[T]) {
 	// todo:
 }

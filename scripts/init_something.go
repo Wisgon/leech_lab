@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"graph_robot/config"
 	"graph_robot/database"
-	"graph_robot/interact"
+	leech "graph_robot/simulate_leech"
 	"math/rand"
 	"os"
 	"os/signal"
@@ -36,13 +36,6 @@ func main() {
 		os.Exit(1)
 	}()
 
-	done := make(chan int, 1)
-	go interact.StartInteract(done)
-
-	for {
-		fmt.Println("thinking...")
-		time.Sleep(10 * time.Second)
-		done <- 0
-		// panic("dfdfdf")
-	}
+	leechObj := leech.Leech{}
+	leechObj.InitLeech()
 }

@@ -3,7 +3,6 @@ package utils
 import (
 	"crypto/md5"
 	"fmt"
-	"graph_robot/creature"
 	"math/rand"
 	"path"
 	"path/filepath"
@@ -32,14 +31,4 @@ func RemoveUniqueValueFromSlice[T constraints.Integer | constraints.Float | stri
 			break
 		}
 	}
-}
-
-func RemoveUniqueValueFromSynapse[T creature.Synapse](value string, s []T) []T {
-	for i, v := range s {
-		if v.GetNextId() == value {
-			s = append(s[:i], s[i+1:]...)
-			break
-		}
-	}
-	return s
 }

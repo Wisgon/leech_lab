@@ -6,11 +6,11 @@ import (
 )
 
 func TestNeureLink(t *testing.T) {
-	neure1 := neure.Neure{}
-	neure2 := neure.Neure{}
+	neure1 := neure.Neure[*neure.NormalSynapse]{}
+	neure2 := neure.Neure[*neure.NormalSynapse]{}
 	neure1.CreateNeureInDB("testing_neure")
 	neure2.CreateNeureInDB("testing_neure")
-	neure3 := neure.Neure{}
+	neure3 := neure.Neure[*neure.NormalSynapse]{}
 	neure3.CreateNeureInDB("testing_neure")
 
 	neure1.ConnectNextNuere(&neure2)
@@ -19,9 +19,9 @@ func TestNeureLink(t *testing.T) {
 	key1, key2, key3 := neure1.ThisNeureId, neure2.ThisNeureId, neure3.ThisNeureId
 	t.Log("key2:", key2)
 
-	neure1 = neure.Neure{}
-	neure2 = neure.Neure{}
-	neure3 = neure.Neure{}
+	neure1 = neure.Neure[*neure.NormalSynapse]{}
+	neure2 = neure.Neure[*neure.NormalSynapse]{}
+	neure3 = neure.Neure[*neure.NormalSynapse]{}
 
 	neure1.GetNeureFromDbById(key1)
 	neure2.GetNeureFromDbById(key2)
@@ -39,13 +39,13 @@ func TestDeleteNeure(t *testing.T) {
 	key1 := "testing_neure@0"
 	key3 := "testing_neure@2"
 
-	neure2 := neure.Neure{}
+	neure2 := neure.Neure[*neure.NormalSynapse]{}
 	neure2.GetNeureFromDbById(key2)
 	neure2.DeleteNeure()
 
-	neure1 := neure.Neure{}
+	neure1 := neure.Neure[*neure.NormalSynapse]{}
 	neure1.GetNeureFromDbById(key1)
-	neure3 := neure.Neure{}
+	neure3 := neure.Neure[*neure.NormalSynapse]{}
 	neure3.GetNeureFromDbById(key3)
 
 	if len(neure1.Synapses) == 0 && len(neure3.NowLinkedDendritesIds) == 0 {
