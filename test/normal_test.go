@@ -6,14 +6,14 @@ import (
 	"testing"
 )
 
-func TestCombinePrefix(t *testing.T) {
+func TestGetAllPrefix(t *testing.T) {
 	prefix := config.GetAllPrefix()
-	skinPrefix := []string{}
+	i := 0
 	for _, v := range prefix {
-		if strings.Contains(v, "movement") {
-			skinPrefix = append(skinPrefix, v)
-			t.Logf("prefix:%s\n", v)
+		if strings.Contains(v, "sense") && strings.Contains(v, "normalTemperature") {
+			t.Log(v)
+			i++
 		}
 	}
-	t.Log("len:", len(skinPrefix))
+	t.Log(i, "~~~~")
 }

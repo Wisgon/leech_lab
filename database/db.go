@@ -23,6 +23,7 @@ func getDB(dbPath string) *badger.DB {
 }
 
 func getSequenceObject(seqBandwidth int) *map[string]*badger.Sequence {
+	// run this function will add a data which key name is the same name with prefix
 	seqMap := make(map[string]*badger.Sequence)
 	prefix := config.GetAllPrefix()
 	prefix = append(prefix, config.TestPrefix) // use when testing

@@ -9,17 +9,17 @@ import (
 	"testing"
 )
 
-var Neure = neure.Neure[*neure.NormalSynapse]{
-	Synapses:               []*neure.NormalSynapse{},
+var Neure1 = neure.Neure{
+	Synapses:               []*neure.Synapse{},
 	ElectricalConductivity: 4423423,
 }
 
 func BenchmarkJson(*testing.B) {
 	for i := 0; i < 10000; i++ {
 		// use json is more faster
-		nb, _ := json.Marshal(Neure)
+		nb, _ := json.Marshal(Neure1)
 		_ = string(nb)
-		var neu neure.Neure[*neure.NormalSynapse]
+		var neu neure.Neure
 		_ = json.Unmarshal(nb, &neu)
 	}
 	// result BenchmarkJson
@@ -34,7 +34,7 @@ func BenchmarkGob(*testing.B) {
 	for i := 0; i < 10000; i++ {
 
 		// Encode (send) the value.
-		err := enc.Encode(Neure)
+		err := enc.Encode(Neure1)
 		if err != nil {
 			log.Fatal("encode error:", err)
 		}
@@ -42,7 +42,7 @@ func BenchmarkGob(*testing.B) {
 		_ = network.Bytes()
 
 		// Decode (receive) the value.
-		var q neure.Neure[*neure.NormalSynapse]
+		var q neure.Neure
 		err = dec.Decode(&q)
 		if err != nil {
 			log.Fatal("decode error:", err)

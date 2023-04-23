@@ -5,6 +5,7 @@ import (
 	"graph_robot/config"
 	"graph_robot/database"
 	"graph_robot/interact"
+	"graph_robot/neure"
 	"math/rand"
 	"os"
 	"os/signal"
@@ -14,8 +15,15 @@ import (
 
 func cleanup() {
 	fmt.Println("closing db~~~")
+	// save neure map
+	neure.NeureMap.Range(func(key, value any) bool {
+		neureObj := value.(*neure.Neure)
+		neureObj.UpdateNeure2DB()
+		return true
+	})
 	database.CloseDb()
 	// some other cleanup here ~~~
+
 }
 
 func main() {
@@ -26,6 +34,8 @@ func main() {
 			cleanup()
 		}
 	}()
+
+	go neure.CheckNeureMap()
 
 	// get control c signal and invole cleanup, because control c will not execute the defer function
 	c := make(chan os.Signal, 1)

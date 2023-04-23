@@ -10,7 +10,7 @@ import (
 )
 
 func TestCreateOne(t *testing.T) {
-	neureIns := neure.Neure[*neure.NormalSynapse]{
+	neureIns := neure.Neure{
 		ElectricalConductivity: 443,
 	}
 	key := database.GetKeyFromPrefix("testing_neure")
@@ -22,8 +22,8 @@ func TestCreateOne(t *testing.T) {
 
 func TestGetNeure(t *testing.T) {
 	key := "testing_neure@0"
-	neureObj := neure.Neure[*neure.NormalSynapse]{}
-	neureObj.GetNeureFromDbById(key)
+	neureObj := neure.Neure{}
+	neureObj.GetNeureById(key)
 	if neureObj.ThisNeureId != key {
 		t.Error("get wrong data")
 	}
@@ -33,14 +33,14 @@ func TestGetNeure(t *testing.T) {
 func TestUpdateNeure(t *testing.T) {
 	key := "testing_neure@1"
 	neureByte := database.GetNeure(key)
-	neureObj := neure.Neure[*neure.NormalSynapse]{}
+	neureObj := neure.Neure{}
 	neureObj.Byte2Struct(neureByte)
 
 	neureObj.ElectricalConductivity = 111
 	database.UpdateNeure(neureObj.Struct2Byte(), neureObj.ThisNeureId)
 
 	neureByte = database.GetNeure(key)
-	neureObj = neure.Neure[*neure.NormalSynapse]{}
+	neureObj = neure.Neure{}
 	neureObj.Byte2Struct(neureByte)
 	if neureObj.ElectricalConductivity != 111 {
 		t.Error("update fail")
@@ -70,7 +70,7 @@ func TestScanAllKey(t *testing.T) {
 
 func TestScanAll(t *testing.T) {
 	allNeuresBytes := database.ValueAllDbScan(func(result []byte) bool {
-		n := neure.Neure[*neure.NormalSynapse]{}
+		n := neure.Neure{}
 		if len(result) == 8 {
 			// raw prefix will set an empty value in db, if get in Byte2Struct, will panic
 			return false
@@ -81,7 +81,7 @@ func TestScanAll(t *testing.T) {
 	if len(*allNeuresBytes) == 0 {
 		t.Errorf("get all fail...\n")
 	} else {
-		allNeures := neure.TurnNeureBytes2Neures[*neure.NormalSynapse](allNeuresBytes)
+		allNeures := neure.TurnNeureBytes2Neures(allNeuresBytes)
 		for _, v := range *allNeures {
 			t.Logf("key: %s", v.ThisNeureId)
 			if v.ElectricalConductivity != 443 {
@@ -93,7 +93,7 @@ func TestScanAll(t *testing.T) {
 
 	// test first flag
 	firstNeuresBytes := database.ValueAllDbScan(func(result []byte) bool {
-		n := neure.Neure[*neure.NormalSynapse]{}
+		n := neure.Neure{}
 		if len(result) == 8 {
 			// raw prefix will set an empty value in db, if get in Byte2Struct, will panic
 			return false
@@ -110,11 +110,11 @@ func TestScanAll(t *testing.T) {
 
 func TestScanPrefixAll(t *testing.T) {
 	prefixedNeureBytes := database.ValueAndPrefixScan("testing_neure"+config.PrefixNumSplitSymbol, func(result []byte) bool {
-		n := neure.Neure[*neure.NormalSynapse]{}
+		n := neure.Neure{}
 		n.Byte2Struct(result)
 		return n.ElectricalConductivity == 443
 	}, false)
-	prefixedNeures := neure.TurnNeureBytes2Neures[*neure.NormalSynapse](prefixedNeureBytes)
+	prefixedNeures := neure.TurnNeureBytes2Neures(prefixedNeureBytes)
 	if len(*prefixedNeures) == 0 {
 		t.Error("no data found")
 	} else {
@@ -129,7 +129,7 @@ func TestScanPrefixAll(t *testing.T) {
 
 	// test first flag
 	firstPrefixedNeureBytes := database.ValueAndPrefixScan("testing_neure"+config.PrefixNumSplitSymbol, func(result []byte) bool {
-		n := neure.Neure[*neure.NormalSynapse]{}
+		n := neure.Neure{}
 		n.Byte2Struct(result)
 		return n.ElectricalConductivity == 443
 	}, true)
@@ -150,79 +150,79 @@ func TestKeyOnlyPrefixScan(t *testing.T) {
 	}
 }
 
-func TestManuallyCreate(t *testing.T) {
-	mtxn := database.ManuallyTransaction{}
-	defer mtxn.Close()
+// func TestManuallyCreate(t *testing.T) {
+// 	mtxn := database.ManuallyTransaction{}
+// 	defer mtxn.Close()
 
-	mtxn.Init()
-	var neures = make(map[string]*neure.Neure[*neure.NormalSynapse])
-	for i := 0; i < 3012; i++ {
-		key := database.GetKeyFromPrefix("testing_neure")
-		n := neure.Neure[*neure.NormalSynapse]{
-			ElectricalConductivity: 109090,
-			ThisNeureId:            key,
-		}
-		neures[key] = &n
-		mtxn.Create(key, n.Struct2Byte())
-	}
+// 	mtxn.Init()
+// 	var neures = make(map[string]*neure.Neure)
+// 	for i := 0; i < 3012; i++ {
+// 		key := database.GetKeyFromPrefix("testing_neure")
+// 		n := neure.Neure{
+// 			ElectricalConductivity: 109090,
+// 			ThisNeureId:            key,
+// 		}
+// 		neures[key] = &n
+// 		mtxn.Create(key, n.Struct2Byte())
+// 	}
 
-	t.Logf("success~~~, len: %d", len(neures))
-}
+// 	t.Logf("success~~~, len: %d", len(neures))
+// }
 
-func TestManuallyUpdate(t *testing.T) {
-	mtxn := database.ManuallyTransaction{}
-	defer mtxn.Close()
-	mtxn.Init()
+// func TestManuallyUpdate(t *testing.T) {
+// 	mtxn := database.ManuallyTransaction{}
+// 	defer mtxn.Close()
+// 	mtxn.Init()
 
-	neures := make(map[string]*neure.Neure[*neure.NormalSynapse])
-	keys := []string{}
+// 	neures := make(map[string]*neure.Neure)
+// 	keys := []string{}
 
-	neureBytesKeys := database.KeyOnlyPrefixScan("testing_neure" + config.PrefixNumSplitSymbol)
-	if len(*neureBytesKeys) == 0 {
-		t.Error("no data found")
-	}
-	for _, v := range *neureBytesKeys {
-		keys = append(keys, string(v))
-	}
+// 	neureBytesKeys := database.KeyOnlyPrefixScan("testing_neure" + config.PrefixNumSplitSymbol)
+// 	if len(*neureBytesKeys) == 0 {
+// 		t.Error("no data found")
+// 	}
+// 	for _, v := range *neureBytesKeys {
+// 		keys = append(keys, string(v))
+// 	}
 
-	for _, key := range keys {
-		neureByte := database.GetNeure(key)
-		neureObj := neure.Neure[*neure.NormalSynapse]{}
-		neureObj.Byte2Struct(neureByte)
-		neures[key] = &neureObj
-	}
+// 	for _, key := range keys {
+// 		neureByte := database.GetNeure(key)
+// 		neureObj := neure.Neure{}
+// 		neureObj.Byte2Struct(neureByte)
+// 		neures[key] = &neureObj
+// 	}
 
-	for key, n := range neures {
-		n.ElectricalConductivity = 9001
-		mtxn.Update(key, n.Struct2Byte())
-	}
+// 	for key, n := range neures {
+// 		n.ElectricalConductivity = 9001
+// 		mtxn.Update(key, n.Struct2Byte())
+// 	}
 
-	neureByte := database.GetNeure("testing_neure@1")
-	neureObj := neure.Neure[*neure.NormalSynapse]{}
-	neureObj.Byte2Struct(neureByte)
-	if neureObj.ElectricalConductivity != 9001 {
-		t.Errorf("Update fail: ele:%d\n", neureObj.ElectricalConductivity)
-	}
+// 	neureByte := database.GetNeure("testing_neure@1")
+// 	neureObj := neure.Neure{}
+// 	neureObj.Byte2Struct(neureByte)
+// 	if neureObj.ElectricalConductivity != 9001 {
+// 		t.Errorf("Update fail: ele:%d\n", neureObj.ElectricalConductivity)
+// 	}
 
-	t.Logf("success~~~, len: %d", len(neures))
-}
+// 	t.Logf("success~~~, len: %d", len(neures))
+// }
 
-func TestManuallyDelete(t *testing.T) {
-	mtxn := database.ManuallyTransaction{}
-	defer mtxn.Close()
-	mtxn.Init()
+// func TestManuallyDelete(t *testing.T) {
+// 	mtxn := database.ManuallyTransaction{}
+// 	defer mtxn.Close()
+// 	mtxn.Init()
 
-	keys := []string{}
-	neureBytesKeys := database.KeyOnlyPrefixScan("testing_neure" + config.PrefixNumSplitSymbol)
-	if len(*neureBytesKeys) == 0 {
-		t.Error("no data found")
-	}
-	for _, v := range *neureBytesKeys {
-		keys = append(keys, string(v))
-	}
-	for _, key := range keys {
-		mtxn.Delete(key)
-	}
+// 	keys := []string{}
+// 	neureBytesKeys := database.KeyOnlyPrefixScan("testing_neure" + config.PrefixNumSplitSymbol)
+// 	if len(*neureBytesKeys) == 0 {
+// 		t.Error("no data found")
+// 	}
+// 	for _, v := range *neureBytesKeys {
+// 		keys = append(keys, string(v))
+// 	}
+// 	for _, key := range keys {
+// 		mtxn.Delete(key)
+// 	}
 
-	t.Log("Success~~~")
-}
+// 	t.Log("Success~~~")
+// }

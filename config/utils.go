@@ -1,20 +1,47 @@
 package config
 
-func GetAllPrefix() (prefix []string) {
-	for i := 0; i < len(PrefixArea); i++ {
-		for k := 0; k < len(PrefixNeureType); k++ {
-			prefixFS := PrefixArea[i] + PrefixNameSplitSymbol + PrefixNeureType[k]
-			if PrefixArea[i] == "skin" {
-				skinPrefix := combinePrefixSkin(prefixFS)
-				prefix = append(prefix, skinPrefix...)
-			} else if PrefixArea[i] == "movement" {
-				movementPrefix := combinePrefixMovement(prefixFS)
-				prefix = append(prefix, movementPrefix...)
-			} else {
-				prefix = append(prefix, prefixFS)
+import "strings"
+
+func GetOnePrefix(oldPrefix []string, somePrefix []string) []string {
+	var prefix []string
+	if len(oldPrefix) == 0 {
+		for j := 0; j < len(somePrefix); j++ {
+			prefix = append(prefix, somePrefix[j])
+		}
+	} else {
+		if len(somePrefix) == 0 {
+			return oldPrefix
+		}
+		for i := 0; i < len(oldPrefix); i++ {
+			for j := 0; j < len(somePrefix); j++ {
+				prefix = append(prefix, oldPrefix[i]+PrefixNameSplitSymbol+somePrefix[j])
 			}
 		}
 	}
+	return prefix
+}
+
+func GetAllPrefix() (prefix []string) {
+	prefix = GetOnePrefix(prefix, PrefixArea)
+	prefix = GetOnePrefix(prefix, PrefixNeureType)
+
+	newPrefix := []string{}
+	for i := 0; i < len(prefix); i++ {
+		if strings.Contains(prefix[i], "skin") {
+			skinPrefix := combinePrefixSkin(prefix[i])
+			prefix[i] = skinPrefix[0]
+			newPrefix = append(newPrefix, skinPrefix[1:]...)
+		} else if strings.Contains(prefix[i], "movement") {
+			movementPrefix := combinePrefixMovement(prefix[i])
+			prefix[i] = movementPrefix[0]
+			newPrefix = append(newPrefix, movementPrefix[1:]...)
+		} else if strings.Contains(prefix[i], "sense") {
+			sensePrefix := combinePrefixSense(prefix[i])
+			prefix[i] = sensePrefix[0]
+			newPrefix = append(newPrefix, sensePrefix[1:]...)
+		}
+	}
+	prefix = append(prefix, newPrefix...)
 	return
 }
 
@@ -30,6 +57,17 @@ func combinePrefixSkin(skinPrePrefix string) (skinPrefix []string) {
 func combinePrefixMovement(movementPrePrefix string) (movementPrefix []string) {
 	for _, m := range Movements {
 		movementPrefix = append(movementPrefix, movementPrePrefix+PrefixNameSplitSymbol+m)
+	}
+	return
+}
+
+func combinePrefixSense(sensePrePrefix string) (sensePrefix []string) {
+	for _, x := range PrefixSkinAndSenseType {
+		for _, y := range SkinAndSenseNeurePosition {
+			for _, z := range PrefixSenseType {
+				sensePrefix = append(sensePrefix, sensePrePrefix+PrefixNameSplitSymbol+x+PrefixNameSplitSymbol+y+PrefixNameSplitSymbol+z)
+			}
+		}
 	}
 	return
 }
