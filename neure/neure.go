@@ -22,7 +22,7 @@ type Neure struct {
 	ThisNeureId            string     `json:"e"` // the id of database
 	NowWeight              float32    `json:"f"` // 现在的权重，每刺激一次，增加一点，直到超过weight就被激活，被激活后会reset，超过一段时间无刺激也会reset
 	LastTimeActivate       time.Time  `json:"g"` // 最后一次激活的时间，精确到纳秒，可以在byte中自由转换
-	LastTimeResetNowWeight time.Time  `json:"h"` // 最后一次充值now weight的时间
+	LastTimeResetNowWeight time.Time  `json:"h"` // 最后一次重置now weight的时间
 }
 
 func (n *Neure) SaveNeure2Db() {

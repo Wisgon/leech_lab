@@ -55,6 +55,5 @@ func main() {
 		fmt.Println("thinking...")
 		time.Sleep(10 * time.Second)
 		done <- 0
-		// panic("dfdfdf")
 	}
 }

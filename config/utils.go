@@ -2,7 +2,7 @@ package config
 
 import "strings"
 
-func GetOnePrefix(oldPrefix []string, somePrefix []string) []string {
+func getOnePrefix(oldPrefix []string, somePrefix []string) []string {
 	var prefix []string
 	if len(oldPrefix) == 0 {
 		for j := 0; j < len(somePrefix); j++ {
@@ -22,8 +22,8 @@ func GetOnePrefix(oldPrefix []string, somePrefix []string) []string {
 }
 
 func GetAllPrefix() (prefix []string) {
-	prefix = GetOnePrefix(prefix, PrefixArea)
-	prefix = GetOnePrefix(prefix, PrefixNeureType)
+	prefix = getOnePrefix(prefix, PrefixArea)
+	prefix = getOnePrefix(prefix, PrefixNeureType)
 
 	newPrefix := []string{}
 	for i := 0; i < len(prefix); i++ {
