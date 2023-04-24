@@ -1,7 +1,10 @@
 package database
 
 import (
+	"fmt"
 	"graph_robot/config"
+	"reflect"
+	"strings"
 
 	"github.com/dgraph-io/badger/v4"
 )
@@ -42,11 +45,12 @@ func CloseDb() {
 	for k := range *seqMap {
 		err := (*seqMap)[k].Release()
 		if err != nil {
+			fmt.Println("*****", reflect.TypeOf(err))
 			panic(err)
 		}
 	}
 	err := db.Close()
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "resource temporarily unavailable") {
 		panic(err)
 	}
 }

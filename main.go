@@ -27,15 +27,17 @@ func cleanup() {
 }
 
 func main() {
+	stopCheckNeureMapSignal := make(chan bool, 1)
 	rand.Seed(time.Now().UnixNano()) // set rand seed
 	database.InitDb(config.LeechDatasPath, config.SeqBandwidth)
 	defer func() {
 		if r := recover(); r != nil {
+			stopCheckNeureMapSignal <- true
 			cleanup()
 		}
 	}()
 
-	go neure.CheckNeureMap()
+	go neure.CheckNeureMap(stopCheckNeureMapSignal)
 
 	// get control c signal and invole cleanup, because control c will not execute the defer function
 	c := make(chan os.Signal, 1)

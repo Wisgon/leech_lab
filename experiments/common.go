@@ -163,21 +163,68 @@ func main() {
 	// testType[*timer]()
 
 	// test Type struct
-	var m sync.Map
-	m.Store("s1", S1[CCC]{})
-	s1, _ := m.Load("s1")
-	// s2, ok := s1.(S1[AAA])
-	// fmt.Println("OK:", ok)
-	// s2.PrintBBB()
-	switch ss := s1.(type) {
-	case S1[AAA]:
-		fmt.Println("S1AAA", s1)
-	case S1[CCC]:
-		fmt.Println("Type CCC")
-		ss.A.BBB()
-	case int:
-		fmt.Println("int")
-	}
+	// var m sync.Map
+	// m.Store("s1", S1[CCC]{})
+	// s1, _ := m.Load("s1")
+	// // s2, ok := s1.(S1[AAA])
+	// // fmt.Println("OK:", ok)
+	// // s2.PrintBBB()
+	// switch ss := s1.(type) {
+	// case S1[AAA]:
+	// 	fmt.Println("S1AAA", s1)
+	// case S1[CCC]:
+	// 	fmt.Println("Type CCC")
+	// 	ss.A.BBB()
+	// case int:
+	// 	fmt.Println("int")
+	// }
+
+	// test sync.map
+	// m := sync.Map{}
+	// ccc := CCC{}
+	// fmt.Printf("first pointer:%p\n", &ccc)
+	// m.Store("ccc", &ccc) // 保存指针无法保证并发安全
+	// cccv, _ := m.Load("ccc")
+	// cccp := cccv.(*CCC)
+	// cccp.BBB()
+	// var wg sync.WaitGroup
+	// wg.Add(3)
+	// AddC1 := func(ccc *CCC) {
+	// 	for i := 0; i < 100000; i++ {
+	// 		ccc.AddC1()
+	// 	}
+	// 	wg.Done()
+	// }
+	// go AddC1(cccp)
+	// go AddC1(cccp)
+	// go AddC1(cccp)
+	// wg.Wait()
+	// fmt.Println("c1 value:!!!!", cccp.C1)
+
+	// cccv1, _ := m.Load("ccc")
+	// cccp1 := cccv1.(*CCC)
+	// fmt.Println("cccp1 value:&&&&", cccp1.C1)
+	// fmt.Printf("cccp1 pointer: %p\n", cccp1)
+	// cccv2, _ := m.Load("ccc")
+	// cccp2 := cccv2.(*CCC)
+	// fmt.Printf("cccp2 pointer: %p\n", cccp2)
+	// fmt.Println("cccp2 ccc1:", cccp2.C1)
+
+	// test main routine panic
+	defer func() {
+		if r := recover(); r != nil {
+			time.Sleep(10 * time.Second)
+		}
+	}()
+	go func() {
+		// even main panic to recover, go routine still running
+		for i := 0; i < 20; i++ {
+			time.Sleep(1 * time.Second)
+			fmt.Println("i:", i)
+		}
+	}()
+	panic("main panic")
+
 }
 
 type AAA interface {
@@ -193,7 +240,14 @@ func (s S1[T]) PrintBBB() {
 }
 
 type CCC struct {
-	C1 string
+	mu sync.Mutex
+	C1 int
+}
+
+func (c *CCC) AddC1() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.C1++
 }
 
 func (c CCC) BBB() {

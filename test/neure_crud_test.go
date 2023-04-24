@@ -21,9 +21,8 @@ func TestCreateOne(t *testing.T) {
 }
 
 func TestGetNeure(t *testing.T) {
-	key := "testing_neure@0"
-	neureObj := neure.Neure{}
-	neureObj.GetNeureById(key)
+	key := "testing_neure@5"
+	neureObj := neure.GetNeureById(key)
 	if neureObj.ThisNeureId != key {
 		t.Error("get wrong data")
 	}
