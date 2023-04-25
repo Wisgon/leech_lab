@@ -15,12 +15,12 @@ func TestCreateOne(t *testing.T) {
 	}
 	key := database.GetKeyFromPrefix("testing_neure")
 	neureIns.ThisNeureId = key
-	database.CreateNeure(neureIns.Struct2Byte(), key)
+	database.CreateData(neureIns.Struct2Byte(), key)
 
 	t.Logf("Success ####%+v", neureIns)
 }
 
-func TestGetNeure(t *testing.T) {
+func TestGetDataById(t *testing.T) {
 	key := "testing_neure@5"
 	neureObj := neure.GetNeureById(key)
 	if neureObj.ThisNeureId != key {
@@ -31,14 +31,14 @@ func TestGetNeure(t *testing.T) {
 
 func TestUpdateNeure(t *testing.T) {
 	key := "testing_neure@1"
-	neureByte := database.GetNeure(key)
+	neureByte := database.GetDataById(key)
 	neureObj := neure.Neure{}
 	neureObj.Byte2Struct(neureByte)
 
 	neureObj.ElectricalConductivity = 111
 	database.UpdateNeure(neureObj.Struct2Byte(), neureObj.ThisNeureId)
 
-	neureByte = database.GetNeure(key)
+	neureByte = database.GetDataById(key)
 	neureObj = neure.Neure{}
 	neureObj.Byte2Struct(neureByte)
 	if neureObj.ElectricalConductivity != 111 {
@@ -59,7 +59,7 @@ func TestDelete(t *testing.T) {
 	key := "testing_neure@2"
 	database.DeleteNeure(key)
 
-	_ = database.GetNeure(key)
+	_ = database.GetDataById(key)
 }
 
 func TestScanAllKey(t *testing.T) {
@@ -185,7 +185,7 @@ func TestKeyOnlyPrefixScan(t *testing.T) {
 // 	}
 
 // 	for _, key := range keys {
-// 		neureByte := database.GetNeure(key)
+// 		neureByte := database.GetDataById(key)
 // 		neureObj := neure.Neure{}
 // 		neureObj.Byte2Struct(neureByte)
 // 		neures[key] = &neureObj
@@ -196,7 +196,7 @@ func TestKeyOnlyPrefixScan(t *testing.T) {
 // 		mtxn.Update(key, n.Struct2Byte())
 // 	}
 
-// 	neureByte := database.GetNeure("testing_neure@1")
+// 	neureByte := database.GetDataById("testing_neure@1")
 // 	neureObj := neure.Neure{}
 // 	neureObj.Byte2Struct(neureByte)
 // 	if neureObj.ElectricalConductivity != 9001 {

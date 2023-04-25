@@ -19,8 +19,12 @@ func TestNeureLink(t *testing.T) {
 	})
 
 	t.Log("neure2 thisid:", neure2.ThisNeureId)
-	neure1.ConnectNextNuere(neure2.ThisNeureId)
-	neure2.ConnectNextNuere(neure3.ThisNeureId)
+	neure1.ConnectNextNuere(&neure.Synapse{
+		NextNeureID: neure2.ThisNeureId,
+	})
+	neure2.ConnectNextNuere(&neure.Synapse{
+		NextNeureID: neure3.ThisNeureId,
+	})
 
 	t.Logf("n1: %+v##########\n n2: %+v##########----\n n3: %+v##########--\n", neure1, neure2, neure3)
 

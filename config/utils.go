@@ -23,7 +23,7 @@ func getOnePrefix(oldPrefix []string, somePrefix []string) []string {
 
 func GetAllPrefix() (prefix []string) {
 	prefix = getOnePrefix(prefix, PrefixArea)
-	prefix = getOnePrefix(prefix, PrefixNeureType)
+	prefix = getOnePrefix(prefix, PrefixXXXType)
 
 	newPrefix := []string{}
 	for i := 0; i < len(prefix); i++ {
@@ -31,10 +31,10 @@ func GetAllPrefix() (prefix []string) {
 			skinPrefix := combinePrefixSkin(prefix[i])
 			prefix[i] = skinPrefix[0]
 			newPrefix = append(newPrefix, skinPrefix[1:]...)
-		} else if strings.Contains(prefix[i], "movement") {
-			movementPrefix := combinePrefixMovement(prefix[i])
-			prefix[i] = movementPrefix[0]
-			newPrefix = append(newPrefix, movementPrefix[1:]...)
+		} else if strings.Contains(prefix[i], "muscle") {
+			musclePrefix := combinePrefixMuscle(prefix[i])
+			prefix[i] = musclePrefix[0]
+			newPrefix = append(newPrefix, musclePrefix[1:]...)
 		} else if strings.Contains(prefix[i], "sense") {
 			sensePrefix := combinePrefixSense(prefix[i])
 			prefix[i] = sensePrefix[0]
@@ -54,17 +54,17 @@ func combinePrefixSkin(skinPrePrefix string) (skinPrefix []string) {
 	return
 }
 
-func combinePrefixMovement(movementPrePrefix string) (movementPrefix []string) {
+func combinePrefixMuscle(musclePrePrefix string) (musclePrefix []string) {
 	for _, m := range Movements {
-		movementPrefix = append(movementPrefix, movementPrePrefix+PrefixNameSplitSymbol+m)
+		musclePrefix = append(musclePrefix, musclePrePrefix+PrefixNameSplitSymbol+m)
 	}
 	return
 }
 
 func combinePrefixSense(sensePrePrefix string) (sensePrefix []string) {
 	for _, x := range PrefixSkinAndSenseType {
-		for _, y := range SkinAndSenseNeurePosition {
-			for _, z := range PrefixSenseType {
+		for _, y := range PrefixSenseType {
+			for _, z := range SkinAndSenseNeurePosition {
 				sensePrefix = append(sensePrefix, sensePrePrefix+PrefixNameSplitSymbol+x+PrefixNameSplitSymbol+y+PrefixNameSplitSymbol+z)
 			}
 		}

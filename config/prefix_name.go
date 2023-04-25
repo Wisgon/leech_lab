@@ -10,19 +10,19 @@ var PrefixArea = []string{
 	"valuate",
 	"skin",
 	"consciousness",
-	"movement",
+	"muscle",
 	"reading",
 	"talking",
 	"hippocampus", // 海马体
 }
-var PrefixNeureType = []string{
+var PrefixXXXType = []string{
 	// "inborn",   // 天生的
 	// "acquired", // 后天获得的
 }
 var PrefixSkinAndSenseType = []string{
 	"normalTemperature",
-	"hotTemperature",
-	"coldTemperature",
+	"biggrtHotTemperature",
+	"biggerColdTemperature",
 	"extremelyHotTemp",
 	"extremelyColdTemp",
 	"normalPress",
@@ -30,8 +30,8 @@ var PrefixSkinAndSenseType = []string{
 	"extremelyPress",
 }
 var PrefixSenseType = []string{
-	"touchType",
-	"painfulType", // painfulType had more higher weight
+	"senseType",   // 连接所有skin的所有类型神经元
+	"painfulType", // 连接skin的extremely类型的神经元
 }
 
 // leech config----------------------------------------------------------------------------------

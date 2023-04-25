@@ -16,7 +16,7 @@ import (
 type Neure struct {
 	mu                     sync.Mutex
 	Synapses               []*Synapse `json:"a"` // 軸突連接的突觸，有些神经元有多个突触，一旦激发，所有连接的突触都会尝试激活
-	NeureType              string     `json:"b"`
+	NeureType              string     `json:"b"` //神经元的类型，有普通神经元，调节神经元和抑制神经元
 	NowLinkedDendritesIds  []string   `json:"c"` // 現在已連接的树突前神经元编号
 	ElectricalConductivity int32      `json:"d"` // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值，但好像对程序模拟的大脑没什么作用。
 	ThisNeureId            string     `json:"e"` // the id of database
@@ -26,7 +26,7 @@ type Neure struct {
 }
 
 func (n *Neure) SaveNeure2Db() {
-	database.CreateNeure(n.Struct2Byte(), n.ThisNeureId)
+	database.CreateData(n.Struct2Byte(), n.ThisNeureId)
 }
 
 func (n *Neure) UpdateNeure2DB() {
@@ -94,14 +94,12 @@ func (n *Neure) DeleteConnection(synapse *Synapse) {
 	n.RemoveSynapseByNextId(synapse.NextNeureID)
 }
 
-func (n *Neure) ConnectNextNuere(nextNeureId string) {
+func (n *Neure) ConnectNextNuere(synapse *Synapse) {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 
-	nextNeure := GetNeureById(nextNeureId)
-	var synapse Synapse
-	synapse.NextNeureID = nextNeure.ThisNeureId
-	n.Synapses = append(n.Synapses, &synapse)
+	nextNeure := GetNeureById(synapse.NextNeureID)
+	n.Synapses = append(n.Synapses, synapse)
 	nextNeure.AddNowDendrites(n.ThisNeureId) // next neure dendrites append
 }
 

@@ -33,4 +33,5 @@ var TestPrefix = "testing_neure"
 var DatabaseName = "leech"
 var LeechDatasPath = ProjectRoot + "/simulate_leech/datas" // leech DatasPath
 var EachSkinPositionSurfaceNeureNum = 10                   //每个skin的area的表层神经元数量
-var EachSkinPositionDeepNeureNum = 100                     // 每个skin的area的深层神经元数量
+var EachSkinPositionDeeperNeureNum = 100                   // 每个skin的area的深层神经元数量
+var EachSkinPositionDeepestNeureNum = 500

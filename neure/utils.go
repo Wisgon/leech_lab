@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var NeureMap sync.Map // sync.Map必须储存值，而不能储存引用，而且每次有更新都要用 NeureMap.Store() 方法来更新
+var NeureMap = &sync.Map{}
 
 func CheckNeureMap(stopSignal chan bool) {
 	// check neure map, if length of neureMap bigger than MaxNeureMapNum, save it to db and remove it
@@ -51,7 +51,7 @@ func GetNeureById(id string) *Neure {
 	np, ok := NeureMap.Load(id)
 	if !ok {
 		neure := &Neure{}
-		neureByte := database.GetNeure(id)
+		neureByte := database.GetDataById(id)
 		neure.Byte2Struct(neureByte)
 		// store neure pointer to map
 		NeureMap.Store(id, neure)

@@ -48,6 +48,8 @@ func main() {
 		os.Exit(1)
 	}()
 
+	// todo: load body and brain to Organ map
+
 	done := make(chan int, 1)
 	go interact.StartInteract(done)
 

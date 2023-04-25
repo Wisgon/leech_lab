@@ -211,20 +211,58 @@ func main() {
 	// fmt.Println("cccp2 ccc1:", cccp2.C1)
 
 	// test main routine panic
-	defer func() {
-		if r := recover(); r != nil {
-			time.Sleep(10 * time.Second)
-		}
-	}()
-	go func() {
-		// even main panic to recover, go routine still running
-		for i := 0; i < 20; i++ {
-			time.Sleep(1 * time.Second)
-			fmt.Println("i:", i)
-		}
-	}()
-	panic("main panic")
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		time.Sleep(10 * time.Second)
+	// 	}
+	// }()
+	// go func() {
+	// 	// even main panic to recover, go routine still running
+	// 	for i := 0; i < 20; i++ {
+	// 		time.Sleep(1 * time.Second)
+	// 		fmt.Println("i:", i)
+	// 	}
+	// }()
+	// panic("main panic")
 
+	// test wait group in routine
+	// wg := &sync.WaitGroup{}
+	// wg.Add(1)
+	// go R1(wg)
+	// wg.Wait()
+
+	// tset sync map store channel
+	sm := sync.Map{}
+	sm.Store("c1", make(chan bool, 1))
+	go testChan(&sm)
+	go endC1(&sm) // according to this test, channel work correctly
+	time.Sleep(7 * time.Second)
+}
+
+func endC1(sm *sync.Map) {
+	c, _ := sm.Load("c1")
+	c1 := c.(chan bool)
+	time.Sleep(5 * time.Second)
+	fmt.Println("true to c1")
+	c1 <- true
+}
+
+func testChan(sm *sync.Map) {
+	c, _ := sm.Load("c1")
+	c1 := c.(chan bool)
+	<-c1
+	fmt.Println("get c1")
+}
+
+func R1(wg *sync.WaitGroup) {
+	defer wg.Done()
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		//实验表明，即使R1运行完了，这个go routine仍然在运行
+		defer wg.Done()
+		time.Sleep(5 * time.Second)
+		fmt.Println("in R1 go")
+	}(wg)
 }
 
 type AAA interface {

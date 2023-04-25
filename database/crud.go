@@ -10,9 +10,9 @@ import (
 
 type ConditionFilter func(result []byte) bool
 
-func CreateNeure(neureByte []byte, key string) {
+func CreateData(dataByte []byte, key string) {
 	_ = db.Update(func(txn *badger.Txn) error {
-		err := txn.Set([]byte(key), neureByte)
+		err := txn.Set([]byte(key), dataByte)
 		if err != nil {
 			panic(err)
 		}
@@ -40,20 +40,20 @@ func DeleteNeure(neureId string) {
 	})
 }
 
-func GetNeure(neureId string) []byte {
-	var neure []byte
+func GetDataById(id string) []byte {
+	var data []byte
 	_ = db.View(func(txn *badger.Txn) error {
-		item, err := txn.Get([]byte(neureId))
+		item, err := txn.Get([]byte(id))
 		if err != nil {
 			panic(err)
 		}
 		_ = item.Value(func(val []byte) error {
-			neure = append([]byte{}, val...) // can't directly neure = val according to doc of badger
+			data = append([]byte{}, val...) // can't directly data = val according to doc of badger
 			return nil
 		})
 		return nil
 	})
-	return neure
+	return data
 }
 
 func KeyOnlyPrefixScan(keyPrefix string) *[][]byte {
