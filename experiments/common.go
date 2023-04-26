@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"sync"
 	"time"
 )
@@ -232,11 +233,11 @@ func main() {
 	// wg.Wait()
 
 	// tset sync map store channel
-	sm := sync.Map{}
-	sm.Store("c1", make(chan bool, 1))
-	go testChan(&sm)
-	go endC1(&sm) // according to this test, channel work correctly
-	time.Sleep(7 * time.Second)
+	// sm := sync.Map{}
+	// sm.Store("c1", make(chan bool, 1))
+	// go testChan(&sm)
+	// go endC1(&sm) // according to this test, channel work correctly
+	// time.Sleep(7 * time.Second)
 }
 
 func endC1(sm *sync.Map) {
@@ -306,11 +307,11 @@ type timer struct {
 	Abc time.Time `json:"111"`
 }
 
-// func get_rand_num() {
-// 	for i := 0; i < 10; i++ {
-// 		fmt.Println(rand.Intn(10), " in go routine")
-// 	}
-// }
+func get_rand_num() {
+	for i := 0; i < 10; i++ {
+		fmt.Println(rand.Intn(10), " in go routine")
+	}
+}
 
 // func testStringArrayCopy(stringArray []string) {
 // 	stringArray[0] = "22"

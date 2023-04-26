@@ -11,6 +11,7 @@ import (
 )
 
 type Sense struct {
+	mu             sync.Mutex
 	SenseNeureType string   `json:"a"`
 	SenseType      string   `json:"b"` // sense type or painful type
 	Position       string   `json:"c"`

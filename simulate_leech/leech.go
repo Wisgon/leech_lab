@@ -3,6 +3,7 @@ package leech
 import (
 	"graph_robot/config"
 	"graph_robot/interact"
+	"graph_robot/neure"
 	"graph_robot/simulate_leech/body"
 	"graph_robot/simulate_leech/brain"
 	"graph_robot/simulate_leech/utils"
@@ -15,6 +16,7 @@ type LeechBody struct {
 }
 
 func (lb *LeechBody) InitBody(wg *sync.WaitGroup, processController *sync.Map) {
+	wg.Done()
 	// init skin
 	wg.Add(1)
 	go func(wg *sync.WaitGroup, processController *sync.Map) {
@@ -30,6 +32,7 @@ func (lb *LeechBody) InitBody(wg *sync.WaitGroup, processController *sync.Map) {
 				}
 				wg.Add(1)
 				go skin.InitSkin(wg, processController)
+				utils.StoreToMap(lb.Organ, keyPrefix+config.PrefixNumSplitSymbol+"collection", &skin)
 			}
 		}
 	}(wg, processController)
@@ -45,11 +48,9 @@ func (lb *LeechBody) InitBody(wg *sync.WaitGroup, processController *sync.Map) {
 				MoveDirection: movement,
 				KeyPrefix:     keyPrefix,
 			}
-
-			utils.StoreToMap(lb.Organ, movement, &muscle)
-			utils.StoreToMap(lb.Organ, keyPrefix, &muscle)
 			wg.Add(1)
 			go muscle.InitMuscle(wg, processController)
+			utils.StoreToMap(lb.Organ, keyPrefix+config.PrefixNumSplitSymbol+"collection", &muscle)
 		}
 	}(wg, processController)
 }
@@ -65,9 +66,10 @@ func (lb *LeechBody) LoadBody(wg *sync.WaitGroup) {
 				Position:      position,
 				KeyPrefix:     keyPrefix,
 			}
-			utils.LoadFromMapByKeyPrefix(lb.Organ, keyPrefix, &skin)
-			utils.StoreToMap(lb.Organ, skinNeureType, &skin)
-			utils.StoreToMap(lb.Organ, position, &skin)
+			utils.LoadFromMapByKeyPrefix(lb.Organ, keyPrefix+config.PrefixNumSplitSymbol+"collection", &skin)
+			// store more key because it's good to make more category for neures
+			utils.StoreToMap(lb.Organ, "skin"+config.PrefixNameSplitSymbol+skinNeureType, &skin)
+			utils.StoreToMap(lb.Organ, "skin"+config.PrefixNameSplitSymbol+position, &skin)
 		}
 	}
 
@@ -78,8 +80,8 @@ func (lb *LeechBody) LoadBody(wg *sync.WaitGroup) {
 			MoveDirection: movement,
 			KeyPrefix:     keyPrefix,
 		}
-		utils.LoadFromMapByKeyPrefix(lb.Organ, keyPrefix, &muscle)
-		utils.StoreToMap(lb.Organ, movement, &muscle)
+		utils.LoadFromMapByKeyPrefix(lb.Organ, keyPrefix+config.PrefixNumSplitSymbol+"collection", &muscle)
+		utils.StoreToMap(lb.Organ, "muscle"+config.PrefixNameSplitSymbol+movement, &muscle)
 	}
 }
 
@@ -95,6 +97,7 @@ type LeechBrain struct {
 }
 
 func (lb *LeechBrain) InitBrain(wg *sync.WaitGroup, processController *sync.Map) {
+	defer wg.Done()
 	// init sense
 	wg.Add(1)
 	go func(wg *sync.WaitGroup, processController *sync.Map) {
@@ -116,6 +119,7 @@ func (lb *LeechBrain) InitBrain(wg *sync.WaitGroup, processController *sync.Map)
 					}
 					wg.Add(1)
 					go sense.InitSense(wg, processController)
+					utils.StoreToMap(lb.Area, keyPrefix+config.PrefixNumSplitSymbol+"collection", &sense)
 				}
 			}
 
@@ -141,10 +145,10 @@ func (lb *LeechBrain) LoadBrain(wg *sync.WaitGroup) {
 					KeyPrefix:      keyPrefix,
 				}
 				// store four types so that can get one type very fast
-				utils.LoadFromMapByKeyPrefix(lb.Area, keyPrefix, &sense)
-				utils.StoreToMap(lb.Area, senseNeureType, &sense)
-				utils.StoreToMap(lb.Area, position, &sense)
-				utils.StoreToMap(lb.Area, senseType, &sense)
+				utils.LoadFromMapByKeyPrefix(lb.Area, keyPrefix+config.PrefixNumSplitSymbol+"collection", &sense)
+				utils.StoreToMap(lb.Area, "sense"+config.PrefixNameSplitSymbol+senseNeureType, &sense)
+				utils.StoreToMap(lb.Area, "sense"+config.PrefixNameSplitSymbol+position, &sense)
+				utils.StoreToMap(lb.Area, "sense"+config.PrefixNameSplitSymbol+senseType, &sense)
 			}
 		}
 	}
@@ -165,14 +169,26 @@ func (l *Leech) InitLeech() {
 
 	processController.Store("senseCreateDone", make(chan bool, 1))
 
-	l.Brain = &LeechBrain{}
-	l.Body = &LeechBody{}
+	l.Brain = &LeechBrain{
+		Area: &sync.Map{},
+	}
+	l.Body = &LeechBody{
+		Organ: &sync.Map{},
+	}
 
 	// init a leech
+	wg.Add(2)
 	go l.Brain.InitBrain(&wg, &processController)
 	go l.Body.InitBody(&wg, &processController)
 
 	wg.Wait()
+
+	// finally update all neures so that we can save the connect message into neure
+	neure.NeureMap.Range(func(key, value any) bool {
+		neureObj := value.(*neure.Neure)
+		neureObj.UpdateNeure2DB()
+		return true
+	})
 }
 
 func (l *Leech) LoadLeech() {

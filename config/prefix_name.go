@@ -21,7 +21,7 @@ var PrefixXXXType = []string{
 }
 var PrefixSkinAndSenseType = []string{
 	"normalTemperature",
-	"biggrtHotTemperature",
+	"biggertHotTemperature",
 	"biggerColdTemperature",
 	"extremelyHotTemp",
 	"extremelyColdTemp",
