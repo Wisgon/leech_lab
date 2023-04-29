@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
+	"os"
 	"sync"
 	"time"
 )
@@ -238,6 +240,35 @@ func main() {
 	// go testChan(&sm)
 	// go endC1(&sm) // according to this test, channel work correctly
 	// time.Sleep(7 * time.Second)
+
+	// test map array
+	// aaa := make(map[string][]string)
+	// fmt.Println("aaa", len(aaa["111"]))
+
+	// test write map[string]interface to file
+	aaa := make(map[string]interface{})
+	var bbb []map[string]interface{}
+	aaa["111"] = 33
+	aaa["222"] = "fdsfsdf"
+	m := make(map[string]interface{})
+	m["000"] = 111
+	bbb = append(bbb, m)
+	aaa["333"] = bbb
+	prefix := []byte("var neures = ")
+	jsonData, err := json.Marshal(aaa)
+	if err != nil {
+		panic(err)
+	}
+	jsonFile, err := os.Create("./test_create.js")
+	if err != nil {
+		panic(err)
+	}
+	defer jsonFile.Close()
+	prefix = append(prefix, jsonData...)
+	_, err = jsonFile.Write(prefix)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func endC1(sm *sync.Map) {

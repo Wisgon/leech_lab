@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"math/rand"
+	"os"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -30,5 +31,17 @@ func RemoveUniqueValueFromSlice[T constraints.Integer | constraints.Float | stri
 			*s = append((*s)[:i], (*s)[i+1:]...)
 			break
 		}
+	}
+}
+
+func SaveDataToFile(filePath string, data []byte) {
+	file, err := os.Create(filePath)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	_, err = file.Write(data)
+	if err != nil {
+		panic(err)
 	}
 }

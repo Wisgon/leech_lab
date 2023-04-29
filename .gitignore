@@ -4,3 +4,4 @@ go.sum
 __pycache__/
 datas/
 chatGptTest/
+visualization/neures.js

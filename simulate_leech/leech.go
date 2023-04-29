@@ -162,6 +162,7 @@ type Leech struct {
 	Brain       *LeechBrain
 	Body        *LeechBody
 	EnvResponse chan map[string]interface{}
+	EnvRequest  chan map[string]interface{}
 }
 
 func (l *Leech) InitLeech() {
@@ -198,6 +199,9 @@ func (l *Leech) WakeUp() {
 			message := envResponse["message"].(string)
 			log.Println("websocket error event: ", message)
 			panic("env response error")
+		case "request_data":
+			data := utils.AssembleMapDataToFront(l.Brain.Area, l.Body.Organ)
+			l.EnvRequest <- data
 		default:
 			log.Println("unknow event:", event)
 		}

@@ -4,6 +4,8 @@ package interact
 
 import (
 	"encoding/json"
+	"graph_robot/config"
+	"graph_robot/utils"
 	"log"
 	"net/url"
 
@@ -53,9 +55,18 @@ func StartInteract(
 			}
 			return
 		case r := <-request:
-			requestByte, err := json.Marshal(r)
+			data, err := json.Marshal(r)
 			if err != nil {
 				panic("marshal json error:" + err.Error())
+			}
+			// save data to js file
+			utils.SaveDataToFile(config.ProjectRoot+"/visualization/neures.json", data)
+
+			refreshFrontendSignal := make(map[string]string)
+			refreshFrontendSignal["event"] = "refresh ready"
+			requestByte, err := json.Marshal(refreshFrontendSignal)
+			if err != nil {
+				panic(err)
 			}
 			err = c.WriteMessage(websocket.TextMessage, requestByte)
 			if err != nil {

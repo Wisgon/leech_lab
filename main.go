@@ -6,6 +6,7 @@ import (
 	"graph_robot/interact"
 	"graph_robot/neure"
 	leech "graph_robot/simulate_leech"
+	"graph_robot/utils"
 	"log"
 	"math/rand"
 	"os"
@@ -61,11 +62,13 @@ func main() {
 			Area: &sync.Map{},
 		},
 		EnvResponse: websocketResponse,
+		EnvRequest:  websocketRequest,
 	}
 	leech.LoadLeech()
 
 	go leech.WakeUp()
 	go interact.StartInteract(done, websocketRequest, websocketResponse)
+	go utils.ServerStaticFile(config.ProjectRoot + "/visualization/")
 
 	for {
 		log.Println("thinking...")
