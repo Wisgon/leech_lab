@@ -1,8 +1,8 @@
 package database
 
 import (
-	"fmt"
 	"graph_robot/config"
+	"log"
 	"reflect"
 	"strings"
 
@@ -45,7 +45,7 @@ func CloseDb() {
 	for k := range *seqMap {
 		err := (*seqMap)[k].Release()
 		if err != nil {
-			fmt.Println("*****", reflect.TypeOf(err))
+			log.Println("*****", reflect.TypeOf(err))
 			panic(err)
 		}
 	}

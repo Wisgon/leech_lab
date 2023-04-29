@@ -1,11 +1,34 @@
+const fetchValue = (id) => document.getElementById(id).value
+
+function send_data() {
+  const source = fetchValue("source")
+  const target = fetchValue("target")
+  const neure_type = fetchValue("type")
+  const strength = fetchValue("strength")
+  console.log(source, target, neure_type, strength)
+  sendMessage(
+    JSON.stringify({ event: "link", message: { neure_type: neure_type } })
+  )
+}
+
 const Graph = ForceGraph()(document.getElementById("data"))
   .graphData(text_on_link)
   .nodeId("id")
   .nodeLabel("id")
   .nodeAutoColorBy("group")
   .linkCanvasObjectMode(() => "after")
+  .linkDirectionalArrowLength(3)
+  .linkDirectionalArrowRelPos(1)
+  .onNodeClick((node) => {
+    // Center/zoom on node
+    console.log(node.id)
+  })
+  .onNodeDragEnd((node) => {
+    node.fx = node.x
+    node.fy = node.y
+  })
   .linkCanvasObject((link, ctx) => {
-    const MAX_FONT_SIZE = 4
+    const MAX_FONT_SIZE = 3
     const LABEL_NODE_MARGIN = Graph.nodeRelSize() * 1.5
 
     const start = link.source
@@ -32,7 +55,7 @@ const Graph = ForceGraph()(document.getElementById("data"))
     if (textAngle > Math.PI / 2) textAngle = -(Math.PI - textAngle)
     if (textAngle < -Math.PI / 2) textAngle = -(-Math.PI - textAngle)
 
-    const label = `${link.source.id} > ${link.target.id}`
+    const label = `link strength:${link.link_strength}  synapse num:${link.synapse_num}`
 
     // estimate fontSize to fit in link length
     ctx.font = "1px Sans-Serif"

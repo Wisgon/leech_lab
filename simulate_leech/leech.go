@@ -2,11 +2,11 @@ package leech
 
 import (
 	"graph_robot/config"
-	"graph_robot/interact"
 	"graph_robot/neure"
 	"graph_robot/simulate_leech/body"
 	"graph_robot/simulate_leech/brain"
 	"graph_robot/simulate_leech/utils"
+	"log"
 	"strings"
 	"sync"
 )
@@ -15,11 +15,11 @@ type LeechBody struct {
 	Organ *sync.Map
 }
 
-func (lb *LeechBody) InitBody(wg *sync.WaitGroup, processController *sync.Map) {
+func (lb *LeechBody) InitBody(wg *sync.WaitGroup) {
 	wg.Done()
 	// init skin
 	wg.Add(1)
-	go func(wg *sync.WaitGroup, processController *sync.Map) {
+	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
 
 		for _, skinNeureType := range config.PrefixSkinAndSenseType {
@@ -31,15 +31,15 @@ func (lb *LeechBody) InitBody(wg *sync.WaitGroup, processController *sync.Map) {
 					KeyPrefix:     keyPrefix,
 				}
 				wg.Add(1)
-				go skin.InitSkin(wg, processController)
+				go skin.InitSkin(wg)
 				utils.StoreToMap(lb.Organ, keyPrefix+config.PrefixNumSplitSymbol+"collection", &skin)
 			}
 		}
-	}(wg, processController)
+	}(wg)
 
 	// init muscle
 	wg.Add(1)
-	go func(wg *sync.WaitGroup, processController *sync.Map) {
+	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
 
 		for _, movement := range config.Movements {
@@ -49,10 +49,10 @@ func (lb *LeechBody) InitBody(wg *sync.WaitGroup, processController *sync.Map) {
 				KeyPrefix:     keyPrefix,
 			}
 			wg.Add(1)
-			go muscle.InitMuscle(wg, processController)
+			go muscle.InitMuscle(wg)
 			utils.StoreToMap(lb.Organ, keyPrefix+config.PrefixNumSplitSymbol+"collection", &muscle)
 		}
-	}(wg, processController)
+	}(wg)
 }
 
 func (lb *LeechBody) LoadBody(wg *sync.WaitGroup) {
@@ -66,7 +66,7 @@ func (lb *LeechBody) LoadBody(wg *sync.WaitGroup) {
 				Position:      position,
 				KeyPrefix:     keyPrefix,
 			}
-			utils.LoadFromMapByKeyPrefix(lb.Organ, keyPrefix+config.PrefixNumSplitSymbol+"collection", &skin)
+			utils.LoadFromMapByKeyPrefix(lb.Organ, keyPrefix, &skin)
 			// store more key because it's good to make more category for neures
 			utils.StoreToMap(lb.Organ, "skin"+config.PrefixNameSplitSymbol+skinNeureType, &skin)
 			utils.StoreToMap(lb.Organ, "skin"+config.PrefixNameSplitSymbol+position, &skin)
@@ -80,7 +80,7 @@ func (lb *LeechBody) LoadBody(wg *sync.WaitGroup) {
 			MoveDirection: movement,
 			KeyPrefix:     keyPrefix,
 		}
-		utils.LoadFromMapByKeyPrefix(lb.Organ, keyPrefix+config.PrefixNumSplitSymbol+"collection", &muscle)
+		utils.LoadFromMapByKeyPrefix(lb.Organ, keyPrefix, &muscle)
 		utils.StoreToMap(lb.Organ, "muscle"+config.PrefixNameSplitSymbol+movement, &muscle)
 	}
 }
@@ -89,18 +89,18 @@ func (lb *LeechBody) Action(command string) {
 
 }
 
-func (lb *LeechBody) SenseFromEnv(env interact.Environment) { // get environment info
+func (lb *LeechBody) SenseFromEnv() { // get environment info
 }
 
 type LeechBrain struct {
 	Area *sync.Map
 }
 
-func (lb *LeechBrain) InitBrain(wg *sync.WaitGroup, processController *sync.Map) {
+func (lb *LeechBrain) InitBrain(wg *sync.WaitGroup) {
 	defer wg.Done()
 	// init sense
 	wg.Add(1)
-	go func(wg *sync.WaitGroup, processController *sync.Map) {
+	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
 
 		for _, senseNeureType := range config.PrefixSkinAndSenseType {
@@ -118,13 +118,13 @@ func (lb *LeechBrain) InitBrain(wg *sync.WaitGroup, processController *sync.Map)
 						KeyPrefix:      keyPrefix,
 					}
 					wg.Add(1)
-					go sense.InitSense(wg, processController)
+					go sense.InitSense(wg)
 					utils.StoreToMap(lb.Area, keyPrefix+config.PrefixNumSplitSymbol+"collection", &sense)
 				}
 			}
 
 		}
-	}(wg, processController)
+	}(wg)
 }
 
 func (lb *LeechBrain) LoadBrain(wg *sync.WaitGroup) {
@@ -145,7 +145,7 @@ func (lb *LeechBrain) LoadBrain(wg *sync.WaitGroup) {
 					KeyPrefix:      keyPrefix,
 				}
 				// store four types so that can get one type very fast
-				utils.LoadFromMapByKeyPrefix(lb.Area, keyPrefix+config.PrefixNumSplitSymbol+"collection", &sense)
+				utils.LoadFromMapByKeyPrefix(lb.Area, keyPrefix, &sense)
 				utils.StoreToMap(lb.Area, "sense"+config.PrefixNameSplitSymbol+senseNeureType, &sense)
 				utils.StoreToMap(lb.Area, "sense"+config.PrefixNameSplitSymbol+position, &sense)
 				utils.StoreToMap(lb.Area, "sense"+config.PrefixNameSplitSymbol+senseType, &sense)
@@ -159,27 +159,17 @@ func (lb *LeechBrain) Sense2Action() (bodyAction string) {
 }
 
 type Leech struct {
-	Brain *LeechBrain
-	Body  *LeechBody
+	Brain       *LeechBrain
+	Body        *LeechBody
+	EnvResponse chan map[string]interface{}
 }
 
 func (l *Leech) InitLeech() {
 	var wg sync.WaitGroup
-	var processController sync.Map
-
-	processController.Store("senseCreateDone", make(chan bool, 1))
-
-	l.Brain = &LeechBrain{
-		Area: &sync.Map{},
-	}
-	l.Body = &LeechBody{
-		Organ: &sync.Map{},
-	}
-
 	// init a leech
 	wg.Add(2)
-	go l.Brain.InitBrain(&wg, &processController)
-	go l.Body.InitBody(&wg, &processController)
+	go l.Brain.InitBrain(&wg)
+	go l.Body.InitBody(&wg)
 
 	wg.Wait()
 
@@ -199,10 +189,17 @@ func (l *Leech) LoadLeech() {
 	wg.Wait()
 }
 
-func (l *Leech) Environment2Action(env interact.Environment) string { // get environment param and decide an action
-	return ""
-}
-
 func (l *Leech) WakeUp() {
-
+	for {
+		envResponse := <-l.EnvResponse
+		event := envResponse["event"].(string)
+		switch event {
+		case "error":
+			message := envResponse["message"].(string)
+			log.Println("websocket error event: ", message)
+			panic("env response error")
+		default:
+			log.Println("unknow event:", event)
+		}
+	}
 }

@@ -2,8 +2,8 @@ package database
 
 import (
 	"errors"
-	"fmt"
 	"graph_robot/config"
+	"log"
 
 	"github.com/dgraph-io/badger/v4"
 )
@@ -45,7 +45,7 @@ func GetDataById(id string) []byte {
 	_ = db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte(id))
 		if err != nil {
-			panic(err)
+			panic(err.Error() + " key is: " + id)
 		}
 		_ = item.Value(func(val []byte) error {
 			data = append([]byte{}, val...) // can't directly data = val according to doc of badger
@@ -150,7 +150,7 @@ func CheckAllKey() {
 			item := it.Item()
 			k := item.Key()
 			err := item.Value(func(v []byte) error {
-				fmt.Println("key=", string(k))
+				log.Println("key=", string(k))
 				return nil
 			})
 			if err != nil {

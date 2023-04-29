@@ -3,55 +3,63 @@ package interact
 // this is for link to the world built with websocket server, brain as a websocket clientpackage main
 
 import (
+	"encoding/json"
 	"log"
 	"net/url"
-	"time"
 
 	"github.com/gorilla/websocket"
 )
 
-func StartInteract(done chan int) {
-	log.SetFlags(0)
-
-	u := url.URL{Scheme: "ws", Host: "localhost:8001", Path: ""}
+func StartInteract(
+	done chan int,
+	request chan map[string]interface{},
+	response chan map[string]interface{},
+) {
+	u := url.URL{Scheme: "ws", Host: "localhost:8001", Path: "?user=back"}
 	log.Printf("connecting to %s", u.String())
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
-		log.Fatal("dial:", err)
+		panic("websocket connect error:" + err.Error())
 	}
 	defer c.Close()
 
 	go func() {
 		defer close(done)
 		for {
-			_, message, err := c.ReadMessage()
+			_, responseByte, err := c.ReadMessage()
 			if err != nil {
-				log.Println("read:", err)
+				log.Println("read error:", err)
 				return
 			}
-			log.Printf("recv: %s", message)
+			var responseMap = make(map[string]interface{})
+			err = json.Unmarshal(responseByte, &responseMap)
+			if err != nil {
+				panic("read unmarshal error:" + err.Error())
+			}
+			log.Printf("recv: %+v", responseMap)
+			response <- responseMap
 		}
 	}()
-
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
 
 	for {
 		select {
 		case <-done:
-			log.Print("done signal reveived")
+			log.Println("done signal reveived")
 			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
 				log.Println("write close:", err)
 				return
 			}
 			return
-		case t := <-ticker.C:
-			err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
+		case r := <-request:
+			requestByte, err := json.Marshal(r)
 			if err != nil {
-				log.Println("write:", err)
-				return
+				panic("marshal json error:" + err.Error())
+			}
+			err = c.WriteMessage(websocket.TextMessage, requestByte)
+			if err != nil {
+				panic("write error:" + err.Error())
 			}
 		}
 	}

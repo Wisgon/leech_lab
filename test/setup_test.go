@@ -1,10 +1,10 @@
 package test
 
 import (
-	"fmt"
 	"graph_robot/config"
 	"graph_robot/database"
 	"graph_robot/neure"
+	"log"
 	"os"
 	"testing"
 )
@@ -16,7 +16,7 @@ func cleanup() {
 		neureObj.UpdateNeure2DB()
 		return true
 	})
-	fmt.Println("closing db~~~")
+	log.Println("closing db~~~")
 	database.CloseDb()
 	// some other cleanup here ~~~
 }

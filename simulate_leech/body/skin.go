@@ -18,7 +18,7 @@ type Skin struct {
 	KeyPrefix     string   `json:"d"`
 }
 
-func (s *Skin) InitSkin(wg *sync.WaitGroup, processController *sync.Map) {
+func (s *Skin) InitSkin(wg *sync.WaitGroup) {
 	defer wg.Done()
 	s.createNeures()
 

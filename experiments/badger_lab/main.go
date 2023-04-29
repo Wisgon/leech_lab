@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/dgraph-io/badger/v4"
@@ -81,26 +80,26 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("before get value~~~")
+	log.Println("before get value~~~")
 	_ = item.Value(func(val []byte) error {
 		st := TestStruct{}
 		st.Byte2Struct(val)
-		fmt.Println("item:", st.Abc)
+		log.Println("item:", st.Abc)
 		return nil
 	})
-	fmt.Println("after get value~~~")
+	log.Println("after get value~~~")
 
 	txn2.Set([]byte("not_commit3"), []byte("aaa"))
 	item, err = txn2.Get([]byte("not_commit3"))
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("before get value~~~")
+	log.Println("before get value~~~")
 	_ = item.Value(func(val []byte) error {
-		fmt.Println("val:@@@", string(val))
+		log.Println("val:@@@", string(val))
 		return nil
 	})
-	fmt.Println("after get value~~~")
+	log.Println("after get value~~~")
 
 	_ = db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
@@ -111,7 +110,7 @@ func main() {
 			item := it.Item()
 			k := item.Key()
 			err := item.Value(func(v []byte) error {
-				fmt.Printf("key=%s, value=%s\n", k, v)
+				log.Printf("key=%s, value=%s\n", k, v)
 				return nil
 			})
 			if err != nil {
@@ -129,8 +128,8 @@ func main() {
 			item := it.Item()
 			k := item.Key()
 			err := item.Value(func(v []byte) error {
-				fmt.Println("~~~~~empty:", len(v))
-				fmt.Printf("key=%s, value=%s\n", k, v)
+				log.Println("~~~~~empty:", len(v))
+				log.Printf("key=%s, value=%s\n", k, v)
 				return nil
 			})
 			if err != nil {
@@ -150,7 +149,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("num:!!!!:", num)
+	log.Println("num:!!!!:", num)
 	// var i = 0
 	// for {
 	// 	num, err := seq.Next()
@@ -158,7 +157,7 @@ func main() {
 	// 		panic(err)
 	// 	}
 	// 	if err = txn2.Set([]byte("aaa"+fmt.Sprint(num)), []byte("aaa")); err == badger.ErrTxnTooBig {
-	// 		fmt.Print("~~~i:", i) // test max i, result is more than 100000
+	// 		log.Println("~~~i:", i) // test max i, result is more than 100000
 	// 		_ = txn2.Commit()
 	// 		break
 	// 	}

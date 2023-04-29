@@ -1,16 +1,17 @@
 package main
 
 import (
-	"fmt"
 	"graph_robot/config"
 	"graph_robot/database"
 	leech "graph_robot/simulate_leech"
+	"log"
 	"math/rand"
+	"sync"
 	"time"
 )
 
 func cleanup() {
-	fmt.Println("closing db~~~")
+	log.Println("closing db~~~")
 	database.CloseDb()
 	// some other cleanup here ~~~
 }
@@ -24,7 +25,14 @@ func main() {
 		}
 	}()
 
-	leechObj := leech.Leech{}
+	leechObj := leech.Leech{
+		Brain: &leech.LeechBrain{
+			Area: &sync.Map{},
+		},
+		Body: &leech.LeechBody{
+			Organ: &sync.Map{},
+		},
+	}
 	leechObj.InitLeech()
 	cleanup()
 }

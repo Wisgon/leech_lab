@@ -16,7 +16,7 @@ type Muscle struct {
 	KeyPrefix     string   `json:"d"`
 }
 
-func (m *Muscle) InitMuscle(wg *sync.WaitGroup, processController *sync.Map) {
+func (m *Muscle) InitMuscle(wg *sync.WaitGroup) {
 	defer wg.Done()
 	m.createNeures()
 

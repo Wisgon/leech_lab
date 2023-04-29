@@ -1,20 +1,22 @@
 package main
 
 import (
-	"fmt"
 	"graph_robot/config"
 	"graph_robot/database"
 	"graph_robot/interact"
 	"graph_robot/neure"
+	leech "graph_robot/simulate_leech"
+	"log"
 	"math/rand"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 )
 
 func cleanup() {
-	fmt.Println("closing db~~~")
+	log.Println("closing db~~~")
 	// save neure map
 	neure.NeureMap.Range(func(key, value any) bool {
 		neureObj := value.(*neure.Neure)
@@ -48,14 +50,25 @@ func main() {
 		os.Exit(1)
 	}()
 
-	// todo: load body and brain to Organ map
-
 	done := make(chan int, 1)
-	go interact.StartInteract(done)
+	websocketRequest := make(chan map[string]interface{})
+	websocketResponse := make(chan map[string]interface{})
+	leech := leech.Leech{
+		Body: &leech.LeechBody{
+			Organ: &sync.Map{},
+		},
+		Brain: &leech.LeechBrain{
+			Area: &sync.Map{},
+		},
+		EnvResponse: websocketResponse,
+	}
+	leech.LoadLeech()
+
+	go leech.WakeUp()
+	go interact.StartInteract(done, websocketRequest, websocketResponse)
 
 	for {
-		fmt.Println("thinking...")
-		time.Sleep(10 * time.Second)
-		done <- 0
+		log.Println("thinking...")
+		time.Sleep(10 * time.Minute)
 	}
 }

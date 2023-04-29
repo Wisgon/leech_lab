@@ -8,7 +8,7 @@ package human
 // }
 
 // func (m *Mouth) Say() {
-// 	fmt.Println("")
+// 	log.Println("")
 // }
 
 // type Body struct {
