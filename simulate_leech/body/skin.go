@@ -52,7 +52,7 @@ func (s *Skin) createNeures() {
 	}
 	for i := 0; i < neureNum; i++ {
 		neureObj := neure.CreateOneNeure(s.KeyPrefix, &neure.Neure{
-			NeureType:              "normal",
+			NeureType:              "common",
 			LastTimeActivate:       time.Now(),
 			LastTimeResetNowWeight: time.Now(),
 		})

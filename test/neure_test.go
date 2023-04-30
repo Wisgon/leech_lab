@@ -9,13 +9,13 @@ import (
 
 func TestNeureLink(t *testing.T) {
 	neure1 := neure.CreateOneNeure("testing_neure", &neure.Neure{
-		NeureType: "normal",
+		NeureType: "common",
 	})
 	neure2 := neure.CreateOneNeure("testing_neure", &neure.Neure{
-		NeureType: "normal",
+		NeureType: "common",
 	})
 	neure3 := neure.CreateOneNeure("testing_neure", &neure.Neure{
-		NeureType: "normal",
+		NeureType: "common",
 	})
 
 	t.Log("neure2 thisid:", neure2.ThisNeureId)

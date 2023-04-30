@@ -8,6 +8,7 @@ import (
 	"graph_robot/simulate_leech/body"
 	"graph_robot/simulate_leech/brain"
 	"log"
+	"math/rand"
 	"strconv"
 	"strings"
 	"sync"
@@ -17,21 +18,38 @@ func SignalPass(entranceNeure *neure.Neure) {
 	// todo:
 }
 
-func LinkNeures(linkCondition map[string]interface{}) {
+func LinkTwoNeures(linkCondition map[string]interface{}) {
 	source, target := linkCondition["source"].(string), linkCondition["target"].(string)
-	strengthStr := linkCondition["strength"].(string)
-	strength, err := strconv.ParseFloat(strengthStr, 64)
-	if err != nil {
-		log.Println("error: parse strength fail, link fail")
-		return
+	strengthStr, linkType := linkCondition["strength"].(string), linkCondition["link_type"].(string)
+	if linkType == "common" {
+		strength, err := strconv.ParseFloat(strengthStr, 64)
+		if err != nil {
+			log.Println("error: parse strength fail, link fail")
+			return
+		}
+		neureSource := neure.GetNeureById(source)
+		neureSource.ConnectNextNuere(&neure.Synapse{
+			NextNeureID:  target,
+			LinkStrength: float32(strength),
+			SynapseNum:   1,
+		})
+	} else if linkType == "regulate" {
+		// regulateNeure := neure.CreateOneNeure()
 	}
-	neureSource := neure.GetNeureById(source)
-	synapse := neure.Synapse{
-		NextNeureID:  target,
-		LinkStrength: float32(strength),
-		SynapseNum:   1,
+
+}
+
+func LinkNeureGroups(group1 []string, group2 []string, strength float32, synapseNum int32) {
+	// todo: link type
+	for _, neureId := range group1 {
+		neureObj := neure.GetNeureById(neureId)
+		nextNeureId := group2[rand.Intn(len(group2))] // link to random neure in group2
+		neureObj.ConnectNextNuere(&neure.Synapse{
+			SynapseNum:   synapseNum,
+			LinkStrength: strength,
+			NextNeureID:  nextNeureId,
+		})
 	}
-	neureSource.ConnectNextNuere(&synapse)
 }
 
 func AssembleLinkData(keyStr string, neures []string, groups *map[string][]string, links *[]map[string]interface{}) {
@@ -46,8 +64,8 @@ func AssembleLinkData(keyStr string, neures []string, groups *map[string][]strin
 			link["synapse_num"] = s.SynapseNum
 			neureType := ""
 			switch neureObj.NeureType {
-			case "normal":
-				neureType = "n"
+			case "common":
+				neureType = "c"
 			case "regulate":
 				neureType = "r"
 			case "inhibitory":

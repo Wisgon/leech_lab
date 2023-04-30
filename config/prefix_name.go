@@ -15,9 +15,10 @@ var PrefixArea = []string{
 	"talking",
 	"hippocampus", // 海马体
 }
-var PrefixXXXType = []string{
-	// "inborn",   // 天生的
-	// "acquired", // 后天获得的
+var PrefixNeureType = []string{
+	"common",     // 普通神经元
+	"regulate",   // 调节神经元，主要用于突触增强
+	"inhibitory", // 抑制神经元，用于抑制突触
 }
 var PrefixSkinAndSenseType = []string{
 	"normalTemperature",

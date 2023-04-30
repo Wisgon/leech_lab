@@ -6,23 +6,29 @@ function send_data() {
   const source = fetchValue("source")
   const target = fetchValue("target")
   const strength = fetchValue("strength")
+  const link_type = fetchValue("link_type")
   console.log(source, target, strength)
   ws.send(
-    JSON.stringify({ event: "link", message: { source, target, strength } })
+    JSON.stringify({
+      event: "link",
+      message: { source, target, strength, link_type },
+    })
   )
 }
 
-function refresh () {
+function refresh() {
   // rerender data
-  ws.send(JSON.stringify({event: "request_data"}))
+  ws.send(JSON.stringify({ event: "request_data" }))
 }
 
-function search_node () {
+function search_node() {
   var search_input = document.getElementById("search")
   if (search_input.value != "") {
-    const { x, y } = neureData.nodes.find(node => node.id === search_input.value);
-    Graph.centerAt(x, y, 1000);
-    Graph.zoom(8, 2000);
+    const { x, y } = neureData.nodes.find(
+      (node) => node.id === search_input.value
+    )
+    Graph.centerAt(x, y, 1000)
+    Graph.zoom(8, 2000)
   }
 }
 
@@ -52,7 +58,6 @@ ws.onmessage = function (event) {
             var target_input = document.getElementById("target")
             target_input.value = node.id
           }
-          
         })
         .onNodeDragEnd((node) => {
           node.fx = node.x

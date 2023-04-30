@@ -28,7 +28,7 @@ func (m *Muscle) InitMuscle(wg *sync.WaitGroup) {
 
 func (m *Muscle) createNeures() {
 	neureObj := neure.CreateOneNeure(m.KeyPrefix, &neure.Neure{
-		NeureType:              "normal",
+		NeureType:              "common",
 		LastTimeActivate:       time.Now(),
 		LastTimeResetNowWeight: time.Now(),
 	})

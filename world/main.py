@@ -3,7 +3,6 @@ import websockets
 import json
 
 import utils
-import env_handler
 
 clients = {}
 loop = asyncio.new_event_loop()
@@ -29,7 +28,7 @@ async def handler(websocket):
         )
         return
     user = users[0]
-    if not user in ["front", "back"]:
+    if not user in ["front", "back", "env"]:
         print("user:", str(user), " username is wrong")
         await websocket.send(
             json.dumps({"event": "error", "message": f"user {str(user)} is wrong"})
@@ -37,8 +36,6 @@ async def handler(websocket):
         return
     else:
         clients[user] = websocket
-    if user == "back":
-        loop.create_task(env_handler.send_env_info(clients[user]))
     while True:
         try:
             data = await websocket.recv()
@@ -46,11 +43,11 @@ async def handler(websocket):
             # back send to front and front send to back
             if user == "back":
                 send_websocket = clients.get("front")
-            elif user == "front":
+            elif user == "front" or user == "env":
                 send_websocket = clients.get("back")
             if send_websocket is None:
                 print("front or back is not connect!")
-                return
+                continue
             await send_websocket.send(json.dumps(send_data))
         except Exception as e:
             if type(e) == websockets.exceptions.ConnectionClosedOK:

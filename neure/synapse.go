@@ -24,7 +24,7 @@ func (s *Synapse) ActivateNextNeure(neureType string) (ok bool, nextNeure *Neure
 	defer s.mu.Unlock()
 
 	switch neureType {
-	case "normal":
+	case "common":
 		// 激活下一个神经元，根据不同的连接强度和下一个神经元的weight做出不同的行为
 		nextNeure = GetNeureById(s.NextNeureID)
 		ok = nextNeure.TryActivate(s.LinkStrength * float32(s.SynapseNum))

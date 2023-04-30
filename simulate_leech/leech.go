@@ -21,10 +21,10 @@ func (lb *LeechBody) InitBody(wg *sync.WaitGroup) {
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
-
 		for _, skinNeureType := range config.PrefixSkinAndSenseType {
 			for _, position := range config.SkinAndSenseNeurePosition {
-				keyPrefix := "skin" + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
+				// only create common neure
+				keyPrefix := "skin" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
 				skin := body.Skin{
 					SkinNeureType: skinNeureType,
 					Position:      position,
@@ -41,9 +41,8 @@ func (lb *LeechBody) InitBody(wg *sync.WaitGroup) {
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
-
 		for _, movement := range config.Movements {
-			keyPrefix := "muscle" + config.PrefixNameSplitSymbol + movement
+			keyPrefix := "muscle" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + movement
 			muscle := body.Muscle{
 				MoveDirection: movement,
 				KeyPrefix:     keyPrefix,
@@ -60,7 +59,7 @@ func (lb *LeechBody) LoadBody(wg *sync.WaitGroup) {
 	// load skin from database
 	for _, skinNeureType := range config.PrefixSkinAndSenseType {
 		for _, position := range config.SkinAndSenseNeurePosition {
-			keyPrefix := "skin" + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
+			keyPrefix := "skin" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
 			skin := body.Skin{
 				SkinNeureType: skinNeureType,
 				Position:      position,
@@ -71,11 +70,12 @@ func (lb *LeechBody) LoadBody(wg *sync.WaitGroup) {
 			utils.StoreToMap(lb.Organ, "skin"+config.PrefixNameSplitSymbol+skinNeureType, &skin)
 			utils.StoreToMap(lb.Organ, "skin"+config.PrefixNameSplitSymbol+position, &skin)
 		}
+
 	}
 
 	// load muscle from database
 	for _, movement := range config.Movements {
-		keyPrefix := "muscle" + config.PrefixNameSplitSymbol + movement
+		keyPrefix := "muscle" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + movement
 		muscle := body.Muscle{
 			MoveDirection: movement,
 			KeyPrefix:     keyPrefix,
@@ -83,6 +83,7 @@ func (lb *LeechBody) LoadBody(wg *sync.WaitGroup) {
 		utils.LoadFromMapByKeyPrefix(lb.Organ, keyPrefix, &muscle)
 		utils.StoreToMap(lb.Organ, "muscle"+config.PrefixNameSplitSymbol+movement, &muscle)
 	}
+
 }
 
 func (lb *LeechBody) Action(command string) {
@@ -110,7 +111,7 @@ func (lb *LeechBrain) InitBrain(wg *sync.WaitGroup) {
 						// painful sense neure only connect extremely skin neure
 						continue
 					}
-					keyPrefix := "sense" + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + senseType + config.PrefixNameSplitSymbol + position
+					keyPrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + senseType + config.PrefixNameSplitSymbol + position
 					sense := brain.Sense{
 						SenseNeureType: senseNeureType,
 						Position:       position,
@@ -122,14 +123,12 @@ func (lb *LeechBrain) InitBrain(wg *sync.WaitGroup) {
 					utils.StoreToMap(lb.Area, keyPrefix+config.PrefixNumSplitSymbol+"collection", &sense)
 				}
 			}
-
 		}
 	}(wg)
 }
 
 func (lb *LeechBrain) LoadBrain(wg *sync.WaitGroup) {
 	defer wg.Done()
-
 	for _, senseNeureType := range config.PrefixSkinAndSenseType {
 		for _, senseType := range config.PrefixSenseType {
 			for _, position := range config.SkinAndSenseNeurePosition {
@@ -137,7 +136,7 @@ func (lb *LeechBrain) LoadBrain(wg *sync.WaitGroup) {
 					// painful sense neure only connect extremely skin neure
 					continue
 				}
-				keyPrefix := "sense" + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + senseType + config.PrefixNameSplitSymbol + position
+				keyPrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + senseType + config.PrefixNameSplitSymbol + position
 				sense := brain.Sense{
 					SenseNeureType: senseNeureType,
 					Position:       position,
@@ -174,6 +173,8 @@ func (l *Leech) InitLeech() {
 
 	wg.Wait()
 
+	// link neures, these neures is inborn neures, won't be deleted
+
 	// finally update all neures so that we can save the connect message into neure
 	neure.NeureMap.Range(func(key, value any) bool {
 		neureObj := value.(*neure.Neure)
@@ -204,9 +205,9 @@ func (l *Leech) WakeUp() {
 			l.EnvRequest <- data
 		case "link":
 			linkCondition := envResponse["message"].(map[string]interface{})
-			// linkCondition is a map {source:"xxx", strength:10, target:"yyy"}
+			// linkCondition is a map {source:"xxx", strength:10, target:"yyy", link_type: "n"}
 			log.Println("websocket link event: ", linkCondition)
-			utils.LinkNeures(linkCondition)
+			utils.LinkTwoNeures(linkCondition)
 			// recreate neures.json and tell frontend to refresh data
 			data := utils.AssembleMapDataToFront(l.Brain.Area, l.Body.Organ)
 			l.EnvRequest <- data

@@ -23,7 +23,7 @@ func getOnePrefix(oldPrefix []string, somePrefix []string) []string {
 
 func GetAllPrefix() (prefix []string) {
 	prefix = getOnePrefix(prefix, PrefixArea)
-	prefix = getOnePrefix(prefix, PrefixXXXType)
+	prefix = getOnePrefix(prefix, PrefixNeureType)
 
 	newPrefix := []string{}
 	for i := 0; i < len(prefix); i++ {

@@ -17,12 +17,13 @@ func StartInteract(
 	request chan map[string]interface{},
 	response chan map[string]interface{},
 ) {
+	// todo: relink when crash
 	u := url.URL{Scheme: "ws", Host: "localhost:8001", Path: "?user=back"}
 	log.Printf("connecting to %s", u.String())
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
-		log.Panic("websocket connect error:" + err.Error())
+		log.Println("websocket connect error:" + err.Error())
 	}
 	defer c.Close()
 
@@ -31,13 +32,13 @@ func StartInteract(
 		for {
 			_, responseByte, err := c.ReadMessage()
 			if err != nil {
-				log.Panic("read error:" + err.Error())
+				log.Println("read error:" + err.Error())
 				return
 			}
 			var responseMap = make(map[string]interface{})
 			err = json.Unmarshal(responseByte, &responseMap)
 			if err != nil {
-				log.Panic("read unmarshal error:" + err.Error())
+				log.Println("read unmarshal error:" + err.Error())
 			}
 			log.Printf("recv: %+v", responseMap)
 			response <- responseMap
@@ -56,7 +57,7 @@ func StartInteract(
 		case r := <-request:
 			data, err := json.Marshal(r)
 			if err != nil {
-				log.Panic("marshal json error:" + err.Error())
+				log.Println("marshal json error:" + err.Error())
 			}
 			// save data to js file
 			utils.SaveDataToFile(config.ProjectRoot+"/visualization/neures.json", data)
@@ -65,11 +66,11 @@ func StartInteract(
 			refreshFrontendSignal["event"] = "refresh ready"
 			requestByte, err := json.Marshal(refreshFrontendSignal)
 			if err != nil {
-				log.Panic(err)
+				log.Println(err)
 			}
 			err = c.WriteMessage(websocket.TextMessage, requestByte)
 			if err != nil {
-				log.Panic("write error:" + err.Error())
+				log.Println("write error:" + err.Error())
 			}
 		}
 	}
