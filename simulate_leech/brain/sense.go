@@ -5,7 +5,6 @@ import (
 	"graph_robot/config"
 	"graph_robot/database"
 	"graph_robot/neure"
-	"log"
 	"strings"
 	"sync"
 	"time"
@@ -26,9 +25,6 @@ func (s *Sense) InitSense(wg *sync.WaitGroup) {
 
 	// finally save this to database with keyPrefix+config.PrefixNumSplitSymbol+"collection"
 	dataByte := s.struct2Byte()
-	if "sense_normalTemperature_senseType_leftFrontUp@collection" == s.KeyPrefix+config.PrefixNumSplitSymbol+"collection" {
-		log.Println("**********has data")
-	}
 	database.CreateData(dataByte, s.KeyPrefix+config.PrefixNumSplitSymbol+"collection")
 }
 

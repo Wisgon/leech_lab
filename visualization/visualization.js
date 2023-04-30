@@ -3,12 +3,16 @@ const fetchValue = (id) => document.getElementById(id).value
 function send_data() {
   const source = fetchValue("source")
   const target = fetchValue("target")
-  const neure_type = fetchValue("type")
   const strength = fetchValue("strength")
-  console.log(source, target, neure_type, strength)
+  console.log(source, target, strength)
   ws.send(
-    JSON.stringify({ event: "link", message: { neure_type: neure_type } })
+    JSON.stringify({ event: "link", message: { source, target, strength } })
   )
+}
+
+function refresh () {
+  // rerender data
+  ws.send(JSON.stringify({event: "request_data"}))
 }
 
 ws.onmessage = function (event) {
@@ -29,7 +33,14 @@ ws.onmessage = function (event) {
         .linkDirectionalArrowRelPos(1)
         .onNodeClick((node) => {
           // Center/zoom on node
-          console.log(node.id)
+          var source_input = document.getElementById("source")
+          if (source_input.value == "") {
+            source_input.value = node.id
+          } else {
+            var target_input = document.getElementById("target")
+            target_input.value = node.id
+          }
+          
         })
         .onNodeDragEnd((node) => {
           node.fx = node.x
@@ -63,7 +74,7 @@ ws.onmessage = function (event) {
           if (textAngle > Math.PI / 2) textAngle = -(Math.PI - textAngle)
           if (textAngle < -Math.PI / 2) textAngle = -(-Math.PI - textAngle)
 
-          const label = `link strength:${link.link_strength}  synapse num:${link.synapse_num}`
+          const label = `ls:${link.link_strength}  sn:${link.synapse_num}  nt:${link.neure_type}`
 
           // estimate fontSize to fit in link length
           ctx.font = "1px Sans-Serif"

@@ -202,6 +202,14 @@ func (l *Leech) WakeUp() {
 		case "request_data":
 			data := utils.AssembleMapDataToFront(l.Brain.Area, l.Body.Organ)
 			l.EnvRequest <- data
+		case "link":
+			linkCondition := envResponse["message"].(map[string]interface{})
+			// linkCondition is a map {source:"xxx", strength:10, target:"yyy"}
+			log.Println("websocket link event: ", linkCondition)
+			utils.LinkNeures(linkCondition)
+			// recreate neures.json and tell frontend to refresh data
+			data := utils.AssembleMapDataToFront(l.Brain.Area, l.Body.Organ)
+			l.EnvRequest <- data
 		default:
 			log.Println("unknow event:", event)
 		}

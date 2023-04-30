@@ -19,17 +19,18 @@ import (
 func cleanup() {
 	log.Println("closing db~~~")
 	// save neure map
-	neure.NeureMap.Range(func(key, value any) bool {
-		neureObj := value.(*neure.Neure)
-		neureObj.UpdateNeure2DB()
-		return true
-	})
+	// neure.NeureMap.Range(func(key, value any) bool {
+	// 	neureObj := value.(*neure.Neure)
+	// 	neureObj.UpdateNeure2DB()
+	// 	return true
+	// })
 	database.CloseDb()
 	// some other cleanup here ~~~
 
 }
 
 func main() {
+	defer cleanup()
 	stopCheckNeureMapSignal := make(chan bool, 1)
 	rand.Seed(time.Now().UnixNano()) // set rand seed
 	database.InitDb(config.LeechDatasPath, config.SeqBandwidth)

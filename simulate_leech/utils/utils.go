@@ -7,6 +7,8 @@ import (
 	"graph_robot/neure"
 	"graph_robot/simulate_leech/body"
 	"graph_robot/simulate_leech/brain"
+	"log"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -15,7 +17,23 @@ func SignalPass(entranceNeure *neure.Neure) {
 	// todo:
 }
 
-func AssembleData(keyStr string, neures []string, groups *map[string][]string, links *[]map[string]interface{}) {
+func LinkNeures(linkCondition map[string]interface{}) {
+	source, target := linkCondition["source"].(string), linkCondition["target"].(string)
+	strengthStr := linkCondition["strength"].(string)
+	strength, err := strconv.ParseFloat(strengthStr, 64)
+	if err != nil {
+		log.Println("error: parse strength fail, link fail")
+		return
+	}
+	neureSource := neure.GetNeureById(source)
+	synapse := neure.Synapse{
+		NextNeureID:  target,
+		LinkStrength: float32(strength),
+	}
+	neureSource.ConnectNextNuere(&synapse)
+}
+
+func AssembleLinkData(keyStr string, neures []string, groups *map[string][]string, links *[]map[string]interface{}) {
 	for _, v := range neures {
 		(*groups)[keyStr] = append((*groups)[keyStr], v)
 		neure := neure.GetNeureById(v)
@@ -25,6 +43,7 @@ func AssembleData(keyStr string, neures []string, groups *map[string][]string, l
 			link["target"] = s.NextNeureID
 			link["link_strength"] = s.LinkStrength
 			link["synapse_num"] = s.SynapseNum
+			link["neure_type"] = neure.NeureType
 			(*links) = append((*links), link)
 		}
 	}
@@ -71,11 +90,11 @@ func AssembleMapDataToFront(area *sync.Map, organ *sync.Map) map[string]interfac
 		if strings.Contains(keyStr, "collection") {
 			switch collection := value.(type) {
 			case *body.Skin:
-				AssembleData(keyStr, collection.Neures, &groups, &links)
+				AssembleLinkData(keyStr, collection.Neures, &groups, &links)
 			case *body.Muscle:
-				AssembleData(keyStr, collection.Neures, &groups, &links)
+				AssembleLinkData(keyStr, collection.Neures, &groups, &links)
 			case *brain.Sense:
-				AssembleData(keyStr, collection.Neures, &groups, &links)
+				AssembleLinkData(keyStr, collection.Neures, &groups, &links)
 			}
 		}
 		return true
@@ -85,11 +104,11 @@ func AssembleMapDataToFront(area *sync.Map, organ *sync.Map) map[string]interfac
 		if strings.Contains(keyStr, "collection") {
 			switch collection := value.(type) {
 			case *body.Skin:
-				AssembleData(keyStr, collection.Neures, &groups, &links)
+				AssembleLinkData(keyStr, collection.Neures, &groups, &links)
 			case *body.Muscle:
-				AssembleData(keyStr, collection.Neures, &groups, &links)
+				AssembleLinkData(keyStr, collection.Neures, &groups, &links)
 			case *brain.Sense:
-				AssembleData(keyStr, collection.Neures, &groups, &links)
+				AssembleLinkData(keyStr, collection.Neures, &groups, &links)
 			}
 		}
 		return true

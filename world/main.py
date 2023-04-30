@@ -62,6 +62,7 @@ async def handler(websocket):
 
 
 async def server8001():
+    # todo: restart when crash
     async with websockets.serve(handler, "", 8001, create_protocol=QueryParamProtocol):
         print("start webdocket~~~8001")
         await asyncio.Future()  # run forever
