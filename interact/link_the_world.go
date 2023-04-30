@@ -22,7 +22,7 @@ func StartInteract(
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
-		panic("websocket connect error:" + err.Error())
+		log.Panic("websocket connect error:" + err.Error())
 	}
 	defer c.Close()
 
@@ -31,13 +31,13 @@ func StartInteract(
 		for {
 			_, responseByte, err := c.ReadMessage()
 			if err != nil {
-				log.Println("read error:", err)
+				log.Panic("read error:" + err.Error())
 				return
 			}
 			var responseMap = make(map[string]interface{})
 			err = json.Unmarshal(responseByte, &responseMap)
 			if err != nil {
-				panic("read unmarshal error:" + err.Error())
+				log.Panic("read unmarshal error:" + err.Error())
 			}
 			log.Printf("recv: %+v", responseMap)
 			response <- responseMap
@@ -51,13 +51,12 @@ func StartInteract(
 			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
 				log.Println("write close:", err)
-				return
 			}
 			return
 		case r := <-request:
 			data, err := json.Marshal(r)
 			if err != nil {
-				panic("marshal json error:" + err.Error())
+				log.Panic("marshal json error:" + err.Error())
 			}
 			// save data to js file
 			utils.SaveDataToFile(config.ProjectRoot+"/visualization/neures.json", data)
@@ -66,11 +65,11 @@ func StartInteract(
 			refreshFrontendSignal["event"] = "refresh ready"
 			requestByte, err := json.Marshal(refreshFrontendSignal)
 			if err != nil {
-				panic(err)
+				log.Panic(err)
 			}
 			err = c.WriteMessage(websocket.TextMessage, requestByte)
 			if err != nil {
-				panic("write error:" + err.Error())
+				log.Panic("write error:" + err.Error())
 			}
 		}
 	}

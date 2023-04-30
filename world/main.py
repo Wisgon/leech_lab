@@ -37,9 +37,8 @@ async def handler(websocket):
         return
     else:
         clients[user] = websocket
-    # if user == "back":
-    #     # todo:back end has env sender, must receive env info
-    #     loop.create_task(env_handler.send_env_info(clients[user]))
+    if user == "back":
+        loop.create_task(env_handler.send_env_info(clients[user]))
     while True:
         try:
             data = await websocket.recv()

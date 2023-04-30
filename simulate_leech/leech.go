@@ -198,7 +198,7 @@ func (l *Leech) WakeUp() {
 		case "error":
 			message := envResponse["message"].(string)
 			log.Println("websocket error event: ", message)
-			panic("env response error")
+			log.Panic("env response error")
 		case "request_data":
 			data := utils.AssembleMapDataToFront(l.Brain.Area, l.Body.Organ)
 			l.EnvRequest <- data
@@ -210,6 +210,10 @@ func (l *Leech) WakeUp() {
 			// recreate neures.json and tell frontend to refresh data
 			data := utils.AssembleMapDataToFront(l.Brain.Area, l.Body.Organ)
 			l.EnvRequest <- data
+		case "env_info":
+			linkCondition := envResponse["message"].(map[string]interface{})
+			log.Printf("get evn info: %+v\n", linkCondition)
+			// todo: do something with env info
 		default:
 			log.Println("unknow event:", event)
 		}

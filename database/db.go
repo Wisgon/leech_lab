@@ -20,7 +20,7 @@ func InitDb(dbPath string, seqBandwidth int) {
 func getDB(dbPath string) *badger.DB {
 	db, err := badger.Open(badger.DefaultOptions(dbPath))
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	return db
 }
@@ -34,7 +34,7 @@ func getSequenceObject(seqBandwidth int) *map[string]*badger.Sequence {
 		keyPrefix := prefix[i]
 		seq, err := db.GetSequence([]byte(keyPrefix), uint64(seqBandwidth))
 		if err != nil {
-			panic(err)
+			log.Panic(err)
 		}
 		seqMap[keyPrefix] = seq
 	}
@@ -46,11 +46,11 @@ func CloseDb() {
 		err := (*seqMap)[k].Release()
 		if err != nil {
 			log.Println("*****", reflect.TypeOf(err))
-			panic(err)
+			log.Panic(err)
 		}
 	}
 	err := db.Close()
 	if err != nil && !strings.Contains(err.Error(), "resource temporarily unavailable") {
-		panic(err)
+		log.Panic(err)
 	}
 }

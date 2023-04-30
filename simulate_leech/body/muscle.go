@@ -5,6 +5,7 @@ import (
 	"graph_robot/config"
 	"graph_robot/database"
 	"graph_robot/neure"
+	"log"
 	"sync"
 	"time"
 )
@@ -37,7 +38,7 @@ func (m *Muscle) createNeures() {
 func (m *Muscle) struct2Byte() []byte {
 	dataByte, err := json.Marshal(m)
 	if err != nil {
-		panic("json marshal error: " + err.Error())
+		log.Panic("json marshal error: " + err.Error())
 	}
 	return dataByte
 }

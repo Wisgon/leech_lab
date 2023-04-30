@@ -15,7 +15,7 @@ package database
 // 	if m.transactionNumber > config.FixedTransactionNum {
 // 		err := m.txn.Commit()
 // 		if err != nil {
-// 			panic(err)
+// 			log.Panic(err)
 // 		}
 // 		m.Init()
 // 		m.transactionNumber = 0
@@ -25,7 +25,7 @@ package database
 // 		m.Init()
 // 		err = m.txn.Set([]byte(key), data)
 // 		if err != nil {
-// 			panic(err)
+// 			log.Panic(err)
 // 		}
 // 	}
 // 	m.transactionNumber += 1
@@ -36,7 +36,7 @@ package database
 // 	if m.transactionNumber > config.FixedTransactionNum {
 // 		err := m.txn.Commit()
 // 		if err != nil {
-// 			panic(err)
+// 			log.Panic(err)
 // 		}
 // 		m.Init()
 // 		m.transactionNumber = 0
@@ -46,7 +46,7 @@ package database
 // 		m.Init()
 // 		err = m.txn.Set([]byte(key), data)
 // 		if err != nil {
-// 			panic(err)
+// 			log.Panic(err)
 // 		}
 // 	}
 // 	m.transactionNumber += 1
@@ -56,7 +56,7 @@ package database
 // 	if m.transactionNumber > config.FixedTransactionNum {
 // 		err := m.txn.Commit()
 // 		if err != nil {
-// 			panic(err)
+// 			log.Panic(err)
 // 		}
 // 		m.Init()
 // 		m.transactionNumber = 0
@@ -66,7 +66,7 @@ package database
 // 		m.Init()
 // 		err = m.txn.Delete([]byte(key))
 // 		if err != nil {
-// 			panic(err)
+// 			log.Panic(err)
 // 		}
 // 	}
 // 	m.transactionNumber += 1
@@ -75,7 +75,7 @@ package database
 // func (m *ManuallyTransaction) ManuallyCommit() {
 // 	err := m.txn.Commit()
 // 	if err != nil {
-// 		panic(err)
+// 		log.Panic(err)
 // 	}
 // }
 

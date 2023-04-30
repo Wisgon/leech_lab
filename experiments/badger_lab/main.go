@@ -19,7 +19,7 @@ type TestStruct struct {
 func (n *TestStruct) Struct2Byte() []byte {
 	nb, err := json.Marshal(n)
 	if err != nil {
-		panic("json marshal error: " + err.Error())
+		log.Panic("json marshal error: " + err.Error())
 	}
 	return nb
 }
@@ -27,7 +27,7 @@ func (n *TestStruct) Struct2Byte() []byte {
 func (n *TestStruct) Byte2Struct(neureByte []byte) {
 	err := json.Unmarshal(neureByte, n)
 	if err != nil {
-		panic("json unmarshal error: " + err.Error())
+		log.Panic("json unmarshal error: " + err.Error())
 	}
 }
 
@@ -51,34 +51,34 @@ func main() {
 	}
 	err = txn.Set([]byte("aaa1"), []byte(testStr.Struct2Byte()))
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	err = txn.Set([]byte("empty"), []byte{})
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	// err = db.Update(func(txn *badger.Txn) error {
 	// 	err := txn.Delete([]byte("aaa2"))
 	// 	if err != nil {
-	// 		panic(err)
+	// 		log.Panic(err)
 	// 	}
 	// 	return nil
 	// })
 	// if err != nil {
-	// 	panic(err)
+	// 	log.Panic(err)
 	// }
 
 	// Commit the transaction and check for error.
 	if err := txn.Commit(); err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
 	txn2 := db.NewTransaction(true)
 	defer txn2.Discard()
 	item, err := txn2.Get([]byte("aaa1"))
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	log.Println("before get value~~~")
 	_ = item.Value(func(val []byte) error {
@@ -92,7 +92,7 @@ func main() {
 	txn2.Set([]byte("not_commit3"), []byte("aaa"))
 	item, err = txn2.Get([]byte("not_commit3"))
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	log.Println("before get value~~~")
 	_ = item.Value(func(val []byte) error {
@@ -141,20 +141,20 @@ func main() {
 
 	seq, err := db.GetSequence([]byte("aaa"), 1024)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	defer seq.Release()
 	num, err := seq.Next()
 	_, _ = seq.Next()
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	log.Println("num:!!!!:", num)
 	// var i = 0
 	// for {
 	// 	num, err := seq.Next()
 	// 	if err != nil {
-	// 		panic(err)
+	// 		log.Panic(err)
 	// 	}
 	// 	if err = txn2.Set([]byte("aaa"+fmt.Sprint(num)), []byte("aaa")); err == badger.ErrTxnTooBig {
 	// 		log.Println("~~~i:", i) // test max i, result is more than 100000

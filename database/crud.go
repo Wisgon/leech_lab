@@ -14,7 +14,7 @@ func CreateData(dataByte []byte, key string) {
 	_ = db.Update(func(txn *badger.Txn) error {
 		err := txn.Set([]byte(key), dataByte)
 		if err != nil {
-			panic(err)
+			log.Panic(err)
 		}
 		return nil
 	})
@@ -24,7 +24,7 @@ func UpdateNeure(neureByte []byte, neureId string) {
 	_ = db.Update(func(txn *badger.Txn) error {
 		err := txn.Set([]byte(neureId), neureByte)
 		if err != nil {
-			panic(err)
+			log.Panic(err)
 		}
 		return nil
 	})
@@ -34,7 +34,7 @@ func DeleteNeure(neureId string) {
 	_ = db.Update(func(txn *badger.Txn) error {
 		err := txn.Delete([]byte(neureId))
 		if err != nil {
-			panic(err)
+			log.Panic(err)
 		}
 		return nil
 	})
@@ -45,7 +45,7 @@ func GetDataById(id string) []byte {
 	_ = db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte(id))
 		if err != nil {
-			panic(err.Error() + " key is: " + id)
+			log.Panic(err.Error() + " key is: " + id)
 		}
 		_ = item.Value(func(val []byte) error {
 			data = append([]byte{}, val...) // can't directly data = val according to doc of badger
@@ -160,6 +160,6 @@ func CheckAllKey() {
 		return nil
 	})
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 }

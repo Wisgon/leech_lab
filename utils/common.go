@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/md5"
 	"fmt"
+	"log"
 	"math/rand"
 	"os"
 	"path"
@@ -37,11 +38,11 @@ func RemoveUniqueValueFromSlice[T constraints.Integer | constraints.Float | stri
 func SaveDataToFile(filePath string, data []byte) {
 	file, err := os.Create(filePath)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	defer file.Close()
 	_, err = file.Write(data)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 }

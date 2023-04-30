@@ -3,12 +3,13 @@ package database
 import (
 	"fmt"
 	"graph_robot/config"
+	"log"
 )
 
 func GetSeqNum(keyPrefix string) string {
 	uniqueNum, err := (*seqMap)[keyPrefix].Next()
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	return fmt.Sprint(uniqueNum)
 }

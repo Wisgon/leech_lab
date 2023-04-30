@@ -5,6 +5,7 @@ import (
 	"graph_robot/config"
 	"graph_robot/database"
 	"graph_robot/neure"
+	"log"
 	"strings"
 	"sync"
 	"time"
@@ -38,7 +39,7 @@ func (s *Sense) createNeures() {
 	} else if strings.Contains(s.SenseNeureType, "extremely") {
 		neureNum = config.EachSkinPositionDeepestNeureNum / 10
 	} else {
-		panic("Unknow skin neure type")
+		log.Panic("Unknow skin neure type")
 	}
 	for i := 0; i < neureNum; i++ {
 		neureObj := neure.CreateOneNeure(s.KeyPrefix, &neure.Neure{
@@ -53,7 +54,7 @@ func (s *Sense) createNeures() {
 func (s *Sense) struct2Byte() []byte {
 	dataByte, err := json.Marshal(s)
 	if err != nil {
-		panic("json marshal error: " + err.Error())
+		log.Panic("json marshal error: " + err.Error())
 	}
 	return dataByte
 }

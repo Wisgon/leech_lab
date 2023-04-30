@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/rand"
 	"os"
 	"sync"
@@ -115,21 +116,21 @@ func main() {
 	// bytedata, err := json.Marshal(timer1)
 	// if err != nil {
 	// 	log.Println("marshal error:" + err.Error())
-	// 	panic(err)
+	// 	log.Panic(err)
 	// }
 	// fmt.Println(string(bytedata))
 	// timer2 := timer{}
 	// err = json.Unmarshal(bytedata, &timer2)
 	// if err != nil {
 	// 	log.Println("unmarshal error:" + err.Error())
-	// 	panic(err)
+	// 	log.Panic(err)
 	// }
 	// fmt.Println("timer2:", timer2.Abc)
 	// timeString := "2023-04-22T18:10:06.94926253+09:00"
 	// timeObj, err := time.Parse(time.RFC3339Nano, timeString)
 	// if err != nil {
 	// 	log.Println("parse error:" + err.Error())
-	// 	panic(err)
+	// 	log.Panic(err)
 	// }
 	// fmt.Println(timeObj)
 	// var a time.Time
@@ -137,7 +138,7 @@ func main() {
 	// timeObj, err = time.Parse(time.RFC3339Nano, "0001-01-01 00:00:00 +0000 UTC")
 	// if err != nil {
 	// 	log.Println("parse error2:" + err.Error())
-	// 	panic(err)
+	// 	log.Panic(err)
 	// }
 
 	// sync.Map test
@@ -226,7 +227,7 @@ func main() {
 	// 		fmt.Println("i:", i)
 	// 	}
 	// }()
-	// panic("main panic")
+	// log.Panic("main panic")
 
 	// test wait group in routine
 	// wg := &sync.WaitGroup{}
@@ -257,17 +258,17 @@ func main() {
 	prefix := []byte("var neures = ")
 	jsonData, err := json.Marshal(aaa)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	jsonFile, err := os.Create("./test_create.js")
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	defer jsonFile.Close()
 	prefix = append(prefix, jsonData...)
 	_, err = jsonFile.Write(prefix)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 }
 

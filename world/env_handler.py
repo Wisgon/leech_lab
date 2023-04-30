@@ -4,7 +4,7 @@ import json
 
 async def send_env_info(websocket):
     while True:
-        print("sending****")
+        print("sending env info****")
         await websocket.send(
             json.dumps(
                 {
@@ -13,4 +13,4 @@ async def send_env_info(websocket):
                 }
             )
         )
-        time.sleep(10)
+        time.sleep(600)

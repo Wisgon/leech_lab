@@ -53,7 +53,7 @@ func AssembleLinkData(keyStr string, neures []string, groups *map[string][]strin
 			case "inhibitory":
 				neureType = "i"
 			default:
-				panic("wrong neure type:" + neureObj.NeureType)
+				log.Panic("wrong neure type:" + neureObj.NeureType)
 			}
 			link["neure_type"] = neureType
 			(*links) = append((*links), link)
@@ -80,7 +80,7 @@ func StoreToMap[T body.Skin | body.Muscle | brain.Sense](dataMap *sync.Map, key 
 func Struct2Byte[T body.Skin | body.Muscle | brain.Sense](data *T) []byte {
 	dataByte, err := json.Marshal(data)
 	if err != nil {
-		panic("json marshal error: " + err.Error())
+		log.Panic("json marshal error: " + err.Error())
 	}
 	return dataByte
 }
@@ -88,7 +88,7 @@ func Struct2Byte[T body.Skin | body.Muscle | brain.Sense](data *T) []byte {
 func Byte2Struct[T body.Skin | body.Muscle | brain.Sense](neureByte []byte, data *T) {
 	err := json.Unmarshal(neureByte, data)
 	if err != nil {
-		panic("json unmarshal error: " + err.Error())
+		log.Panic("json unmarshal error: " + err.Error())
 	}
 }
 

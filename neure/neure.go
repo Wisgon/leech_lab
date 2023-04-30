@@ -5,6 +5,7 @@ import (
 	"graph_robot/config"
 	"graph_robot/database"
 	"graph_robot/utils"
+	"log"
 	"sync"
 	"time"
 )
@@ -57,7 +58,7 @@ func (n *Neure) ChangeElectricalConductivity(value int, op string) {
 	case "sub":
 		n.ElectricalConductivity -= int32(value)
 	default:
-		panic("invalid op with ElectricalConductivity")
+		log.Panic("invalid op with ElectricalConductivity")
 	}
 }
 
@@ -121,7 +122,7 @@ func (n *Neure) Struct2Byte() []byte {
 
 	nb, err := json.Marshal(n)
 	if err != nil {
-		panic("json marshal error: " + err.Error())
+		log.Panic("json marshal error: " + err.Error())
 	}
 	return nb
 }
@@ -129,6 +130,6 @@ func (n *Neure) Struct2Byte() []byte {
 func (n *Neure) Byte2Struct(neureByte []byte) {
 	err := json.Unmarshal(neureByte, n)
 	if err != nil {
-		panic("json unmarshal error: " + err.Error())
+		log.Panic("json unmarshal error: " + err.Error())
 	}
 }

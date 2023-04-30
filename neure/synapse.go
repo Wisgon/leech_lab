@@ -2,6 +2,7 @@ package neure
 
 import (
 	"graph_robot/config"
+	"log"
 	"math/rand"
 	"sync"
 )
@@ -38,7 +39,7 @@ func (s *Synapse) ActivateNextNeure(neureType string) (ok bool, nextNeure *Neure
 	case "inhibitory":
 		// 抑制型神经元
 	default:
-		panic("neure type worng!!!")
+		log.Panic("neure type worng!!!")
 	}
 	return
 }
