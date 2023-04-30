@@ -13,12 +13,20 @@
   </head>
   <body>
     <form action="javascript:void(0);">
-      source:<input id="source" type="text" value=""> 
-      target:<input id="target" type="text" value="">
-      strength:<input id="strength" type="text" value=10 size="4">
+      source:
+      <input id="source" type="text" value="" />
+      target:
+      <input id="target" type="text" value="" />
+      strength:
+      <input id="strength" type="text" value="10" size="4" />
       <button onclick="send_data()">Submit</button>
     </form>
-    <button onclick="refresh()" style="margin-top: 10px;">Refresh</button>
+    <div>
+      <button onclick="refresh()" style="margin-top: 10px">Refresh</button>
+      search node:
+      <input id="search" type="text" value="" />
+      <button onclick="search_node()">search</button>
+    </div>
     <div id="data"></div>
     <script src="./visualization.js"></script>
   </body>

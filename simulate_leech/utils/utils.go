@@ -29,6 +29,7 @@ func LinkNeures(linkCondition map[string]interface{}) {
 	synapse := neure.Synapse{
 		NextNeureID:  target,
 		LinkStrength: float32(strength),
+		SynapseNum:   1,
 	}
 	neureSource.ConnectNextNuere(&synapse)
 }
@@ -36,14 +37,25 @@ func LinkNeures(linkCondition map[string]interface{}) {
 func AssembleLinkData(keyStr string, neures []string, groups *map[string][]string, links *[]map[string]interface{}) {
 	for _, v := range neures {
 		(*groups)[keyStr] = append((*groups)[keyStr], v)
-		neure := neure.GetNeureById(v)
-		for _, s := range neure.Synapses {
+		neureObj := neure.GetNeureById(v)
+		for _, s := range neureObj.Synapses {
 			link := make(map[string]interface{})
 			link["source"] = v
 			link["target"] = s.NextNeureID
 			link["link_strength"] = s.LinkStrength
 			link["synapse_num"] = s.SynapseNum
-			link["neure_type"] = neure.NeureType
+			neureType := ""
+			switch neureObj.NeureType {
+			case "normal":
+				neureType = "n"
+			case "regulate":
+				neureType = "r"
+			case "inhibitory":
+				neureType = "i"
+			default:
+				panic("wrong neure type:" + neureObj.NeureType)
+			}
+			link["neure_type"] = neureType
 			(*links) = append((*links), link)
 		}
 	}

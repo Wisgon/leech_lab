@@ -1,4 +1,6 @@
 const fetchValue = (id) => document.getElementById(id).value
+var Graph
+var neureData
 
 function send_data() {
   const source = fetchValue("source")
@@ -15,6 +17,15 @@ function refresh () {
   ws.send(JSON.stringify({event: "request_data"}))
 }
 
+function search_node () {
+  var search_input = document.getElementById("search")
+  if (search_input.value != "") {
+    const { x, y } = neureData.nodes.find(node => node.id === search_input.value);
+    Graph.centerAt(x, y, 1000);
+    Graph.zoom(8, 2000);
+  }
+}
+
 ws.onmessage = function (event) {
   var refresh_signal = event.data
   console.log("data:", refresh_signal)
@@ -23,8 +34,9 @@ ws.onmessage = function (event) {
     .then((response) => response.json())
     .then((neures) => {
       // render graph
-      const Graph = ForceGraph()(document.getElementById("data"))
-        .graphData(neures)
+      neureData = neures
+      Graph = ForceGraph()(document.getElementById("data"))
+        .graphData(neureData)
         .nodeId("id")
         .nodeLabel("id")
         .nodeAutoColorBy("group")

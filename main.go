@@ -19,11 +19,11 @@ import (
 func cleanup() {
 	log.Println("closing db~~~")
 	// save neure map
-	// neure.NeureMap.Range(func(key, value any) bool {
-	// 	neureObj := value.(*neure.Neure)
-	// 	neureObj.UpdateNeure2DB()
-	// 	return true
-	// })
+	neure.NeureMap.Range(func(key, value any) bool {
+		neureObj := value.(*neure.Neure)
+		neureObj.UpdateNeure2DB()
+		return true
+	})
 	database.CloseDb()
 	// some other cleanup here ~~~
 

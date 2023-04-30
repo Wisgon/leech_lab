@@ -333,3 +333,5 @@ var text_on_link = {
   ]
 }
 
+[{"link_strength":10,"neure_type":"normal","source":"skin_biggerColdTemperature_rightFrontUp@53","synapse_num":0,"target":"skin_extremelyHotTemp_rightBackUp@359"}]
+
