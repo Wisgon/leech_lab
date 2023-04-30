@@ -174,6 +174,43 @@ func (l *Leech) InitLeech() {
 	wg.Wait()
 
 	// link neures, these neures is inborn neures, won't be deleted
+	// first, link common type of skin and sense
+	for _, neureType := range config.PrefixSkinAndSenseType {
+		for _, position := range config.SkinAndSenseNeurePosition {
+			skinPrefix := "skin" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + neureType + config.PrefixNameSplitSymbol + position
+			sensePrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + neureType + config.PrefixNameSplitSymbol + "senseType" + config.PrefixNameSplitSymbol + position
+			utils.LinkNeureGroups(
+				utils.GetNeureIdsByKeyPrefix(l.Body.Organ, skinPrefix, &body.Skin{}),
+				utils.GetNeureIdsByKeyPrefix(l.Brain.Area, sensePrefix, &brain.Sense{}),
+				101, 1, "common",
+			)
+			if strings.Contains(neureType, "extremely") {
+				// extremely must connect senseType and painful type
+				skinPrefix := "skin" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + neureType + config.PrefixNameSplitSymbol + position
+				sensePrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + neureType + config.PrefixNameSplitSymbol + "painfulType" + config.PrefixNameSplitSymbol + position
+				utils.LinkNeureGroups(
+					utils.GetNeureIdsByKeyPrefix(l.Body.Organ, skinPrefix, &body.Skin{}),
+					utils.GetNeureIdsByKeyPrefix(l.Brain.Area, sensePrefix, &brain.Sense{}),
+					101, 1, "common",
+				)
+			}
+		}
+	}
+
+	// senond, link common type of sense and muscle
+	for _, neureType := range config.PrefixSkinAndSenseType {
+		for _, position := range config.SkinAndSenseNeurePosition {
+			opposite := utils.GetOpposite(position)
+			sensePrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + neureType + config.PrefixNameSplitSymbol + "senseType" + config.PrefixNameSplitSymbol + position
+			// sense link the opposite of muscle
+			musclePrefix := "muscle" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + "move" + opposite
+			utils.LinkNeureGroups(
+				utils.GetNeureIdsByKeyPrefix(l.Body.Organ, sensePrefix, &brain.Sense{}),
+				utils.GetNeureIdsByKeyPrefix(l.Brain.Area, musclePrefix, &body.Muscle{}),
+				50, 1, "common",
+			)
+		}
+	}
 
 	// finally update all neures so that we can save the connect message into neure
 	neure.NeureMap.Range(func(key, value any) bool {

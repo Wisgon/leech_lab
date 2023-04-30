@@ -19,11 +19,6 @@ func cleanup() {
 func main() {
 	rand.Seed(time.Now().UnixNano()) // set rand seed
 	database.InitDb(config.LeechDatasPath, config.SeqBandwidth)
-	defer func() {
-		if r := recover(); r != nil {
-			cleanup()
-		}
-	}()
 
 	leechObj := leech.Leech{
 		Brain: &leech.LeechBrain{

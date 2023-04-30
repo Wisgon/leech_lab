@@ -19,6 +19,12 @@ type Skin struct {
 	KeyPrefix     string   `json:"d"`
 }
 
+func (s *Skin) GetNeures() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.Neures
+}
+
 func (s *Skin) InitSkin(wg *sync.WaitGroup) {
 	defer wg.Done()
 	s.createNeures()

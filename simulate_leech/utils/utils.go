@@ -12,7 +12,13 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
+
+type CreatureParts interface {
+	*body.Skin | *body.Muscle | *brain.Sense
+	GetNeures() []string
+}
 
 func SignalPass(entranceNeure *neure.Neure) {
 	// todo:
@@ -20,35 +26,56 @@ func SignalPass(entranceNeure *neure.Neure) {
 
 func LinkTwoNeures(linkCondition map[string]interface{}) {
 	source, target := linkCondition["source"].(string), linkCondition["target"].(string)
-	strengthStr, linkType := linkCondition["strength"].(string), linkCondition["link_type"].(string)
-	if linkType == "common" {
-		strength, err := strconv.ParseFloat(strengthStr, 64)
+	linkType := linkCondition["link_type"].(string)
+	var strength float64
+	var err error
+	switch strengthType := linkCondition["strength"].(type) {
+	case string:
+		strength, err = strconv.ParseFloat(strengthType, 64)
 		if err != nil {
 			log.Println("error: parse strength fail, link fail")
 			return
 		}
+	case float32:
+		strength = float64(strengthType)
+	}
+	if linkType == "common" {
 		neureSource := neure.GetNeureById(source)
 		neureSource.ConnectNextNuere(&neure.Synapse{
 			NextNeureID:  target,
 			LinkStrength: float32(strength),
 			SynapseNum:   1,
 		})
-	} else if linkType == "regulate" {
-		// regulateNeure := neure.CreateOneNeure()
+	} else {
+		if linkType != "regulate" && linkType != "inhibitory" {
+			log.Panic("wrong neure type:" + linkType)
+		}
+		// need to create a new neure
+		newNeurePrefix := neure.GetOtherTypeOfNeurePrefix(source, linkType)
+		regulateNeure := neure.CreateOneNeure(newNeurePrefix, &neure.Neure{
+			NeureType:              linkType,
+			LastTimeActivate:       time.Now(),
+			LastTimeResetNowWeight: time.Now(),
+		})
+		neureSource := neure.GetNeureById(source)
+		neureSource.ConnectNextNuere(&neure.Synapse{
+			NextNeureID:  regulateNeure.ThisNeureId,
+			LinkStrength: float32(strength),
+			SynapseNum:   1,
+		})
 	}
 
 }
 
-func LinkNeureGroups(group1 []string, group2 []string, strength float32, synapseNum int32) {
-	// todo: link type
-	for _, neureId := range group1 {
-		neureObj := neure.GetNeureById(neureId)
-		nextNeureId := group2[rand.Intn(len(group2))] // link to random neure in group2
-		neureObj.ConnectNextNuere(&neure.Synapse{
-			SynapseNum:   synapseNum,
-			LinkStrength: strength,
-			NextNeureID:  nextNeureId,
-		})
+func LinkNeureGroups(sourceNeures []string, targetNeures []string, strength float32, synapseNum int32, linkType string) {
+	for _, neureId := range sourceNeures {
+		linkCondition := make(map[string]interface{})
+		nextNeureId := targetNeures[rand.Intn(len(targetNeures))] // link to random neure in targetNeures
+		linkCondition["source"] = neureId
+		linkCondition["target"] = nextNeureId
+		linkCondition["strength"] = strength
+		linkCondition["link_type"] = linkType
+		LinkTwoNeures(linkCondition)
 	}
 }
 
@@ -79,23 +106,28 @@ func AssembleLinkData(keyStr string, neures []string, groups *map[string][]strin
 	}
 }
 
-func LoadFromMapByKeyPrefix[T body.Skin | body.Muscle | brain.Sense](dataMap *sync.Map, keyPrefix string, value *T) {
+func GetNeureIdsByKeyPrefix[T CreatureParts](dataMap *sync.Map, keyPrefix string, value T) []string {
+	LoadFromMapByKeyPrefix(dataMap, keyPrefix, value)
+	return value.GetNeures()
+}
+
+func LoadFromMapByKeyPrefix[T CreatureParts](dataMap *sync.Map, keyPrefix string, value T) {
 	dataByte := database.GetDataById(keyPrefix + config.PrefixNumSplitSymbol + "collection")
 	Byte2Struct(dataByte, value)
 	dataMap.Store(keyPrefix+config.PrefixNumSplitSymbol+"collection", value)
 }
 
-func StoreToMap[T body.Skin | body.Muscle | brain.Sense](dataMap *sync.Map, key string, value *T) {
+func StoreToMap[T CreatureParts](dataMap *sync.Map, key string, value T) {
 	v, ok := dataMap.Load(key)
-	var datas []*T
+	var datas []T
 	if ok {
-		datas = v.([]*T)
+		datas = v.([]T)
 	}
 	datas = append(datas, value)
 	dataMap.Store(key, datas)
 }
 
-func Struct2Byte[T body.Skin | body.Muscle | brain.Sense](data *T) []byte {
+func Struct2Byte[T CreatureParts](data T) []byte {
 	dataByte, err := json.Marshal(data)
 	if err != nil {
 		log.Panic("json marshal error: " + err.Error())
@@ -103,7 +135,7 @@ func Struct2Byte[T body.Skin | body.Muscle | brain.Sense](data *T) []byte {
 	return dataByte
 }
 
-func Byte2Struct[T body.Skin | body.Muscle | brain.Sense](neureByte []byte, data *T) {
+func Byte2Struct[T CreatureParts](neureByte []byte, data T) {
 	err := json.Unmarshal(neureByte, data)
 	if err != nil {
 		log.Panic("json unmarshal error: " + err.Error())
@@ -157,4 +189,14 @@ func AssembleMapDataToFront(area *sync.Map, organ *sync.Map) map[string]interfac
 	data["links"] = links
 	data["nodes"] = nodes
 	return data
+}
+
+func GetOpposite(position string) (opposite string) {
+	opposite = strings.Replace(position, "left", "Right", -1)
+	opposite = strings.Replace(opposite, "Front", "Back", -1)
+	opposite = strings.Replace(opposite, "Up", "Down", -1)
+	opposite = strings.Replace(opposite, "right", "Left", -1)
+	opposite = strings.Replace(opposite, "Back", "Front", -1)
+	opposite = strings.Replace(opposite, "Down", "Up", -1)
+	return
 }

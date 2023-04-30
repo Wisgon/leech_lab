@@ -17,6 +17,12 @@ type Muscle struct {
 	KeyPrefix     string   `json:"d"`
 }
 
+func (m *Muscle) GetNeures() []string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.Neures
+}
+
 func (m *Muscle) InitMuscle(wg *sync.WaitGroup) {
 	defer wg.Done()
 	m.createNeures()

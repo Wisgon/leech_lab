@@ -42,6 +42,7 @@ ws.onmessage = function (event) {
       // render graph
       neureData = neures
       Graph = ForceGraph()(document.getElementById("data"))
+        .backgroundColor("#101020")
         .graphData(neureData)
         .nodeId("id")
         .nodeLabel("id")

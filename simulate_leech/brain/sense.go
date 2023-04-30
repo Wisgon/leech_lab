@@ -20,6 +20,12 @@ type Sense struct {
 	KeyPrefix      string   `json:"e"`
 }
 
+func (s *Sense) GetNeures() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.Neures
+}
+
 func (s *Sense) InitSense(wg *sync.WaitGroup) {
 	defer wg.Done()
 	s.createNeures()

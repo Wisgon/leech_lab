@@ -1,11 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
 	"math/rand"
-	"os"
 	"sync"
 	"time"
 )
@@ -247,29 +244,46 @@ func main() {
 	// fmt.Println("aaa", len(aaa["111"]))
 
 	// test write map[string]interface to file
-	aaa := make(map[string]interface{})
-	var bbb []map[string]interface{}
-	aaa["111"] = 33
-	aaa["222"] = "fdsfsdf"
-	m := make(map[string]interface{})
-	m["000"] = 111
-	bbb = append(bbb, m)
-	aaa["333"] = bbb
-	prefix := []byte("var neures = ")
-	jsonData, err := json.Marshal(aaa)
-	if err != nil {
-		log.Panic(err)
-	}
-	jsonFile, err := os.Create("./test_create.js")
-	if err != nil {
-		log.Panic(err)
-	}
-	defer jsonFile.Close()
-	prefix = append(prefix, jsonData...)
-	_, err = jsonFile.Write(prefix)
-	if err != nil {
-		log.Panic(err)
-	}
+	// aaa := make(map[string]interface{})
+	// var bbb []map[string]interface{}
+	// aaa["111"] = 33
+	// aaa["222"] = "fdsfsdf"
+	// m := make(map[string]interface{})
+	// m["000"] = 111
+	// bbb = append(bbb, m)
+	// aaa["333"] = bbb
+	// prefix := []byte("var neures = ")
+	// jsonData, err := json.Marshal(aaa)
+	// if err != nil {
+	// 	log.Panic(err)
+	// }
+	// jsonFile, err := os.Create("./test_create.js")
+	// if err != nil {
+	// 	log.Panic(err)
+	// }
+	// defer jsonFile.Close()
+	// prefix = append(prefix, jsonData...)
+	// _, err = jsonFile.Write(prefix)
+	// if err != nil {
+	// 	log.Panic(err)
+	// }
+
+	// test go routine in go routine
+	// go routineOuter() //测试结果是，只有main退出，inner才会中断，outer退出并不会中断inner
+	// time.Sleep(6 * time.Second)
+	// fmt.Println("main return")
+
+}
+
+func routineOuter() {
+	go routineInner()
+	time.Sleep(3 * time.Second)
+	fmt.Println("outer return")
+}
+
+func routineInner() {
+	time.Sleep(5 * time.Second)
+	fmt.Println("inter return")
 }
 
 func endC1(sm *sync.Map) {

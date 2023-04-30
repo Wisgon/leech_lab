@@ -5,6 +5,8 @@ import (
 	"graph_robot/config"
 	"graph_robot/database"
 	"graph_robot/utils"
+	"log"
+	"strings"
 	"sync"
 	"time"
 )
@@ -89,4 +91,18 @@ func TurnNeureBytes2Neures(neureBytes *map[string][]byte) *map[string]*Neure {
 		neures[k].Byte2Struct(v)
 	}
 	return &neures
+}
+
+func GetOtherTypeOfNeurePrefix(prefix string, neureType string) string {
+	oldType := ""
+	if strings.Contains(prefix, "common") {
+		oldType = "common"
+	} else if strings.Contains(prefix, "regulate") {
+		oldType = "regulate"
+	} else if strings.Contains(prefix, "inhibitory") {
+		oldType = "inhibitory"
+	} else {
+		log.Panic("unknow prefix neure type: " + prefix)
+	}
+	return strings.Replace(prefix, oldType, neureType, -1)
 }
