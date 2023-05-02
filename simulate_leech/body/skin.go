@@ -58,6 +58,8 @@ func (s *Skin) createNeures() {
 	}
 	for i := 0; i < neureNum; i++ {
 		neureObj := neure.CreateOneNeure(s.KeyPrefix, &neure.Neure{
+			Synapses:               make(map[string]*neure.Synapse),
+			NowLinkedDendritesIds:  make(map[string]struct{}),
 			NeureType:              "common",
 			LastTimeActivate:       time.Now(),
 			LastTimeResetNowWeight: time.Now(),
@@ -72,4 +74,12 @@ func (s *Skin) struct2Byte() []byte {
 		log.Panic("json marshal error: " + err.Error())
 	}
 	return dataByte
+}
+
+func IterSkin(f func(skinNeureType, position string)) {
+	for _, skinNeureType := range config.PrefixSkinAndSenseType {
+		for _, position := range config.SkinAndSenseNeurePosition {
+			f(skinNeureType, position)
+		}
+	}
 }

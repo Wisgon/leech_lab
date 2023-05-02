@@ -1,6 +1,6 @@
 import asyncio
 import websockets
-import json
+import json, signal
 
 import utils
 
@@ -58,13 +58,15 @@ async def handler(websocket):
 
 
 async def server8001():
-    # todo: restart when crash
+    # Set the stop condition when receiving SIGTERM.
+    loop = asyncio.get_running_loop()
+    stop = loop.create_future()
+    loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
+
     async with websockets.serve(handler, "", 8001, create_protocol=QueryParamProtocol):
         print("start webdocket~~~8001")
-        await asyncio.Future()  # run forever
+        await stop
 
 
 if __name__ == "__main__":
-    asyncio.set_event_loop(loop)
-    loop.create_task(server8001())
-    loop.run_forever()
+    asyncio.run(server8001())

@@ -25,7 +25,7 @@ func SignalPass(entranceNeure *neure.Neure) {
 }
 
 func LinkTwoNeures(linkCondition map[string]interface{}) {
-	source, target := linkCondition["source"].(string), linkCondition["target"].(string)
+	source, target, synapse_id := linkCondition["source"].(string), linkCondition["target"].(string), linkCondition["synapse_id"].(string)
 	linkType := linkCondition["link_type"].(string)
 	var strength float64
 	var err error
@@ -50,18 +50,31 @@ func LinkTwoNeures(linkCondition map[string]interface{}) {
 		if linkType != "regulate" && linkType != "inhibitory" {
 			log.Panic("wrong neure type:" + linkType)
 		}
+		if synapse_id == "" {
+			log.Panic("synapse_id must not be empty")
+		}
 		// need to create a new neure
 		newNeurePrefix := neure.GetOtherTypeOfNeurePrefix(source, linkType)
 		regulateNeure := neure.CreateOneNeure(newNeurePrefix, &neure.Neure{
+			Synapses:               make(map[string]*neure.Synapse),
+			NowLinkedDendritesIds:  make(map[string]struct{}),
 			NeureType:              linkType,
 			LastTimeActivate:       time.Now(),
 			LastTimeResetNowWeight: time.Now(),
 		})
 		neureSource := neure.GetNeureById(source)
+		// first, connect source and regulate neure
 		neureSource.ConnectNextNuere(&neure.Synapse{
 			NextNeureID:  regulateNeure.ThisNeureId,
-			LinkStrength: float32(strength),
+			LinkStrength: 101,
 			SynapseNum:   1,
+		})
+		// second, connect regulate neure to target synapse
+		regulateNeure.ConnectNextNuere(&neure.Synapse{
+			NextNeureID:        target,
+			LinkStrength:       101, // todo: is regulate need strength?
+			SynapseNum:         1,
+			NextNeureSynapseId: synapse_id,
 		})
 	}
 
@@ -75,15 +88,19 @@ func LinkNeureGroups(sourceNeures []string, targetNeures []string, strength floa
 		linkCondition["target"] = nextNeureId
 		linkCondition["strength"] = strength
 		linkCondition["link_type"] = linkType
+		linkCondition["synapse_id"] = "" // todo: when linkType is not common
 		LinkTwoNeures(linkCondition)
 	}
 }
 
-func AssembleLinkData(keyStr string, neures []string, groups *map[string][]string, links *[]map[string]interface{}) {
+func assembleLinkData(neures []string, groups *map[string][]string, links *[]map[string]interface{}, dendritesFlag bool) {
 	for _, v := range neures {
-		(*groups)[keyStr] = append((*groups)[keyStr], v)
+		(*groups)["neu"] = append((*groups)["neu"], v)
 		neureObj := neure.GetNeureById(v)
 		for _, s := range neureObj.Synapses {
+			if dendritesFlag {
+				(*groups)["syn"] = append((*groups)["syn"], s.NextNeureID)
+			}
 			link := make(map[string]interface{})
 			link["source"] = v
 			link["target"] = s.NextNeureID
@@ -102,6 +119,36 @@ func AssembleLinkData(keyStr string, neures []string, groups *map[string][]strin
 			}
 			link["neure_type"] = neureType
 			(*links) = append((*links), link)
+		}
+		if dendritesFlag {
+			for dendriteId := range neureObj.NowLinkedDendritesIds {
+				(*groups)["den"] = append((*groups)["den"], dendriteId)
+				dendriteNeure := neure.GetNeureById(dendriteId)
+				link := make(map[string]interface{})
+				link["source"] = dendriteNeure.ThisNeureId
+				link["target"] = neureObj.ThisNeureId
+				var synapse *neure.Synapse
+				for _, s := range dendriteNeure.Synapses {
+					if s.NextNeureID == neureObj.ThisNeureId {
+						synapse = s
+					}
+				}
+				link["link_strength"] = synapse.LinkStrength
+				link["synapse_num"] = synapse.SynapseNum
+				neureType := ""
+				switch dendriteNeure.NeureType {
+				case "common":
+					neureType = "c"
+				case "regulate":
+					neureType = "r"
+				case "inhibitory":
+					neureType = "i"
+				default:
+					log.Panic("wrong neure type:" + dendriteNeure.NeureType)
+				}
+				link["neure_type"] = neureType
+				(*links) = append((*links), link)
+			}
 		}
 	}
 }
@@ -142,35 +189,146 @@ func Byte2Struct[T CreatureParts](neureByte []byte, data T) {
 	}
 }
 
-func AssembleMapDataToFront(area *sync.Map, organ *sync.Map) map[string]interface{} {
+func checkIfInParts(partsStr []string, keyPrefix string) bool {
+	for _, partStr := range partsStr {
+		// strings.Contains contain "" will return true
+		if !strings.Contains(keyPrefix, partStr) {
+			return false
+		}
+	}
+	return true
+}
+
+func getCollections(parts map[string]interface{}) (collections []string, partsStr []string) {
+	prefix := parts["area"].(string) + config.PrefixNameSplitSymbol + parts["neure_type"].(string)
+	if skin_sense_type, ok := parts["skin_sense_type"]; ok {
+		value := skin_sense_type.(string)
+		partsStr = append(partsStr, value)
+		collections = append(collections, prefix+config.PrefixNameSplitSymbol+value)
+	}
+	if sense_type, ok := parts["sense_type"]; ok {
+		value := sense_type.(string)
+		partsStr = append(partsStr, value)
+		collections = append(collections, prefix+config.PrefixNameSplitSymbol+value)
+	}
+	if skin_sense_position, ok := parts["skin_sense_position"]; ok {
+		value := skin_sense_position.(string)
+		partsStr = append(partsStr, value)
+		collections = append(collections, prefix+config.PrefixNameSplitSymbol+value)
+	}
+	if movements, ok := parts["movements"]; ok {
+		value := movements.(string)
+		partsStr = append(partsStr, value)
+		collections = append(collections, prefix+config.PrefixNameSplitSymbol+value)
+	}
+	return
+}
+
+func removeRepeatFromCollections(partsStr []string, maps map[string]*sync.Map, collections []string) (uniqueNeures []string) {
+	// different collection may have repeat element
+	var neures []string
+	neureUnique := make(map[string]struct{})
+	for _, collection := range collections {
+		area := strings.Split(collection, config.PrefixNameSplitSymbol)[0]
+		switch area {
+		case "skin":
+			value, ok := maps["organ"].Load(collection)
+			if ok {
+				skins := value.([]*body.Skin)
+				for _, skin := range skins {
+					neures = append(neures, skin.Neures...)
+				}
+			}
+		case "sense":
+			value, ok := maps["area"].Load(collection)
+			if ok {
+				senses := value.([]*brain.Sense)
+				for _, sense := range senses {
+					neures = append(neures, sense.Neures...)
+				}
+			}
+		case "muscle":
+			value, ok := maps["organ"].Load(collection)
+			if ok {
+				muscles := value.([]*body.Muscle)
+				for _, muscle := range muscles {
+					neures = append(neures, muscle.Neures...)
+				}
+			}
+		}
+	}
+	for _, n := range neures {
+		neureUnique[n] = struct{}{}
+	}
+	for key := range neureUnique {
+		if !checkIfInParts(partsStr, key) {
+			continue
+		}
+		uniqueNeures = append(uniqueNeures, key)
+	}
+	return
+}
+
+func AssemblePartOfMapDataToFront(maps map[string]*sync.Map, parts map[string]interface{}) map[string]interface{} {
 	data := make(map[string]interface{})
 	links := []map[string]interface{}{}
 	nodes := []map[string]interface{}{}
 	groups := make(map[string][]string)
-	area.Range(func(key, value any) bool {
+
+	collections, partsStr := getCollections(parts)
+	uniqueNeures := removeRepeatFromCollections(partsStr, maps, collections)
+	assembleLinkData(uniqueNeures, &groups, &links, true)
+	for groupName, group := range groups {
+		// same neure won't appear in different group
+		uniqueNodeId := make(map[string]struct{})
+		for _, neureId := range group {
+			_, ok := uniqueNodeId[neureId] // make sure nodeId unique
+			if ok {
+				// nodeId has been added
+				continue
+			}
+			node := make(map[string]interface{})
+			node["id"] = neureId
+			node["group"] = groupName
+			nodes = append(nodes, node)
+			uniqueNodeId[neureId] = struct{}{}
+		}
+	}
+	data["links"] = links
+	data["nodes"] = nodes
+	return data
+}
+
+func AssembleMapDataToFront(maps map[string]*sync.Map) map[string]interface{} {
+	// get all data
+	data := make(map[string]interface{})
+	links := []map[string]interface{}{}
+	nodes := []map[string]interface{}{}
+	groups := make(map[string][]string)
+	maps["area"].Range(func(key, value any) bool {
 		keyStr := key.(string)
 		if strings.Contains(keyStr, "collection") {
 			switch collection := value.(type) {
 			case *body.Skin:
-				AssembleLinkData(keyStr, collection.Neures, &groups, &links)
+				assembleLinkData(collection.Neures, &groups, &links, false)
 			case *body.Muscle:
-				AssembleLinkData(keyStr, collection.Neures, &groups, &links)
+				assembleLinkData(collection.Neures, &groups, &links, false)
 			case *brain.Sense:
-				AssembleLinkData(keyStr, collection.Neures, &groups, &links)
+				assembleLinkData(collection.Neures, &groups, &links, false)
 			}
 		}
 		return true
 	})
-	organ.Range(func(key, value any) bool {
+	maps["organ"].Range(func(key, value any) bool {
 		keyStr := key.(string)
 		if strings.Contains(keyStr, "collection") {
 			switch collection := value.(type) {
 			case *body.Skin:
-				AssembleLinkData(keyStr, collection.Neures, &groups, &links)
+				assembleLinkData(collection.Neures, &groups, &links, false)
 			case *body.Muscle:
-				AssembleLinkData(keyStr, collection.Neures, &groups, &links)
+				assembleLinkData(collection.Neures, &groups, &links, false)
 			case *brain.Sense:
-				AssembleLinkData(keyStr, collection.Neures, &groups, &links)
+				assembleLinkData(collection.Neures, &groups, &links, false)
 			}
 		}
 		return true

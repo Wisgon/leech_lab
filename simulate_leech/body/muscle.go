@@ -34,6 +34,8 @@ func (m *Muscle) InitMuscle(wg *sync.WaitGroup) {
 
 func (m *Muscle) createNeures() {
 	neureObj := neure.CreateOneNeure(m.KeyPrefix, &neure.Neure{
+		Synapses:               make(map[string]*neure.Synapse),
+		NowLinkedDendritesIds:  make(map[string]struct{}),
 		NeureType:              "common",
 		LastTimeActivate:       time.Now(),
 		LastTimeResetNowWeight: time.Now(),
@@ -47,4 +49,10 @@ func (m *Muscle) struct2Byte() []byte {
 		log.Panic("json marshal error: " + err.Error())
 	}
 	return dataByte
+}
+
+func IterMuscle(f func(movement string)) {
+	for _, movement := range config.Movements {
+		f(movement)
+	}
 }

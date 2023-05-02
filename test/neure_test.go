@@ -9,13 +9,19 @@ import (
 
 func TestNeureLink(t *testing.T) {
 	neure1 := neure.CreateOneNeure("testing_neure", &neure.Neure{
-		NeureType: "common",
+		Synapses:              make(map[string]*neure.Synapse),
+		NowLinkedDendritesIds: make(map[string]struct{}),
+		NeureType:             "common",
 	})
 	neure2 := neure.CreateOneNeure("testing_neure", &neure.Neure{
-		NeureType: "common",
+		Synapses:              make(map[string]*neure.Synapse),
+		NowLinkedDendritesIds: make(map[string]struct{}),
+		NeureType:             "common",
 	})
 	neure3 := neure.CreateOneNeure("testing_neure", &neure.Neure{
-		NeureType: "common",
+		Synapses:              make(map[string]*neure.Synapse),
+		NowLinkedDendritesIds: make(map[string]struct{}),
+		NeureType:             "common",
 	})
 
 	t.Log("neure2 thisid:", neure2.ThisNeureId)
@@ -31,11 +37,16 @@ func TestNeureLink(t *testing.T) {
 	key1, key2, _ := neure1.ThisNeureId, neure2.ThisNeureId, neure3.ThisNeureId
 	t.Log("key2:", key2)
 
-	if len(neure1.Synapses) != 0 && neure1.Synapses[0].NextNeureID == key2 && len(neure2.NowLinkedDendritesIds) != 0 && neure2.NowLinkedDendritesIds[0] == key1 && len(neure3.NowLinkedDendritesIds) != 0 && neure3.NowLinkedDendritesIds[0] == key2 {
-		t.Logf("Success~~~~n1:%+v, n2:%+v", neure1, neure2)
-	} else {
+	if _, ok := neure2.NowLinkedDendritesIds[key1]; !ok {
 		t.Error("Link Fail")
 	}
+	if _, ok := neure3.NowLinkedDendritesIds[key2]; !ok {
+		t.Error("Link Fail")
+	}
+	if _, ok := neure1.Synapses[key2]; !ok {
+		t.Error("Link Fail")
+	}
+	t.Logf("Success~~~~n1:%+v, n2:%+v", neure1, neure2)
 }
 
 func TestDeleteNeure(t *testing.T) {

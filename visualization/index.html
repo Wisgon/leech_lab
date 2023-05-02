@@ -4,8 +4,11 @@
     <meta charset="UTF-8" />
     <title>visualization</title>
     <style>
-      input {
+      input,
+      button,
+      select {
         margin-right: 10px;
+        margin-top: 10px;
       }
     </style>
     <script src="./force-graph.min.js"></script>
@@ -20,15 +23,88 @@
       strength:
       <input id="strength" type="text" value="10" size="4" />
       link_type:
-      <input id="link_type" type="text" value="common" size="15" />
-      <button onclick="send_data()">Submit</button>
-    </form>
-    <div>
-      <button onclick="refresh()" style="margin-top: 10px">Refresh</button>
+      <select id="link_type">
+        <option value="common">common</option>
+        <option value="regulate">regulate</option>
+        <option value="inhibitory">inhibitory</option>
+      </select>
+      synapse_id:
+      <input id="synapse_id" type="text" value="" />
+      <button onclick="send_data()">LinkSubmit</button>
       search node:
       <input id="search" type="text" value="" />
       <button onclick="search_node()">search</button>
-    </div>
+    </form>
+    <form action="javascript:void(0);">
+      Prefix:
+      <select id="select_area">
+        <option value=""></option>
+        <option value="skin">skin</option>
+        <option value="sense">sense</option>
+        <option value="muscle">muscle</option>
+        <option value="eye">eye</option>
+        <option value="nose">nose</option>
+        <option value="valuate">valuate</option>
+        <option value="consciousness">consciousness</option>
+        <option value="reading">reading</option>
+        <option value="talking">talking</option>
+        <option value="hippocampus">hippocampus</option>
+        <option value="all">hippocampus</option>
+      </select>
+      <select id="select_neure_type">
+        <option value=""></option>
+        <option value="common">common</option>
+        <option value="regulate">regulate</option>
+        <option value="inhibitory">inhibitory</option>
+      </select>
+      <select id="select_skin_sense_type">
+        <option value=""></option>
+        <option value="normalTemperature">normalTemperature</option>
+        <option value="biggertHotTemperature">biggertHotTemperature</option>
+        <option value="biggerColdTemperature">biggerColdTemperature</option>
+        <option value="extremelyHotTemp">extremelyHotTemp</option>
+        <option value="extremelyColdTemp">extremelyColdTemp</option>
+        <option value="normalPress">normalPress</option>
+        <option value="biggerPress">biggerPress</option>
+        <option value="extremelyPress">extremelyPress</option>
+      </select>
+      <select id="select_sense_type">
+        <option value=""></option>
+        <option value="senseType">senseType</option>
+        <option value="painfulType">painfulType</option>
+      </select>
+      <select id="select_skin_sense_position">
+        <option value=""></option>
+        <option value="leftFrontUp">leftFrontUp</option>
+        <option value="leftFrontDown">leftFrontDown</option>
+        <option value="leftMiddleUp">leftMiddleUp</option>
+        <option value="leftMiddleDown">leftMiddleDown</option>
+        <option value="leftBackUp">leftBackUp</option>
+        <option value="leftBackDown">leftBackDown</option>
+        <option value="rightFrontUp">rightFrontUp</option>
+        <option value="rightFrontDown">rightFrontDown</option>
+        <option value="rightMiddleUp">rightMiddleUp</option>
+        <option value="rightMiddleDown">rightMiddleDown</option>
+        <option value="rightBackUp">rightBackUp</option>
+        <option value="rightBackDown">rightBackDown</option>
+      </select>
+      <select id="select_movements">
+        <option value=""></option>
+        <option value="moveLeftFrontUp">moveLeftFrontUp</option>
+        <option value="moveLeftFrontDown">moveLeftFrontDown</option>
+        <option value="moveLeftMiddleUp">moveLeftMiddleUp</option>
+        <option value="moveLeftMiddleDown">moveLeftMiddleDown</option>
+        <option value="moveLeftBackUp">moveLeftBackUp</option>
+        <option value="moveLeftBackDown">moveLeftBackDown</option>
+        <option value="moveRightFrontUp">moveRightFrontUp</option>
+        <option value="moveRightFrontDown">moveRightFrontDown</option>
+        <option value="moveRightMiddleUp">moveRightMiddleUp</option>
+        <option value="moveRightMiddleDown">moveRightMiddleDown</option>
+        <option value="moveRightBackUp">moveRightBackUp</option>
+        <option value="moveRightBackDown">moveRightBackDown</option>
+      </select>
+      <button onclick="show_graph()">show</button>
+    </form>
     <div id="data"></div>
     <script src="./visualization.js"></script>
   </body>

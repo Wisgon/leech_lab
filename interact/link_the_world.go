@@ -55,15 +55,22 @@ func StartInteract(
 			}
 			return
 		case r := <-request:
-			data, err := json.Marshal(r)
-			if err != nil {
-				log.Println("marshal json error:" + err.Error())
+			event := ""
+			if len(r) == 0 {
+				// empty map
+				event = "empty data"
+			} else {
+				data, err := json.Marshal(r)
+				if err != nil {
+					log.Println("marshal json error:" + err.Error())
+				}
+				// save data to js file
+				utils.SaveDataToFile(config.ProjectRoot+"/visualization/neures.json", data)
+				event = "data saved to json"
 			}
-			// save data to js file
-			utils.SaveDataToFile(config.ProjectRoot+"/visualization/neures.json", data)
 
 			refreshFrontendSignal := make(map[string]string)
-			refreshFrontendSignal["event"] = "refresh ready"
+			refreshFrontendSignal["event"] = event
 			requestByte, err := json.Marshal(refreshFrontendSignal)
 			if err != nil {
 				log.Println(err)

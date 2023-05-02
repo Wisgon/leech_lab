@@ -10,7 +10,8 @@ import (
 )
 
 var Neure1 = neure.Neure{
-	Synapses:               []*neure.Synapse{},
+	Synapses:               make(map[string]*neure.Synapse),
+	NowLinkedDendritesIds:  make(map[string]struct{}),
 	ElectricalConductivity: 4423423,
 }
 

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"graph_robot/config"
 	"graph_robot/database"
-	"graph_robot/utils"
 	"log"
 	"sync"
 	"time"
@@ -16,14 +15,14 @@ import (
 
 type Neure struct {
 	mu                     sync.Mutex
-	Synapses               []*Synapse `json:"a"` // 軸突連接的突觸，有些神经元有多个突触，一旦激发，所有连接的突触都会尝试激活
-	NeureType              string     `json:"b"` //神经元的类型，有普通神经元，调节神经元和抑制神经元
-	NowLinkedDendritesIds  []string   `json:"c"` // 現在已連接的树突前神经元编号
-	ElectricalConductivity int32      `json:"d"` // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值，但好像对程序模拟的大脑没什么作用。
-	ThisNeureId            string     `json:"e"` // the id of database
-	NowWeight              float32    `json:"f"` // 现在的权重，每刺激一次，增加一点，直到超过weight就被激活，被激活后会reset，超过一段时间无刺激也会reset
-	LastTimeActivate       time.Time  `json:"g"` // 最后一次激活的时间，精确到纳秒，可以在byte中自由转换
-	LastTimeResetNowWeight time.Time  `json:"h"` // 最后一次重置now weight的时间
+	Synapses               map[string]*Synapse `json:"a"` // 軸突連接的突觸，有些神经元有多个突触，一旦激发，所有连接的突触都会尝试激活
+	NeureType              string              `json:"b"` //神经元的类型，有普通神经元，调节神经元和抑制神经元
+	NowLinkedDendritesIds  map[string]struct{} `json:"c"` // 現在已連接的树突前神经元编号
+	ElectricalConductivity int32               `json:"d"` // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值，但好像对程序模拟的大脑没什么作用。
+	ThisNeureId            string              `json:"e"` // the id of database
+	NowWeight              float32             `json:"f"` // 现在的权重，每刺激一次，增加一点，直到超过weight就被激活，被激活后会reset，超过一段时间无刺激也会reset
+	LastTimeActivate       time.Time           `json:"g"` // 最后一次激活的时间，精确到纳秒，可以在byte中自由转换
+	LastTimeResetNowWeight time.Time           `json:"h"` // 最后一次重置now weight的时间
 }
 
 func (n *Neure) SaveNeure2Db() {
@@ -39,13 +38,13 @@ func (n *Neure) AddNowDendrites(preNeureId string) {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 
-	n.NowLinkedDendritesIds = append(n.NowLinkedDendritesIds, preNeureId)
+	n.NowLinkedDendritesIds[preNeureId] = struct{}{}
 }
 
 func (n *Neure) RemoveDendrites(preNeureId string) {
 	n.mu.Lock()
 	defer n.mu.Unlock()
-	utils.RemoveUniqueValueFromSlice(preNeureId, &n.NowLinkedDendritesIds)
+	delete(n.NowLinkedDendritesIds, preNeureId)
 }
 
 func (n *Neure) ChangeElectricalConductivity(value int, op string) {
@@ -92,7 +91,7 @@ func (n *Neure) DeleteConnection(synapse *Synapse) {
 	nextNeure := GetNeureById(synapse.NextNeureID)
 	nextNeure.RemoveDendrites(n.ThisNeureId)
 	// delete from Synapses
-	n.RemoveSynapseByNextId(synapse.NextNeureID)
+	delete(n.Synapses, synapse.NextNeureID)
 }
 
 func (n *Neure) ConnectNextNuere(synapse *Synapse) {
@@ -100,20 +99,8 @@ func (n *Neure) ConnectNextNuere(synapse *Synapse) {
 	defer n.mu.Unlock()
 
 	nextNeure := GetNeureById(synapse.NextNeureID)
-	n.Synapses = append(n.Synapses, synapse)
+	n.Synapses[synapse.NextNeureID] = synapse
 	nextNeure.AddNowDendrites(n.ThisNeureId) // next neure dendrites append
-}
-
-func (n *Neure) RemoveSynapseByNextId(nextNeureId string) {
-	n.mu.Lock()
-	defer n.mu.Unlock()
-
-	for i, v := range n.Synapses {
-		if v.NextNeureID == nextNeureId {
-			n.Synapses = append(n.Synapses[:i], n.Synapses[i+1:]...)
-			break
-		}
-	}
 }
 
 func (n *Neure) Struct2Byte() []byte {

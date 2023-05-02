@@ -9,10 +9,11 @@ import (
 
 type Synapse struct {
 	// 突觸，連接兩個Neure
-	mu           sync.Mutex
-	NextNeureID  string  `json:"i"` // 突觸後神經元，是這個軸突所連接的神經元
-	SynapseNum   int32   `json:"j"` // 连接到next neure的突触数量，跟长时记忆有关，长时记忆的连接突触数量会变多，初始时必须最少为1
-	LinkStrength float32 `json:"k"` // 连接强度，在长时程增强的时候增强，过后减弱
+	mu                 sync.Mutex
+	NextNeureID        string  `json:"i"` // 突觸後神經元，是這個軸突所連接的神經元
+	SynapseNum         int32   `json:"j"` // 连接到next neure的突触数量，跟长时记忆有关，长时记忆的连接突触数量会变多，初始时必须最少为1
+	LinkStrength       float32 `json:"k"` // 连接强度，在长时程增强的时候增强，过后减弱
+	NextNeureSynapseId string  `json:"l"` // 这个只有regulate和inhibitory神经元才有的，方便找到下一个调节的synapse
 }
 
 func (s *Synapse) CheckLinkStrength() {

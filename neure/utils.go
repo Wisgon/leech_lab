@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"graph_robot/config"
 	"graph_robot/database"
-	"graph_robot/utils"
 	"log"
 	"strings"
 	"sync"
@@ -68,13 +67,13 @@ func DeleteNeure(neure *Neure) {
 	// delete the dendrites of next neures
 	for _, synapse := range neure.Synapses {
 		nextNeure := GetNeureById(synapse.NextNeureID)
-		utils.RemoveUniqueValueFromSlice(neure.ThisNeureId, &nextNeure.NowLinkedDendritesIds)
+		delete(nextNeure.NowLinkedDendritesIds, neure.ThisNeureId)
 	}
 
 	// delete the synapse of pre neures
-	for _, dendriteId := range neure.NowLinkedDendritesIds {
+	for dendriteId := range neure.NowLinkedDendritesIds {
 		preNeure := GetNeureById(dendriteId)
-		preNeure.RemoveSynapseByNextId(neure.ThisNeureId)
+		delete(preNeure.Synapses, neure.ThisNeureId)
 	}
 
 	database.DeleteNeure(neure.ThisNeureId)

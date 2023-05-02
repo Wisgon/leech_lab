@@ -11,6 +11,8 @@ import (
 
 func TestCreateOne(t *testing.T) {
 	neureIns := neure.Neure{
+		Synapses:               make(map[string]*neure.Synapse),
+		NowLinkedDendritesIds:  make(map[string]struct{}),
 		ElectricalConductivity: 443,
 	}
 	key := database.GetKeyFromPrefix("testing_neure")

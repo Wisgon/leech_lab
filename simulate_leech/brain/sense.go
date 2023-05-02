@@ -49,6 +49,8 @@ func (s *Sense) createNeures() {
 	}
 	for i := 0; i < neureNum; i++ {
 		neureObj := neure.CreateOneNeure(s.KeyPrefix, &neure.Neure{
+			Synapses:               make(map[string]*neure.Synapse),
+			NowLinkedDendritesIds:  make(map[string]struct{}),
 			NeureType:              "common",
 			LastTimeActivate:       time.Now(),
 			LastTimeResetNowWeight: time.Now(),
@@ -63,4 +65,14 @@ func (s *Sense) struct2Byte() []byte {
 		log.Panic("json marshal error: " + err.Error())
 	}
 	return dataByte
+}
+
+func IterSense(f func(senseNeureType, senseType, position string)) {
+	for _, senseNeureType := range config.PrefixSkinAndSenseType {
+		for _, senseType := range config.PrefixSenseType {
+			for _, position := range config.SkinAndSenseNeurePosition {
+				f(senseNeureType, senseType, position)
+			}
+		}
+	}
 }

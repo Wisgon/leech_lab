@@ -2,7 +2,6 @@ const ws = new WebSocket("ws://localhost:8001/?user=front")
 
 ws.onopen = function () {
   console.log("Connected to server!")
-  ws.send(JSON.stringify({ event: "request_data" }))
 }
 
 ws.onerror = function (event) {
