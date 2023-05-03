@@ -42,7 +42,6 @@ function show_graph() {
   var select_skin_sense_type = document.getElementById(
     "select_skin_sense_type"
   ).value
-  var select_sense_type = document.getElementById("select_sense_type").value
   var select_skin_sense_position = document.getElementById(
     "select_skin_sense_position"
   ).value
@@ -71,13 +70,6 @@ function show_graph() {
       return
     }
     parts["skin_sense_type"] = select_skin_sense_type
-  }
-  if (select_sense_type != "") {
-    if (select_area != "sense") {
-      alert("only sense have sense type!")
-      return
-    }
-    parts["sense_type"] = select_sense_type
   }
   if (select_skin_sense_position != "") {
     if (select_area != "sense" && select_area != "skin") {

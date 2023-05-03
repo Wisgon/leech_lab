@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"sync"
+	"time"
 )
 
 type Synapse struct {
@@ -43,4 +44,12 @@ func (s *Synapse) ActivateNextNeure(neureType string) (ok bool, nextNeure *Neure
 		log.Panic("neure type worng!!!")
 	}
 	return
+}
+
+func (s *Synapse) ActivateAtOneFrequency(neureType string, activateDuration int, activateTimes int) {
+	// activateDuration是隔多少秒刺激一次，activateTimes是总共要激活多少次
+	for i := 0; i < activateTimes; i++ {
+		s.ActivateNextNeure(neureType)
+		time.Sleep(time.Duration(activateDuration) * time.Second)
+	}
 }

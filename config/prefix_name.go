@@ -30,10 +30,6 @@ var PrefixSkinAndSenseType = []string{
 	"biggerPress",
 	"extremelyPress",
 }
-var PrefixSenseType = []string{
-	"senseType",   // 连接所有skin的所有类型神经元
-	"painfulType", // 连接skin的extremely类型的神经元
-}
 
 // leech config----------------------------------------------------------------------------------
 var SkinAndSenseNeurePosition = []string{

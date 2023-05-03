@@ -14,7 +14,6 @@ import (
 type Sense struct {
 	mu             sync.Mutex
 	SenseNeureType string   `json:"a"`
-	SenseType      string   `json:"b"` // sense type or painful type
 	Position       string   `json:"c"`
 	Neures         []string `json:"d"`
 	KeyPrefix      string   `json:"e"`
@@ -67,12 +66,10 @@ func (s *Sense) struct2Byte() []byte {
 	return dataByte
 }
 
-func IterSense(f func(senseNeureType, senseType, position string)) {
+func IterSense(f func(senseNeureType, position string)) {
 	for _, senseNeureType := range config.PrefixSkinAndSenseType {
-		for _, senseType := range config.PrefixSenseType {
-			for _, position := range config.SkinAndSenseNeurePosition {
-				f(senseNeureType, senseType, position)
-			}
+		for _, position := range config.SkinAndSenseNeurePosition {
+			f(senseNeureType, position)
 		}
 	}
 }

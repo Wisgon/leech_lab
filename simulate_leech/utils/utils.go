@@ -206,11 +206,6 @@ func getCollections(parts map[string]interface{}) (collections []string, partsSt
 		partsStr = append(partsStr, value)
 		collections = append(collections, prefix+config.PrefixNameSplitSymbol+value)
 	}
-	if sense_type, ok := parts["sense_type"]; ok {
-		value := sense_type.(string)
-		partsStr = append(partsStr, value)
-		collections = append(collections, prefix+config.PrefixNameSplitSymbol+value)
-	}
 	if skin_sense_position, ok := parts["skin_sense_position"]; ok {
 		value := skin_sense_position.(string)
 		partsStr = append(partsStr, value)

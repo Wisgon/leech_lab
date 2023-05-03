@@ -63,10 +63,8 @@ func combinePrefixMuscle(musclePrePrefix string) (musclePrefix []string) {
 
 func combinePrefixSense(sensePrePrefix string) (sensePrefix []string) {
 	for _, x := range PrefixSkinAndSenseType {
-		for _, y := range PrefixSenseType {
-			for _, z := range SkinAndSenseNeurePosition {
-				sensePrefix = append(sensePrefix, sensePrePrefix+PrefixNameSplitSymbol+x+PrefixNameSplitSymbol+y+PrefixNameSplitSymbol+z)
-			}
+		for _, z := range SkinAndSenseNeurePosition {
+			sensePrefix = append(sensePrefix, sensePrePrefix+PrefixNameSplitSymbol+x+PrefixNameSplitSymbol+z)
 		}
 	}
 	return

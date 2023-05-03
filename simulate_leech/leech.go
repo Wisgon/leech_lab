@@ -7,7 +7,6 @@ import (
 	"graph_robot/simulate_leech/brain"
 	"graph_robot/simulate_leech/utils"
 	"log"
-	"strings"
 	"sync"
 )
 
@@ -99,16 +98,11 @@ func (lb *LeechBrain) InitBrain(wg *sync.WaitGroup) {
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
 
-		brain.IterSense(func(senseNeureType, senseType, position string) {
-			if senseType == config.PrefixSenseType[1] && !strings.Contains(senseNeureType, "extremely") {
-				// painful sense neure only connect extremely skin neure
-				return
-			}
-			keyPrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + senseType + config.PrefixNameSplitSymbol + position
+		brain.IterSense(func(senseNeureType, position string) {
+			keyPrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + position
 			sense := brain.Sense{
 				SenseNeureType: senseNeureType,
 				Position:       position,
-				SenseType:      senseType,
 				KeyPrefix:      keyPrefix,
 			}
 			wg.Add(1)
@@ -120,23 +114,17 @@ func (lb *LeechBrain) InitBrain(wg *sync.WaitGroup) {
 
 func (lb *LeechBrain) LoadBrain(wg *sync.WaitGroup) {
 	defer wg.Done()
-	brain.IterSense(func(senseNeureType, senseType, position string) {
-		if senseType == config.PrefixSenseType[1] && !strings.Contains(senseNeureType, "extremely") {
-			// painful sense neure only connect extremely skin neure
-			return
-		}
-		keyPrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + senseType + config.PrefixNameSplitSymbol + position
+	brain.IterSense(func(senseNeureType, position string) {
+		keyPrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + position
 		sense := brain.Sense{
 			SenseNeureType: senseNeureType,
 			Position:       position,
-			SenseType:      senseType,
 			KeyPrefix:      keyPrefix,
 		}
 		// store four types so that can get one type very fast
 		utils.LoadFromMapByKeyPrefix(lb.Area, keyPrefix, &sense)
 		utils.StoreToMap(lb.Area, "sense"+config.PrefixNameSplitSymbol+"common"+config.PrefixNameSplitSymbol+senseNeureType, &sense)
 		utils.StoreToMap(lb.Area, "sense"+config.PrefixNameSplitSymbol+"common"+config.PrefixNameSplitSymbol+position, &sense)
-		utils.StoreToMap(lb.Area, "sense"+config.PrefixNameSplitSymbol+"common"+config.PrefixNameSplitSymbol+senseType, &sense)
 	})
 }
 
@@ -164,48 +152,30 @@ func (l *Leech) InitLeech() {
 	// first, link common type of skin and sense
 	body.IterSkin(func(skinNeureType, position string) {
 		skinPrefix := "skin" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
-		sensePrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + config.PrefixSenseType[0] + config.PrefixNameSplitSymbol + position
+		sensePrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
 		utils.LinkNeureGroups(
 			utils.GetNeureIdsByKeyPrefix(l.Body.Organ, skinPrefix, &body.Skin{}),
 			utils.GetNeureIdsByKeyPrefix(l.Brain.Area, sensePrefix, &brain.Sense{}),
-			101, 1, "common",
+			10, 1, "common",
 		)
-		if strings.Contains(skinNeureType, "extremely") {
-			// extremely must connect senseType and painful type
-			skinPrefix := "skin" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
-			sensePrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + config.PrefixSenseType[1] + config.PrefixNameSplitSymbol + position
-			utils.LinkNeureGroups(
-				utils.GetNeureIdsByKeyPrefix(l.Body.Organ, skinPrefix, &body.Skin{}),
-				utils.GetNeureIdsByKeyPrefix(l.Brain.Area, sensePrefix, &brain.Sense{}),
-				101, 1, "common",
-			)
-		}
 	})
 
 	// senond, link common type of sense and muscle
-	brain.IterSense(func(senseNeureType, senseType, position string) {
-		if senseType != config.PrefixSenseType[0] {
-			// here only deal "senseType" type
-			return
-		}
+	brain.IterSense(func(senseNeureType, position string) {
 		opposite := utils.GetOpposite(position)
-		sensePrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + senseType + config.PrefixNameSplitSymbol + position
+		sensePrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + position
 		// sense link the opposite of muscle
 		musclePrefix := "muscle" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + "move" + opposite
 		utils.LinkNeureGroups(
 			utils.GetNeureIdsByKeyPrefix(l.Body.Organ, sensePrefix, &brain.Sense{}),
 			utils.GetNeureIdsByKeyPrefix(l.Brain.Area, musclePrefix, &body.Muscle{}),
-			50, 1, "common",
+			50, 1, "common", // todo:sense和muscle的连接强度初始值50是否合理
 		)
 	})
 
 	// third, link regulate type of painful type to the synapse of sense to muscle
-	// todo: Is painfulType need position?
+	// todo: connect to valuate area，思考神经元激活频率，数量，weight之间的关系
 	// brain.IterSense(func(senseNeureType, senseType, position string) {
-	// 	if !(senseType == config.PrefixSenseType[1] && strings.Contains(senseNeureType, "extremely")) {
-	// 		// here only deal "painfulType" type
-	// 		return
-	// 	}
 	// 	keyPrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + senseType + config.PrefixNameSplitSymbol + position
 	// 	senseCollection, ok := l.Brain.Area.Load(keyPrefix + config.PrefixNumSplitSymbol + "collection")
 	// 	if !ok {
