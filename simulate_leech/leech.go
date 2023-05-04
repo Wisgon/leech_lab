@@ -22,7 +22,7 @@ func (lb *LeechBody) InitBody(wg *sync.WaitGroup) {
 		defer wg.Done()
 		body.IterSkin(func(skinNeureType, position string) {
 			// only create common neure
-			keyPrefix := "skin" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
+			keyPrefix := config.PrefixArea["skin"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
 			skin := body.Skin{
 				SkinNeureType: skinNeureType,
 				Position:      position,
@@ -39,7 +39,7 @@ func (lb *LeechBody) InitBody(wg *sync.WaitGroup) {
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
 		body.IterMuscle(func(movement string) {
-			keyPrefix := "muscle" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + movement
+			keyPrefix := config.PrefixArea["muscle"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + movement
 			muscle := body.Muscle{
 				MoveDirection: movement,
 				KeyPrefix:     keyPrefix,
@@ -55,7 +55,7 @@ func (lb *LeechBody) LoadBody(wg *sync.WaitGroup) {
 	defer wg.Done()
 	// load skin from database
 	body.IterSkin(func(skinNeureType, position string) {
-		keyPrefix := "skin" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
+		keyPrefix := config.PrefixArea["skin"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
 		skin := body.Skin{
 			SkinNeureType: skinNeureType,
 			Position:      position,
@@ -63,19 +63,19 @@ func (lb *LeechBody) LoadBody(wg *sync.WaitGroup) {
 		}
 		utils.LoadFromMapByKeyPrefix(lb.Organ, keyPrefix, &skin)
 		// store more key because it's good to make more category for neures
-		utils.StoreToMap(lb.Organ, "skin"+config.PrefixNameSplitSymbol+"common"+config.PrefixNameSplitSymbol+skinNeureType, &skin)
-		utils.StoreToMap(lb.Organ, "skin"+config.PrefixNameSplitSymbol+"common"+config.PrefixNameSplitSymbol+position, &skin)
+		utils.StoreToMap(lb.Organ, config.PrefixArea["skin"]+config.PrefixNameSplitSymbol+config.PrefixNeureType["common"]+config.PrefixNameSplitSymbol+skinNeureType, &skin)
+		utils.StoreToMap(lb.Organ, config.PrefixArea["skin"]+config.PrefixNameSplitSymbol+config.PrefixNeureType["common"]+config.PrefixNameSplitSymbol+position, &skin)
 	})
 
 	// load muscle from database
 	body.IterMuscle(func(movement string) {
-		keyPrefix := "muscle" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + movement
+		keyPrefix := config.PrefixArea["muscle"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + movement
 		muscle := body.Muscle{
 			MoveDirection: movement,
 			KeyPrefix:     keyPrefix,
 		}
 		utils.LoadFromMapByKeyPrefix(lb.Organ, keyPrefix, &muscle)
-		utils.StoreToMap(lb.Organ, "muscle"+config.PrefixNameSplitSymbol+"common"+config.PrefixNameSplitSymbol+movement, &muscle)
+		utils.StoreToMap(lb.Organ, config.PrefixArea["muscle"]+config.PrefixNameSplitSymbol+config.PrefixNeureType["common"]+config.PrefixNameSplitSymbol+movement, &muscle)
 	})
 
 }
@@ -99,7 +99,7 @@ func (lb *LeechBrain) InitBrain(wg *sync.WaitGroup) {
 		defer wg.Done()
 
 		brain.IterSense(func(senseNeureType, position string) {
-			keyPrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + position
+			keyPrefix := config.PrefixArea["sense"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + position
 			sense := brain.Sense{
 				SenseNeureType: senseNeureType,
 				Position:       position,
@@ -109,22 +109,46 @@ func (lb *LeechBrain) InitBrain(wg *sync.WaitGroup) {
 			go sense.InitSense(wg)
 			utils.StoreToMap(lb.Area, keyPrefix+config.PrefixNumSplitSymbol+"collection", &sense)
 		})
+
+		brain.IterValuate(func(valuateSource, valuateLevel string) {
+			keyPrefix := config.PrefixArea["valuate"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + valuateSource + config.PrefixNameSplitSymbol + valuateLevel
+			valuate := brain.Valuate{
+				Source:       valuateSource,
+				ValuateLevel: valuateLevel,
+				KeyPrefix:    keyPrefix,
+			}
+			wg.Add(1)
+			go valuate.InitValuate(wg)
+			utils.StoreToMap(lb.Area, keyPrefix+config.PrefixNumSplitSymbol+"collection", &valuate)
+		})
 	}(wg)
 }
 
 func (lb *LeechBrain) LoadBrain(wg *sync.WaitGroup) {
 	defer wg.Done()
 	brain.IterSense(func(senseNeureType, position string) {
-		keyPrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + position
+		keyPrefix := config.PrefixArea["sense"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + position
 		sense := brain.Sense{
 			SenseNeureType: senseNeureType,
 			Position:       position,
 			KeyPrefix:      keyPrefix,
 		}
-		// store four types so that can get one type very fast
+		// store with some types so that can get one type very fast
 		utils.LoadFromMapByKeyPrefix(lb.Area, keyPrefix, &sense)
-		utils.StoreToMap(lb.Area, "sense"+config.PrefixNameSplitSymbol+"common"+config.PrefixNameSplitSymbol+senseNeureType, &sense)
-		utils.StoreToMap(lb.Area, "sense"+config.PrefixNameSplitSymbol+"common"+config.PrefixNameSplitSymbol+position, &sense)
+		utils.StoreToMap(lb.Area, config.PrefixArea["sense"]+config.PrefixNameSplitSymbol+config.PrefixNeureType["common"]+config.PrefixNameSplitSymbol+senseNeureType, &sense)
+		utils.StoreToMap(lb.Area, config.PrefixArea["sense"]+config.PrefixNameSplitSymbol+config.PrefixNeureType["common"]+config.PrefixNameSplitSymbol+position, &sense)
+	})
+
+	brain.IterValuate(func(valuateSource, valuateLevel string) {
+		keyPrefix := config.PrefixArea["valuate"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + valuateSource + config.PrefixNameSplitSymbol + valuateLevel
+		valuate := brain.Valuate{
+			Source:       valuateSource,
+			ValuateLevel: valuateLevel,
+			KeyPrefix:    keyPrefix,
+		}
+		utils.LoadFromMapByKeyPrefix(lb.Area, keyPrefix, &valuate)
+		utils.StoreToMap(lb.Area, config.PrefixArea["valuate"]+config.PrefixNameSplitSymbol+config.PrefixNeureType["common"]+config.PrefixNameSplitSymbol+valuateSource, &valuate)
+		utils.StoreToMap(lb.Area, config.PrefixArea["valuate"]+config.PrefixNameSplitSymbol+config.PrefixNeureType["common"]+config.PrefixNameSplitSymbol+valuateLevel, &valuate)
 	})
 }
 
@@ -151,32 +175,33 @@ func (l *Leech) InitLeech() {
 	// link neures, these neures is inborn neures, won't be deleted
 	// first, link common type of skin and sense
 	body.IterSkin(func(skinNeureType, position string) {
-		skinPrefix := "skin" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
-		sensePrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
+		skinPrefix := config.PrefixArea["skin"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
+		sensePrefix := config.PrefixArea["sense"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
 		utils.LinkNeureGroups(
 			utils.GetNeureIdsByKeyPrefix(l.Body.Organ, skinPrefix, &body.Skin{}),
 			utils.GetNeureIdsByKeyPrefix(l.Brain.Area, sensePrefix, &brain.Sense{}),
-			10, 1, "common",
+			10, 1, config.PrefixNeureType["common"],
 		)
 	})
 
 	// senond, link common type of sense and muscle
 	brain.IterSense(func(senseNeureType, position string) {
 		opposite := utils.GetOpposite(position)
-		sensePrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + position
+		log.Println("position:", position, " opposite:", opposite)
+		sensePrefix := config.PrefixArea["sense"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + position
 		// sense link the opposite of muscle
-		musclePrefix := "muscle" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + "move" + opposite
+		musclePrefix := config.PrefixArea["muscle"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + "move" + opposite
 		utils.LinkNeureGroups(
 			utils.GetNeureIdsByKeyPrefix(l.Body.Organ, sensePrefix, &brain.Sense{}),
 			utils.GetNeureIdsByKeyPrefix(l.Brain.Area, musclePrefix, &body.Muscle{}),
-			50, 1, "common", // todo:sense和muscle的连接强度初始值50是否合理
+			50, 1, config.PrefixNeureType["common"], // todo:sense和muscle的连接强度初始值50是否合理
 		)
 	})
 
 	// third, link regulate type of painful type to the synapse of sense to muscle
 	// todo: connect to valuate area，思考神经元激活频率，数量，weight之间的关系
 	// brain.IterSense(func(senseNeureType, senseType, position string) {
-	// 	keyPrefix := "sense" + config.PrefixNameSplitSymbol + "common" + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + senseType + config.PrefixNameSplitSymbol + position
+	// 	keyPrefix := config.PrefixArea["sense"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + senseType + config.PrefixNameSplitSymbol + position
 	// 	senseCollection, ok := l.Brain.Area.Load(keyPrefix + config.PrefixNumSplitSymbol + "collection")
 	// 	if !ok {
 	// 		return

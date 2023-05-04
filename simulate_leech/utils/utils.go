@@ -16,7 +16,7 @@ import (
 )
 
 type CreatureParts interface {
-	*body.Skin | *body.Muscle | *brain.Sense
+	*body.Skin | *body.Muscle | *brain.Sense | *brain.Valuate
 	GetNeures() []string
 }
 
@@ -39,7 +39,7 @@ func LinkTwoNeures(linkCondition map[string]interface{}) {
 	case float32:
 		strength = float64(strengthType)
 	}
-	if linkType == "common" {
+	if linkType == config.PrefixNeureType["common"] {
 		neureSource := neure.GetNeureById(source)
 		neureSource.ConnectNextNuere(&neure.Synapse{
 			NextNeureID:  target,
@@ -47,7 +47,7 @@ func LinkTwoNeures(linkCondition map[string]interface{}) {
 			SynapseNum:   1,
 		})
 	} else {
-		if linkType != "regulate" && linkType != "inhibitory" {
+		if linkType != config.PrefixNeureType["regulate"] && linkType != config.PrefixNeureType["inhibitory"] {
 			log.Panic("wrong neure type:" + linkType)
 		}
 		if synapse_id == "" {
@@ -108,11 +108,11 @@ func assembleLinkData(neures []string, groups *map[string][]string, links *[]map
 			link["synapse_num"] = s.SynapseNum
 			neureType := ""
 			switch neureObj.NeureType {
-			case "common":
+			case config.PrefixNeureType["common"]:
 				neureType = "c"
-			case "regulate":
+			case config.PrefixNeureType["regulate"]:
 				neureType = "r"
-			case "inhibitory":
+			case config.PrefixNeureType["inhibitory"]:
 				neureType = "i"
 			default:
 				log.Panic("wrong neure type:" + neureObj.NeureType)
@@ -137,11 +137,11 @@ func assembleLinkData(neures []string, groups *map[string][]string, links *[]map
 				link["synapse_num"] = synapse.SynapseNum
 				neureType := ""
 				switch dendriteNeure.NeureType {
-				case "common":
+				case config.PrefixNeureType["common"]:
 					neureType = "c"
-				case "regulate":
+				case config.PrefixNeureType["regulate"]:
 					neureType = "r"
-				case "inhibitory":
+				case config.PrefixNeureType["inhibitory"]:
 					neureType = "i"
 				default:
 					log.Panic("wrong neure type:" + dendriteNeure.NeureType)
@@ -216,6 +216,16 @@ func getCollections(parts map[string]interface{}) (collections []string, partsSt
 		partsStr = append(partsStr, value)
 		collections = append(collections, prefix+config.PrefixNameSplitSymbol+value)
 	}
+	if valuate_source, ok := parts["valuate_source"]; ok {
+		value := valuate_source.(string)
+		partsStr = append(partsStr, value)
+		collections = append(collections, prefix+config.PrefixNameSplitSymbol+value)
+	}
+	if valuate_level, ok := parts["valuate_level"]; ok {
+		value := valuate_level.(string)
+		partsStr = append(partsStr, value)
+		collections = append(collections, prefix+config.PrefixNameSplitSymbol+value)
+	}
 	return
 }
 
@@ -226,7 +236,7 @@ func removeRepeatFromCollections(partsStr []string, maps map[string]*sync.Map, c
 	for _, collection := range collections {
 		area := strings.Split(collection, config.PrefixNameSplitSymbol)[0]
 		switch area {
-		case "skin":
+		case config.PrefixArea["skin"]:
 			value, ok := maps["organ"].Load(collection)
 			if ok {
 				skins := value.([]*body.Skin)
@@ -234,7 +244,7 @@ func removeRepeatFromCollections(partsStr []string, maps map[string]*sync.Map, c
 					neures = append(neures, skin.Neures...)
 				}
 			}
-		case "sense":
+		case config.PrefixArea["sense"]:
 			value, ok := maps["area"].Load(collection)
 			if ok {
 				senses := value.([]*brain.Sense)
@@ -242,12 +252,20 @@ func removeRepeatFromCollections(partsStr []string, maps map[string]*sync.Map, c
 					neures = append(neures, sense.Neures...)
 				}
 			}
-		case "muscle":
+		case config.PrefixArea["muscle"]:
 			value, ok := maps["organ"].Load(collection)
 			if ok {
 				muscles := value.([]*body.Muscle)
 				for _, muscle := range muscles {
 					neures = append(neures, muscle.Neures...)
+				}
+			}
+		case config.PrefixArea["valuate"]:
+			value, ok := maps["area"].Load(collection)
+			if ok {
+				valuates := value.([]*brain.Valuate)
+				for _, valuate := range valuates {
+					neures = append(neures, valuate.Neures...)
 				}
 			}
 		}
@@ -345,11 +363,22 @@ func AssembleMapDataToFront(maps map[string]*sync.Map) map[string]interface{} {
 }
 
 func GetOpposite(position string) (opposite string) {
-	opposite = strings.Replace(position, "left", "Right", -1)
-	opposite = strings.Replace(opposite, "Front", "Back", -1)
-	opposite = strings.Replace(opposite, "Up", "Down", -1)
-	opposite = strings.Replace(opposite, "right", "Left", -1)
-	opposite = strings.Replace(opposite, "Back", "Front", -1)
-	opposite = strings.Replace(opposite, "Down", "Up", -1)
+	opposite = position
+	if strings.Contains(position, "left") {
+		opposite = strings.Replace(position, "left", "Right", -1)
+	} else {
+		opposite = strings.Replace(opposite, "right", "Left", -1)
+	}
+	if strings.Contains(position, "Front") {
+		opposite = strings.Replace(opposite, "Front", "Back", -1)
+	} else {
+		opposite = strings.Replace(opposite, "Back", "Front", -1)
+	}
+	if strings.Contains(position, "Up") {
+		opposite = strings.Replace(opposite, "Up", "Down", -1)
+	} else {
+		opposite = strings.Replace(opposite, "Down", "Up", -1)
+	}
+
 	return
 }

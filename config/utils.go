@@ -1,6 +1,9 @@
 package config
 
-import "strings"
+import (
+	"graph_robot/utils"
+	"strings"
+)
 
 func getOnePrefix(oldPrefix []string, somePrefix []string) []string {
 	var prefix []string
@@ -22,23 +25,28 @@ func getOnePrefix(oldPrefix []string, somePrefix []string) []string {
 }
 
 func GetAllPrefix() (prefix []string) {
-	prefix = getOnePrefix(prefix, PrefixArea)
-	prefix = getOnePrefix(prefix, PrefixNeureType)
+	PrefixAreaKeys, PrefixNeureTypeKeys := utils.GetMapKeys(PrefixArea), utils.GetMapKeys(PrefixNeureType)
+	prefix = getOnePrefix(prefix, PrefixAreaKeys)
+	prefix = getOnePrefix(prefix, PrefixNeureTypeKeys)
 
 	newPrefix := []string{}
 	for i := 0; i < len(prefix); i++ {
-		if strings.Contains(prefix[i], "skin") {
+		if strings.Contains(prefix[i], PrefixArea["skin"]) {
 			skinPrefix := combinePrefixSkin(prefix[i])
-			prefix[i] = skinPrefix[0]
-			newPrefix = append(newPrefix, skinPrefix[1:]...)
-		} else if strings.Contains(prefix[i], "muscle") {
+			prefix[i] = skinPrefix[0]                        // replace the old prefix[i] to new prefix
+			newPrefix = append(newPrefix, skinPrefix[1:]...) // add rest new prefix
+		} else if strings.Contains(prefix[i], PrefixArea["muscle"]) {
 			musclePrefix := combinePrefixMuscle(prefix[i])
 			prefix[i] = musclePrefix[0]
 			newPrefix = append(newPrefix, musclePrefix[1:]...)
-		} else if strings.Contains(prefix[i], "sense") {
+		} else if strings.Contains(prefix[i], PrefixArea["sense"]) {
 			sensePrefix := combinePrefixSense(prefix[i])
 			prefix[i] = sensePrefix[0]
 			newPrefix = append(newPrefix, sensePrefix[1:]...)
+		} else if strings.Contains(prefix[i], PrefixArea["valuate"]) {
+			valuatePrefix := combinePrefixValuate(prefix[i])
+			prefix[i] = valuatePrefix[0]
+			newPrefix = append(newPrefix, valuatePrefix[1:]...)
 		}
 	}
 	prefix = append(prefix, newPrefix...)
@@ -46,8 +54,8 @@ func GetAllPrefix() (prefix []string) {
 }
 
 func combinePrefixSkin(skinPrePrefix string) (skinPrefix []string) {
-	for _, t := range PrefixSkinAndSenseType {
-		for _, f := range SkinAndSenseNeurePosition {
+	for t := range PrefixSkinAndSenseType {
+		for f := range SkinAndSenseNeurePosition {
 			skinPrefix = append(skinPrefix, skinPrePrefix+PrefixNameSplitSymbol+t+PrefixNameSplitSymbol+f)
 		}
 	}
@@ -55,16 +63,25 @@ func combinePrefixSkin(skinPrePrefix string) (skinPrefix []string) {
 }
 
 func combinePrefixMuscle(musclePrePrefix string) (musclePrefix []string) {
-	for _, m := range Movements {
+	for m := range Movements {
 		musclePrefix = append(musclePrefix, musclePrePrefix+PrefixNameSplitSymbol+m)
 	}
 	return
 }
 
 func combinePrefixSense(sensePrePrefix string) (sensePrefix []string) {
-	for _, x := range PrefixSkinAndSenseType {
-		for _, z := range SkinAndSenseNeurePosition {
+	for x := range PrefixSkinAndSenseType {
+		for z := range SkinAndSenseNeurePosition {
 			sensePrefix = append(sensePrefix, sensePrePrefix+PrefixNameSplitSymbol+x+PrefixNameSplitSymbol+z)
+		}
+	}
+	return
+}
+
+func combinePrefixValuate(valuatePrePrefix string) (valuatePrefix []string) {
+	for x := range PrefixValuateSource {
+		for y := range PrefixValuateLevel {
+			valuatePrefix = append(valuatePrefix, valuatePrePrefix+PrefixNameSplitSymbol+x+PrefixNameSplitSymbol+y)
 		}
 	}
 	return

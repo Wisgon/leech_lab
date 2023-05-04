@@ -94,12 +94,12 @@ func TurnNeureBytes2Neures(neureBytes *map[string][]byte) *map[string]*Neure {
 
 func GetOtherTypeOfNeurePrefix(prefix string, neureType string) string {
 	oldType := ""
-	if strings.Contains(prefix, "common") {
-		oldType = "common"
+	if strings.Contains(prefix, config.PrefixNeureType["common"]) {
+		oldType = config.PrefixNeureType["common"]
 	} else if strings.Contains(prefix, "regulate") {
-		oldType = "regulate"
-	} else if strings.Contains(prefix, "inhibitory") {
-		oldType = "inhibitory"
+		oldType = config.PrefixNeureType["regulate"]
+	} else if strings.Contains(prefix, config.PrefixNeureType["inhibitory"]) {
+		oldType = config.PrefixNeureType["inhibitory"]
 	} else {
 		log.Panic("unknow prefix neure type: " + prefix)
 	}

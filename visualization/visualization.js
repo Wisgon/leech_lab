@@ -46,6 +46,12 @@ function show_graph() {
     "select_skin_sense_position"
   ).value
   var select_movements = document.getElementById("select_movements").value
+  var select_valuate_source = document.getElementById(
+    "select_valuate_source"
+  ).value
+  var select_valuate_level = document.getElementById(
+    "select_valuate_level"
+  ).value
 
   var parts = {}
   if (select_area == "") {
@@ -84,6 +90,27 @@ function show_graph() {
       return
     }
     parts["movements"] = select_movements
+  }
+  if (select_movements != "") {
+    if (select_area != "muscle") {
+      alert("only muscle have movements")
+      return
+    }
+    parts["movements"] = select_movements
+  }
+  if (select_valuate_source != "") {
+    if (select_area != "valuate") {
+      alert("only valuate have movements")
+      return
+    }
+    parts["valuate_source"] = select_valuate_source
+  }
+  if (select_valuate_level != "") {
+    if (select_area != "valuate") {
+      alert("only valuate have movements")
+      return
+    }
+    parts["valuate_level"] = select_valuate_level
   }
 
   ws.send(JSON.stringify({ event: "request_part_data", message: parts }))

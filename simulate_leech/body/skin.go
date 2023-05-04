@@ -29,7 +29,6 @@ func (s *Skin) InitSkin(wg *sync.WaitGroup) {
 	defer wg.Done()
 	s.createNeures()
 
-	// finally save this to database with keyPrefix+config.PrefixNumSplitSymbol+"collection"
 	dataByte := s.struct2Byte()
 	database.CreateData(dataByte, s.KeyPrefix+config.PrefixNumSplitSymbol+"collection")
 }
@@ -60,7 +59,7 @@ func (s *Skin) createNeures() {
 		neureObj := neure.CreateOneNeure(s.KeyPrefix, &neure.Neure{
 			Synapses:               make(map[string]*neure.Synapse),
 			NowLinkedDendritesIds:  make(map[string]struct{}),
-			NeureType:              "common",
+			NeureType:              config.PrefixNeureType["common"],
 			LastTimeActivate:       time.Now(),
 			LastTimeResetNowWeight: time.Now(),
 		})
@@ -77,8 +76,8 @@ func (s *Skin) struct2Byte() []byte {
 }
 
 func IterSkin(f func(skinNeureType, position string)) {
-	for _, skinNeureType := range config.PrefixSkinAndSenseType {
-		for _, position := range config.SkinAndSenseNeurePosition {
+	for skinNeureType := range config.PrefixSkinAndSenseType {
+		for position := range config.SkinAndSenseNeurePosition {
 			f(skinNeureType, position)
 		}
 	}

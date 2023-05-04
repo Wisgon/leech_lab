@@ -29,7 +29,6 @@ func (s *Sense) InitSense(wg *sync.WaitGroup) {
 	defer wg.Done()
 	s.createNeures()
 
-	// finally save this to database with keyPrefix+config.PrefixNumSplitSymbol+"collection"
 	dataByte := s.struct2Byte()
 	database.CreateData(dataByte, s.KeyPrefix+config.PrefixNumSplitSymbol+"collection")
 }
@@ -50,7 +49,7 @@ func (s *Sense) createNeures() {
 		neureObj := neure.CreateOneNeure(s.KeyPrefix, &neure.Neure{
 			Synapses:               make(map[string]*neure.Synapse),
 			NowLinkedDendritesIds:  make(map[string]struct{}),
-			NeureType:              "common",
+			NeureType:              config.PrefixNeureType["common"],
 			LastTimeActivate:       time.Now(),
 			LastTimeResetNowWeight: time.Now(),
 		})
@@ -67,8 +66,8 @@ func (s *Sense) struct2Byte() []byte {
 }
 
 func IterSense(f func(senseNeureType, position string)) {
-	for _, senseNeureType := range config.PrefixSkinAndSenseType {
-		for _, position := range config.SkinAndSenseNeurePosition {
+	for senseNeureType := range config.PrefixSkinAndSenseType {
+		for position := range config.SkinAndSenseNeurePosition {
 			f(senseNeureType, position)
 		}
 	}

@@ -27,7 +27,6 @@ func (m *Muscle) InitMuscle(wg *sync.WaitGroup) {
 	defer wg.Done()
 	m.createNeures()
 
-	// finally save this to database with keyPrefix+config.PrefixNumSplitSymbol+"collection"
 	dataByte := m.struct2Byte()
 	database.CreateData(dataByte, m.KeyPrefix+config.PrefixNumSplitSymbol+"collection")
 }
@@ -36,7 +35,7 @@ func (m *Muscle) createNeures() {
 	neureObj := neure.CreateOneNeure(m.KeyPrefix, &neure.Neure{
 		Synapses:               make(map[string]*neure.Synapse),
 		NowLinkedDendritesIds:  make(map[string]struct{}),
-		NeureType:              "common",
+		NeureType:              config.PrefixNeureType["common"],
 		LastTimeActivate:       time.Now(),
 		LastTimeResetNowWeight: time.Now(),
 	})
@@ -52,7 +51,7 @@ func (m *Muscle) struct2Byte() []byte {
 }
 
 func IterMuscle(f func(movement string)) {
-	for _, movement := range config.Movements {
+	for movement := range config.Movements {
 		f(movement)
 	}
 }

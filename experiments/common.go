@@ -293,22 +293,22 @@ func main() {
 	// fmt.Println("c:", c)
 
 	// remove map element:
-	ccc1 := CCC{C1: 1}
-	ccc2 := CCC{C1: 2}
-	aaa := make(map[string]*CCC)
-	aaa["222"] = &ccc1
-	aaa["333"] = &ccc2
-	aaa["444"] = &ccc1
-	delete(aaa, "333")
-	fmt.Printf("ccc1: %+v\n", ccc1)
-	fmt.Printf("ccc2: %+v\n", ccc2)
-	fmt.Println("aaa: ", aaa)
+	// ccc1 := CCC{C1: 1}
+	// ccc2 := CCC{C1: 2}
+	// aaa := make(map[string]*CCC)
+	// aaa["222"] = &ccc1
+	// aaa["333"] = &ccc2
+	// aaa["444"] = &ccc1
+	// delete(aaa, "333")
+	// fmt.Printf("ccc1: %+v\n", ccc1)
+	// fmt.Printf("ccc2: %+v\n", ccc2)
+	// fmt.Println("aaa: ", aaa)
 
-	bbb := []map[string]*CCC{
-		aaa,
-	}
-	delete(bbb[0], "444")
-	fmt.Println("aaa2: ", aaa)
+	// bbb := []map[string]*CCC{
+	// 	aaa,
+	// }
+	// delete(bbb[0], "444")
+	// fmt.Println("aaa2: ", aaa)
 }
 
 func routineOuter() {

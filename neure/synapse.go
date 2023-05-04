@@ -26,7 +26,7 @@ func (s *Synapse) ActivateNextNeure(neureType string) (ok bool, nextNeure *Neure
 	defer s.mu.Unlock()
 
 	switch neureType {
-	case "common":
+	case config.PrefixNeureType["common"]:
 		// 激活下一个神经元，根据不同的连接强度和下一个神经元的weight做出不同的行为
 		nextNeure = GetNeureById(s.NextNeureID)
 		ok = nextNeure.TryActivate(s.LinkStrength * float32(s.SynapseNum))
@@ -36,9 +36,9 @@ func (s *Synapse) ActivateNextNeure(neureType string) (ok bool, nextNeure *Neure
 				ok = nextNeure.TryActivate(s.LinkStrength * float32(s.SynapseNum))
 			}
 		}
-	case "regulate":
+	case config.PrefixNeureType["regulate"]:
 		// 这是调节神经元的突触，不同类型的突触有不同的ActivateNextNeure方法
-	case "inhibitory":
+	case config.PrefixNeureType["inhibitory"]:
 		// 抑制型神经元
 	default:
 		log.Panic("neure type worng!!!")

@@ -9,6 +9,8 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+
+	"golang.org/x/exp/constraints"
 )
 
 func GetUniqueId(nowNano int64) string {
@@ -24,14 +26,14 @@ func GetProjectRoot() string {
 	return filepath.Dir(d) // this mechine is "/home/zhilong/Documents/my_projects/graph_robot"
 }
 
-// func RemoveUniqueValueFromSlice[T constraints.Integer | constraints.Float | string](value T, s *[]T) {
-// 	for i, v := range *s {
-// 		if v == value {
-// 			*s = append((*s)[:i], (*s)[i+1:]...)
-// 			break
-// 		}
-// 	}
-// }
+func RemoveUniqueValueFromSlice[T constraints.Integer | constraints.Float | string](value T, s *[]T) {
+	for i, v := range *s {
+		if v == value {
+			*s = append((*s)[:i], (*s)[i+1:]...)
+			break
+		}
+	}
+}
 
 func SaveDataToFile(filePath string, data []byte) {
 	file, err := os.Create(filePath)
@@ -43,4 +45,11 @@ func SaveDataToFile(filePath string, data []byte) {
 	if err != nil {
 		log.Panic(err)
 	}
+}
+
+func GetMapKeys[T constraints.Integer | constraints.Float | string | struct{} | interface{} | bool](m map[string]T) (keys []string) {
+	for key := range m {
+		keys = append(keys, key)
+	}
+	return
 }

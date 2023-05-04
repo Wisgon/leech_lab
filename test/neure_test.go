@@ -2,6 +2,7 @@ package test
 
 import (
 	"encoding/json"
+	"graph_robot/config"
 	"graph_robot/neure"
 	"sync"
 	"testing"
@@ -11,17 +12,17 @@ func TestNeureLink(t *testing.T) {
 	neure1 := neure.CreateOneNeure("testing_neure", &neure.Neure{
 		Synapses:              make(map[string]*neure.Synapse),
 		NowLinkedDendritesIds: make(map[string]struct{}),
-		NeureType:             "common",
+		NeureType:             config.PrefixNeureType["common"],
 	})
 	neure2 := neure.CreateOneNeure("testing_neure", &neure.Neure{
 		Synapses:              make(map[string]*neure.Synapse),
 		NowLinkedDendritesIds: make(map[string]struct{}),
-		NeureType:             "common",
+		NeureType:             config.PrefixNeureType["common"],
 	})
 	neure3 := neure.CreateOneNeure("testing_neure", &neure.Neure{
 		Synapses:              make(map[string]*neure.Synapse),
 		NowLinkedDendritesIds: make(map[string]struct{}),
-		NeureType:             "common",
+		NeureType:             config.PrefixNeureType["common"],
 	})
 
 	t.Log("neure2 thisid:", neure2.ThisNeureId)
