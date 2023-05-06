@@ -91,23 +91,16 @@ function show_graph() {
     }
     parts["movements"] = select_movements
   }
-  if (select_movements != "") {
-    if (select_area != "muscle") {
-      alert("only muscle have movements")
-      return
-    }
-    parts["movements"] = select_movements
-  }
   if (select_valuate_source != "") {
     if (select_area != "valuate") {
-      alert("only valuate have movements")
+      alert("only valuate have valuate_source")
       return
     }
     parts["valuate_source"] = select_valuate_source
   }
   if (select_valuate_level != "") {
     if (select_area != "valuate") {
-      alert("only valuate have movements")
+      alert("only valuate have valuate_level")
       return
     }
     parts["valuate_level"] = select_valuate_level
@@ -124,9 +117,14 @@ ws.onmessage = function (event) {
       .then((response) => response.json())
       .then((neures) => {
         // render graph
+        var dagMode = "td"
         global["neure_data"] = neures
+        if (neures.links.length > 200) {
+          // large graph use lr mode
+          dagMode = "lr"
+        }
         Graph = ForceGraph()(document.getElementById("data"))
-          .dagMode("lr")
+          .dagMode(dagMode) //Choice between td (top-down), bu (bottom-up), lr (left-to-right), rl (right-to-left), radialout (outwards-radially) or radialin (inwards-radially)
           // .dagLevelDistance(50) // length of the line of links
           .graphData(global["neure_data"])
           .nodeId("id")

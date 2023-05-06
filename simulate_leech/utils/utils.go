@@ -117,11 +117,13 @@ func LinkNeureGroups(sourceNeures []string, targetNeures []string, strength floa
 
 func assembleLinkData(neures []string, groups *map[string][]string, links *[]map[string]interface{}, dendritesFlag bool) {
 	for _, v := range neures {
-		(*groups)["neu"] = append((*groups)["neu"], v)
+		neureGroupName := strings.Split(v, config.PrefixNumSplitSymbol)[0]
+		(*groups)[neureGroupName] = append((*groups)[neureGroupName], v)
 		neureObj := neure.GetNeureById(v)
 		for _, s := range neureObj.Synapses {
 			if dendritesFlag {
-				(*groups)["syn"] = append((*groups)["syn"], s.NextNeureID)
+				synapseGroupName := strings.Split(s.NextNeureID, config.PrefixNumSplitSymbol)[0]
+				(*groups)[synapseGroupName] = append((*groups)[synapseGroupName], s.NextNeureID)
 			}
 			link := make(map[string]interface{})
 			link["source"] = v
@@ -144,7 +146,8 @@ func assembleLinkData(neures []string, groups *map[string][]string, links *[]map
 		}
 		if dendritesFlag {
 			for dendriteId := range neureObj.NowLinkedDendritesIds {
-				(*groups)["den"] = append((*groups)["den"], dendriteId)
+				dendriteGroupName := strings.Split(dendriteId, config.PrefixNumSplitSymbol)[0]
+				(*groups)[dendriteGroupName] = append((*groups)[dendriteGroupName], dendriteId)
 				dendriteNeure := neure.GetNeureById(dendriteId)
 				link := make(map[string]interface{})
 				link["source"] = dendriteNeure.ThisNeureId
