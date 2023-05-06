@@ -142,13 +142,14 @@ func (lb *LeechBrain) LoadBrain(wg *sync.WaitGroup) {
 			utils.StoreToMap(lb.Area, config.PrefixArea["valuate"]+config.PrefixNameSplitSymbol+config.PrefixNeureType["regulate"]+config.PrefixNameSplitSymbol+valuateLevel, valuate)
 		}
 
-		keyPrefix = config.PrefixArea["valuate"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["inhibitory"] + config.PrefixNameSplitSymbol + valuateSource + config.PrefixNameSplitSymbol + valuateLevel
-		valuate = utils.LoadFromMapByKeyPrefix(lb.Area, keyPrefix, &brain.Valuate{})
-		if valuate.KeyPrefix != "" {
-			// means that key had been found
-			utils.StoreToMap(lb.Area, config.PrefixArea["valuate"]+config.PrefixNameSplitSymbol+config.PrefixNeureType["inhibitory"]+config.PrefixNameSplitSymbol+valuateSource, valuate)
-			utils.StoreToMap(lb.Area, config.PrefixArea["valuate"]+config.PrefixNameSplitSymbol+config.PrefixNeureType["inhibitory"]+config.PrefixNameSplitSymbol+valuateLevel, valuate)
-		}
+		// There is no necessary to use inhibitory here.
+		// keyPrefix = config.PrefixArea["valuate"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["inhibitory"] + config.PrefixNameSplitSymbol + valuateSource + config.PrefixNameSplitSymbol + valuateLevel
+		// valuate = utils.LoadFromMapByKeyPrefix(lb.Area, keyPrefix, &brain.Valuate{})
+		// if valuate.KeyPrefix != "" {
+		// 	// means that key had been found
+		// 	utils.StoreToMap(lb.Area, config.PrefixArea["valuate"]+config.PrefixNameSplitSymbol+config.PrefixNeureType["inhibitory"]+config.PrefixNameSplitSymbol+valuateSource, valuate)
+		// 	utils.StoreToMap(lb.Area, config.PrefixArea["valuate"]+config.PrefixNameSplitSymbol+config.PrefixNeureType["inhibitory"]+config.PrefixNameSplitSymbol+valuateLevel, valuate)
+		// }
 
 	})
 }
@@ -230,8 +231,8 @@ func (l *Leech) InitLeech() {
 		valuateGroupNeureIds := utils.GetNeureIdsByGroupName[*brain.Valuate](l.Brain.Area, valuateGroupKeyPrefix+config.PrefixNumSplitSymbol+"collection")
 		switch valuateSource {
 		case config.PrefixValuateSource["sense"]:
-			if valuateLevel == config.PrefixValuateLevel["valuate1"] || valuateLevel == config.PrefixValuateLevel["valuate2"] {
-				// sense has no valuate1 or valuate2 situlation
+			if valuateLevel != config.PrefixValuateLevel["valuate-2"] {
+				// sense only has regulate link
 				return
 			}
 			// regulate and inhibitory neure must link all the synapse between sense and muscle
@@ -253,18 +254,10 @@ func (l *Leech) InitLeech() {
 					})
 					newNeures = append(newNeures, newNeureIds...)
 				}
-				switch valuateLevel {
-				case config.PrefixValuateLevel["valuate0"], config.PrefixValuateLevel["valuate-1"]:
-					// valuate0 and -1 link inhibitory neure
-					linkValuate2SenseFunction(config.PrefixNeureType["inhibitory"])
-					groupName = neure.GetOtherTypeOfNeurePrefix(valuateGroupKeyPrefix, config.PrefixNeureType["inhibitory"])
-					groups[groupName] = append(groups[groupName], newNeures...)
-				case config.PrefixValuateLevel["valuate-2"]:
-					// valuate-2 link regulate neure
-					linkValuate2SenseFunction(config.PrefixNeureType["regulate"])
-					groupName = neure.GetOtherTypeOfNeurePrefix(valuateGroupKeyPrefix, config.PrefixNeureType["regulate"])
-					groups[groupName] = append(groups[groupName], newNeures...)
-				}
+				// valuate-2 link regulate neure
+				linkValuate2SenseFunction(config.PrefixNeureType["regulate"])
+				groupName = neure.GetOtherTypeOfNeurePrefix(valuateGroupKeyPrefix, config.PrefixNeureType["regulate"])
+				groups[groupName] = append(groups[groupName], newNeures...)
 			})
 		default:
 			log.Panic("wrong PrefixValuateSource:", valuateSource)

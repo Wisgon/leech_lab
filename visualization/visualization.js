@@ -103,6 +103,13 @@ function show_graph() {
       alert("only valuate have valuate_level")
       return
     }
+    if (
+      select_valuate_source == "sense" &&
+      select_valuate_level != "valuate-2"
+    ) {
+      alert("source sense only have regulate level valuate-2")
+      return
+    }
     parts["valuate_level"] = select_valuate_level
   }
 
