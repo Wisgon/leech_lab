@@ -1,6 +1,6 @@
 const fetchValue = (id) => document.getElementById(id).value
 var global = {}
-var node_size = 2
+var node_size = 5
 
 function send_data() {
   const source = fetchValue("source")
@@ -126,7 +126,7 @@ ws.onmessage = function (event) {
         // render graph
         global["neure_data"] = neures
         Graph = ForceGraph()(document.getElementById("data"))
-          .dagMode("td")
+          .dagMode("lr")
           // .dagLevelDistance(50) // length of the line of links
           .graphData(global["neure_data"])
           .nodeId("id")

@@ -7,6 +7,7 @@ import (
 	"graph_robot/neure"
 	"graph_robot/simulate_leech/body"
 	"graph_robot/simulate_leech/brain"
+	"graph_robot/utils"
 	"log"
 	"math/rand"
 	"strconv"
@@ -24,7 +25,7 @@ func SignalPass(entranceNeure *neure.Neure) {
 	// todo:
 }
 
-func LinkTwoNeures(linkCondition map[string]interface{}) {
+func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.Neure) {
 	source, target, synapse_id := linkCondition["source"].(string), linkCondition["target"].(string), linkCondition["synapse_id"].(string)
 	linkType := linkCondition["link_type"].(string)
 	var strength float64
@@ -54,8 +55,9 @@ func LinkTwoNeures(linkCondition map[string]interface{}) {
 			log.Panic("synapse_id must not be empty")
 		}
 		// need to create a new neure
-		newNeurePrefix := neure.GetOtherTypeOfNeurePrefix(source, linkType)
-		regulateNeure := neure.CreateOneNeure(newNeurePrefix, &neure.Neure{
+		sourcePrefix := strings.Split(source, config.PrefixNumSplitSymbol)[0]
+		newNeurePrefix := neure.GetOtherTypeOfNeurePrefix(sourcePrefix, linkType)
+		regulateNeure = neure.CreateOneNeure(newNeurePrefix, &neure.Neure{
 			Synapses:               make(map[string]*neure.Synapse),
 			NowLinkedDendritesIds:  make(map[string]struct{}),
 			NeureType:              linkType,
@@ -77,10 +79,14 @@ func LinkTwoNeures(linkCondition map[string]interface{}) {
 			NextNeureSynapseId: synapse_id,
 		})
 	}
-
+	return
 }
 
-func LinkNeureGroups(sourceNeures []string, targetNeures []string, strength float32, synapseNum int32, linkType string) {
+func LinkNeureGroups(sourceNeures []string, targetNeures []string, strength float32, synapseNum int32, linkType string, fu func(synapseIds []string) (targetSynapseIds []string)) (newNeureIds []string) {
+	if len(sourceNeures) == 0 || len(targetNeures) == 0 {
+		return
+	}
+	// f is a function that give the synapseIds which get from target neures and return target synapseIds
 	for _, neureId := range sourceNeures {
 		linkCondition := make(map[string]interface{})
 		nextNeureId := targetNeures[rand.Intn(len(targetNeures))] // link to random neure in targetNeures
@@ -88,9 +94,25 @@ func LinkNeureGroups(sourceNeures []string, targetNeures []string, strength floa
 		linkCondition["target"] = nextNeureId
 		linkCondition["strength"] = strength
 		linkCondition["link_type"] = linkType
-		linkCondition["synapse_id"] = "" // todo: when linkType is not common
-		LinkTwoNeures(linkCondition)
+		if linkType == config.PrefixNeureType["common"] {
+			linkCondition["synapse_id"] = ""
+			LinkTwoNeures(linkCondition)
+		} else {
+			// inhibitory and regulate neure
+			for _, nextNeureId := range targetNeures {
+				linkCondition["target"] = nextNeureId
+				// regulate and inhibitory must link all target neure
+				nextNeure := neure.GetNeureById(nextNeureId)
+				targetSynapseIds := fu(utils.GetMapKeys(nextNeure.Synapses))
+				for _, targetSynapseId := range targetSynapseIds {
+					linkCondition["synapse_id"] = targetSynapseId
+					newNeure := LinkTwoNeures(linkCondition)
+					newNeureIds = append(newNeureIds, newNeure.ThisNeureId)
+				}
+			}
+		}
 	}
+	return
 }
 
 func assembleLinkData(neures []string, groups *map[string][]string, links *[]map[string]interface{}, dendritesFlag bool) {
@@ -153,15 +175,55 @@ func assembleLinkData(neures []string, groups *map[string][]string, links *[]map
 	}
 }
 
+func GetNeureIdsByGroupName[T CreatureParts](dataMap *sync.Map, groupName string) []string {
+	values := LoadFromMapByGroupName[T](dataMap, groupName)
+	neureUnique := make(map[string]struct{})
+	for _, value := range values {
+		neures := value.GetNeures()
+		for _, neure := range neures {
+			neureUnique[neure] = struct{}{}
+		}
+	}
+	return utils.GetMapKeys(neureUnique)
+}
+
+func LoadFromMapByGroupName[T CreatureParts](dataMap *sync.Map, groupName string) (values []T) {
+	mapValue, ok := dataMap.Load(groupName)
+	if ok {
+		values = mapValue.([]T)
+	} else {
+		log.Panic("groupName:", groupName, " is not in data map")
+	}
+	return
+}
+
 func GetNeureIdsByKeyPrefix[T CreatureParts](dataMap *sync.Map, keyPrefix string, value T) []string {
-	LoadFromMapByKeyPrefix(dataMap, keyPrefix, value)
+	value = LoadFromMapByKeyPrefix(dataMap, keyPrefix, value)
 	return value.GetNeures()
 }
 
-func LoadFromMapByKeyPrefix[T CreatureParts](dataMap *sync.Map, keyPrefix string, value T) {
-	dataByte := database.GetDataById(keyPrefix + config.PrefixNumSplitSymbol + "collection")
-	Byte2Struct(dataByte, value)
-	dataMap.Store(keyPrefix+config.PrefixNumSplitSymbol+"collection", value)
+func LoadFromMapByKeyPrefix[T CreatureParts](dataMap *sync.Map, keyPrefix string, value T) T {
+	mapKey := keyPrefix + config.PrefixNumSplitSymbol + "collection"
+	// first try to load from map
+	mapValue, ok := dataMap.Load(keyPrefix)
+	var values []T // stay as same as the data struct saved in function StoreToMap
+	if ok {
+		values = mapValue.([]T)
+		if len(values) == 0 {
+			log.Panic("key:", keyPrefix, " is empty slice")
+		}
+		return values[0]
+	} else {
+		dataByte := database.GetDataById(mapKey)
+		if len(dataByte) == 0 {
+			// key not found
+			return value
+		}
+		Byte2Struct(dataByte, value)
+		values = append(values, value)
+		dataMap.Store(keyPrefix+config.PrefixNumSplitSymbol+"collection", values)
+		return value
+	}
 }
 
 func StoreToMap[T CreatureParts](dataMap *sync.Map, key string, value T) {
@@ -379,6 +441,5 @@ func GetOpposite(position string) (opposite string) {
 	} else {
 		opposite = strings.Replace(opposite, "Down", "Up", -1)
 	}
-
 	return
 }

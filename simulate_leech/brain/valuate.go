@@ -28,11 +28,11 @@ func (v *Valuate) InitValuate(wg *sync.WaitGroup) {
 	defer wg.Done()
 	v.createNeures()
 
-	dataByte := v.struct2Byte()
+	dataByte := v.Struct2Byte()
 	database.CreateData(dataByte, v.KeyPrefix+config.PrefixNumSplitSymbol+"collection")
 }
 
-func (v *Valuate) struct2Byte() []byte {
+func (v *Valuate) Struct2Byte() []byte {
 	dataByte, err := json.Marshal(v)
 	if err != nil {
 		log.Panic("json marshal error: " + err.Error())
@@ -41,7 +41,7 @@ func (v *Valuate) struct2Byte() []byte {
 }
 
 func (v *Valuate) createNeures() {
-	for i := 0; i < config.EachValuateTypeNeureNum; i++ {
+	for i := 0; i < config.EachValuateNeureTypeNum; i++ {
 		neureObj := neure.CreateOneNeure(v.KeyPrefix, &neure.Neure{
 			Synapses:               make(map[string]*neure.Synapse),
 			NowLinkedDendritesIds:  make(map[string]struct{}),

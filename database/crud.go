@@ -4,6 +4,7 @@ import (
 	"errors"
 	"graph_robot/config"
 	"log"
+	"strings"
 
 	"github.com/dgraph-io/badger/v4"
 )
@@ -40,11 +41,14 @@ func DeleteNeure(neureId string) {
 	})
 }
 
-func GetDataById(id string) []byte {
-	var data []byte
+func GetDataById(id string) (data []byte) {
 	_ = db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte(id))
 		if err != nil {
+			if strings.Contains(err.Error(), "Key not found") {
+				// key not found will not be an error any more,but caller should judge that whether data is empty
+				return nil
+			}
 			log.Panic(err.Error() + " key is: " + id)
 		}
 		_ = item.Value(func(val []byte) error {
@@ -53,7 +57,7 @@ func GetDataById(id string) []byte {
 		})
 		return nil
 	})
-	return data
+	return
 }
 
 func KeyOnlyPrefixScan(keyPrefix string) *[][]byte {
