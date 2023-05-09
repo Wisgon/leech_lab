@@ -14,10 +14,10 @@ func TestInitLeechCreateNeure(t *testing.T) {
 		// raw prefix will set an empty value in db, if get in Byte2Struct, will panic
 		return len(result) != 8
 	}, false)
-	if len(*allNeuresBytes) == 0 {
+	if len(allNeuresBytes) == 0 {
 		t.Errorf("get all fail...\n")
 	} else {
-		for _, v := range *allNeuresBytes {
+		for _, v := range allNeuresBytes {
 			t.Logf("value: %s\n", string(v))
 		}
 	}

@@ -21,8 +21,50 @@ type CreatureParts interface {
 	GetNeures() []string
 }
 
-func SignalPass(entranceNeure *neure.Neure) {
-	// todo:
+func SignalPass(neureObj *neure.Neure, resultNeureChan chan string, wg *sync.WaitGroup, signalPassNodeRecorder chan []map[string]interface{}, signalPassLinkRecorder chan []map[string]interface{}) {
+	defer wg.Done()
+
+	var signalPassNodeRecord = []map[string]interface{}{}
+	var signalPassLinkRecord = []map[string]interface{}{}
+
+	sourceNode := make(map[string]interface{})
+	sourceNode["id"] = neureObj.ThisNeureId
+	sourceNode["group"] = "start_neure"
+	if len(neureObj.Synapses) == 0 {
+		// todo: result is not always synapse length 0,must be a more complicative result judgement condition
+		// this signal pass reach to the end
+		resultNeureChan <- neureObj.ThisNeureId
+		return
+	}
+	for _, synapse := range neureObj.Synapses {
+		targetNode := make(map[string]interface{})
+		link := make(map[string]interface{})
+		link["source"] = neureObj.ThisNeureId
+		link["target"] = synapse.NextNeureID
+		link["link_strength"] = synapse.LinkStrength
+		link["synapse_num"] = synapse.SynapseNum
+		targetNode["id"] = synapse.NextNeureID
+		ok, nextNeure := synapse.ActivateNextNeure(neureObj.NeureType)
+		if ok {
+			wg.Add(1)
+			go SignalPass(nextNeure, resultNeureChan, wg, signalPassNodeRecorder, signalPassLinkRecorder)
+			// pass success
+			link["link_result"] = "link_success"
+			targetNode["group"] = "activated_neure"
+		} else {
+			link["link_result"] = "link_fail"
+			targetNode["group"] = "end_neure"
+		}
+		link["now_weight"] = nextNeure.NowWeight
+		signalPassNodeRecord = append(signalPassNodeRecord, targetNode)
+		signalPassLinkRecord = append(signalPassLinkRecord, link)
+	}
+
+	// add source node at last
+	signalPassNodeRecord = append(signalPassNodeRecord, sourceNode)
+
+	signalPassNodeRecorder <- signalPassNodeRecord
+	signalPassLinkRecorder <- signalPassLinkRecord
 }
 
 func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.Neure) {
@@ -115,15 +157,15 @@ func LinkNeureGroups(sourceNeures []string, targetNeures []string, strength floa
 	return
 }
 
-func assembleLinkData(neures []string, groups *map[string][]string, links *[]map[string]interface{}, dendritesFlag bool) {
+func assembleLinkData(neures []string, groups map[string][]string, links *[]map[string]interface{}, dendritesFlag bool) {
 	for _, v := range neures {
 		neureGroupName := strings.Split(v, config.PrefixNumSplitSymbol)[0]
-		(*groups)[neureGroupName] = append((*groups)[neureGroupName], v)
+		groups[neureGroupName] = append(groups[neureGroupName], v)
 		neureObj := neure.GetNeureById(v)
 		for _, s := range neureObj.Synapses {
 			if dendritesFlag {
 				synapseGroupName := strings.Split(s.NextNeureID, config.PrefixNumSplitSymbol)[0]
-				(*groups)[synapseGroupName] = append((*groups)[synapseGroupName], s.NextNeureID)
+				groups[synapseGroupName] = append(groups[synapseGroupName], s.NextNeureID)
 			}
 			link := make(map[string]interface{})
 			link["source"] = v
@@ -147,7 +189,7 @@ func assembleLinkData(neures []string, groups *map[string][]string, links *[]map
 		if dendritesFlag {
 			for dendriteId := range neureObj.NowLinkedDendritesIds {
 				dendriteGroupName := strings.Split(dendriteId, config.PrefixNumSplitSymbol)[0]
-				(*groups)[dendriteGroupName] = append((*groups)[dendriteGroupName], dendriteId)
+				groups[dendriteGroupName] = append(groups[dendriteGroupName], dendriteId)
 				dendriteNeure := neure.GetNeureById(dendriteId)
 				link := make(map[string]interface{})
 				link["source"] = dendriteNeure.ThisNeureId
@@ -355,7 +397,7 @@ func AssemblePartOfMapDataToFront(maps map[string]*sync.Map, parts map[string]in
 
 	collections, partsStr := getCollections(parts)
 	uniqueNeures := removeRepeatFromCollections(partsStr, maps, collections)
-	assembleLinkData(uniqueNeures, &groups, &links, true)
+	assembleLinkData(uniqueNeures, groups, &links, true)
 	for groupName, group := range groups {
 		// same neure won't appear in different group
 		uniqueNodeId := make(map[string]struct{})
@@ -388,11 +430,11 @@ func AssembleMapDataToFront(maps map[string]*sync.Map) map[string]interface{} {
 		if strings.Contains(keyStr, "collection") {
 			switch collection := value.(type) {
 			case *body.Skin:
-				assembleLinkData(collection.Neures, &groups, &links, false)
+				assembleLinkData(collection.Neures, groups, &links, false)
 			case *body.Muscle:
-				assembleLinkData(collection.Neures, &groups, &links, false)
+				assembleLinkData(collection.Neures, groups, &links, false)
 			case *brain.Sense:
-				assembleLinkData(collection.Neures, &groups, &links, false)
+				assembleLinkData(collection.Neures, groups, &links, false)
 			}
 		}
 		return true
@@ -402,11 +444,11 @@ func AssembleMapDataToFront(maps map[string]*sync.Map) map[string]interface{} {
 		if strings.Contains(keyStr, "collection") {
 			switch collection := value.(type) {
 			case *body.Skin:
-				assembleLinkData(collection.Neures, &groups, &links, false)
+				assembleLinkData(collection.Neures, groups, &links, false)
 			case *body.Muscle:
-				assembleLinkData(collection.Neures, &groups, &links, false)
+				assembleLinkData(collection.Neures, groups, &links, false)
 			case *brain.Sense:
-				assembleLinkData(collection.Neures, &groups, &links, false)
+				assembleLinkData(collection.Neures, groups, &links, false)
 			}
 		}
 		return true
@@ -445,4 +487,8 @@ func GetOpposite(position string) (opposite string) {
 		opposite = strings.Replace(opposite, "Down", "Up", -1)
 	}
 	return
+}
+
+func ParseResult(resultNeureIds []string) {
+	// todo: parse result and get output, whatever it is.
 }

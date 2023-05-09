@@ -81,7 +81,7 @@ func KeyOnlyPrefixScan(keyPrefix string) *[][]byte {
 	return &resultKeys
 }
 
-func ValueAndPrefixScan(keyPrefix string, filterFn ConditionFilter, firstFlag bool) *map[string][]byte {
+func ValueAndPrefixScan(keyPrefix string, filterFn ConditionFilter, firstFlag bool) map[string][]byte {
 	prefix := []byte(keyPrefix)
 	results := make(map[string][]byte)
 	_ = db.View(func(txn *badger.Txn) error {
@@ -109,10 +109,10 @@ func ValueAndPrefixScan(keyPrefix string, filterFn ConditionFilter, firstFlag bo
 		}
 		return nil
 	})
-	return &results
+	return results
 }
 
-func ValueAllDbScan(filterFn ConditionFilter, firstFlag bool) *map[string][]byte {
+func ValueAllDbScan(filterFn ConditionFilter, firstFlag bool) map[string][]byte {
 	results := make(map[string][]byte)
 	_ = db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
@@ -141,7 +141,7 @@ func ValueAllDbScan(filterFn ConditionFilter, firstFlag bool) *map[string][]byte
 		}
 		return nil
 	})
-	return &results
+	return results
 }
 
 func CheckAllKey() {

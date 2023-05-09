@@ -1,6 +1,7 @@
 package neure
 
 import (
+	"context"
 	"encoding/json"
 	"graph_robot/config"
 	"graph_robot/database"
@@ -22,7 +23,45 @@ type Neure struct {
 	ThisNeureId            string              `json:"e"` // the id of database
 	NowWeight              float32             `json:"f"` // 现在的权重，每刺激一次，增加一点，直到超过weight就被激活，被激活后会reset，超过一段时间无刺激也会reset
 	LastTimeActivate       time.Time           `json:"g"` // 最后一次激活的时间，精确到纳秒，可以在byte中自由转换
-	LastTimeResetNowWeight time.Time           `json:"h"` // 最后一次重置now weight的时间
+	LastSignalCame         time.Time           `json:"h"` // 最后一次重置now weight的时间
+	GoToSleepFunc          context.CancelFunc
+}
+
+func (n *Neure) WakeUp() {
+	// todo: use wakeup
+	// this method is called when neure load in NeureMap,periodly check status
+	ctx, cancel := context.WithCancel(context.Background())
+	n.GoToSleepFunc = cancel
+	go n.checkNowWeight(ctx)
+}
+
+func (n *Neure) checkNowWeight(ctx context.Context) {
+	// todo:验证逻辑
+	for {
+		sleepSignal := false
+		select {
+		case <-ctx.Done():
+			sleepSignal = true
+		default:
+			n.mu.Lock()
+			now := time.Now()
+			if now.Sub(n.LastSignalCame) > config.RefreshNowWeightDuration {
+				n.NowWeight = 0
+			}
+			n.mu.Unlock()
+		}
+		if sleepSignal {
+			break
+		}
+		time.Sleep(config.RefreshNowWeightDuration)
+	}
+}
+
+func (n *Neure) checkIfNeedToDie() {
+	// todo: check if need to die periodly
+	if false {
+		DeleteNeure(n)
+	}
 }
 
 func (n *Neure) SaveNeure2Db() {
@@ -65,18 +104,14 @@ func (n *Neure) TryActivate(weight float32) (activate bool) {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 	now := time.Now()
+	n.LastSignalCame = now
 	if now.Sub(n.LastTimeActivate) > config.RefractoryDuration {
 		// only activate when neure not in refractory duration
-		if now.Sub(n.LastTimeResetNowWeight) > config.RefreshNowWeightDuration {
-			// because RefractoryDuration much more small than RefreshNowWeightDuration, so we can put it here
-			n.NowWeight = 0
-			n.LastTimeResetNowWeight = now
-		}
+		log.Println("debug: adding nowweight:", n.ThisNeureId)
 		n.NowWeight += weight
 		if n.NowWeight > config.Weight {
 			activate = true
 			n.NowWeight = 0
-			n.LastTimeResetNowWeight = now
 			n.LastTimeActivate = now
 		}
 	}

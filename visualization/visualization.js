@@ -116,107 +116,118 @@ function show_graph() {
   ws.send(JSON.stringify({ event: "request_part_data", message: parts }))
 }
 
+function show_neures_json() {
+  fetch("http://localhost:8002/neures.json")
+    .then((response) => response.json())
+    .then((neures) => {
+      // render graph
+      var dagMode = "td"
+      global["neure_data"] = neures
+      if (neures.links.length > 200) {
+        // large graph use lr mode
+        dagMode = "lr"
+      }
+      Graph = ForceGraph()(document.getElementById("data"))
+        .dagMode(dagMode) //Choice between td (top-down), bu (bottom-up), lr (left-to-right), rl (right-to-left), radialout (outwards-radially) or radialin (inwards-radially)
+        // .dagLevelDistance(50) // length of the line of links
+        .graphData(global["neure_data"])
+        .nodeId("id")
+        .nodeLabel("id")
+        .nodeAutoColorBy("group")
+        // .nodeColor(node => node.group=="OK" ? '#4caf50' : '#f44336') // todo:按group名字指定color
+        .linkCanvasObjectMode(() => "after")
+        .linkDirectionalArrowLength(3)
+        .linkDirectionalArrowRelPos(1)
+        .nodeRelSize(node_size)
+        .onNodeClick((node) => {
+          // Center/zoom on node
+          var source_input = document.getElementById("source")
+          if (source_input.value == "") {
+            source_input.value = node.id
+          } else {
+            var target_input = document.getElementById("target")
+            target_input.value = node.id
+          }
+        })
+        .onNodeDragEnd((node) => {
+          node.fx = node.x
+          node.fy = node.y
+        })
+        .linkCanvasObject((link, ctx) => {
+          const MAX_FONT_SIZE = 3
+          const LABEL_NODE_MARGIN = Graph.nodeRelSize() * 1.5
+
+          const start = link.source
+          const end = link.target
+
+          // ignore unbound links
+          if (typeof start !== "object" || typeof end !== "object") return
+
+          // calculate label positioning
+          const textPos = Object.assign(
+            ...["x", "y"].map((c) => ({
+              [c]: start[c] + (end[c] - start[c]) / 2, // calc middle but to start point
+            }))
+          )
+
+          const relLink = { x: end.x - start.x, y: end.y - start.y }
+
+          const maxTextLength =
+            Math.sqrt(Math.pow(relLink.x, 2) + Math.pow(relLink.y, 2)) -
+            LABEL_NODE_MARGIN * 2
+
+          let textAngle = Math.atan2(relLink.y, relLink.x)
+          // maintain label vertical orientation for legibility
+          if (textAngle > Math.PI / 2) textAngle = -(Math.PI - textAngle)
+          if (textAngle < -Math.PI / 2) textAngle = -(-Math.PI - textAngle)
+
+          var label = ""
+          if (link.link_result != "") {
+            // means that it's stimulate show
+            label = `ls:${link.link_strength}  sn:${link.synapse_num}  lr:${link.link_result} nw:${link.now_weight}`
+          } else {
+            label = `ls:${link.link_strength}  sn:${link.synapse_num}  nt:${link.neure_type}`
+          }
+
+          // estimate fontSize to fit in link length
+          ctx.font = "1px Sans-Serif"
+          const fontSize = Math.min(
+            MAX_FONT_SIZE,
+            maxTextLength / ctx.measureText(label).width
+          )
+          ctx.font = `${fontSize}px Sans-Serif`
+          const textWidth = ctx.measureText(label).width
+          const bckgDimensions = [textWidth, fontSize].map(
+            (n) => n + fontSize * 0.2
+          ) // some padding
+
+          // draw text label (with background rect)
+          ctx.save()
+          ctx.translate(textPos.x, textPos.y)
+          ctx.rotate(textAngle)
+
+          ctx.fillStyle = "rgba(255, 255, 255, 0.8)"
+          ctx.fillRect(
+            -bckgDimensions[0] / 2,
+            -bckgDimensions[1] / 2,
+            ...bckgDimensions
+          )
+
+          ctx.textAlign = "center"
+          ctx.textBaseline = "middle"
+          ctx.fillStyle = "darkgrey"
+          ctx.fillText(label, 0, 0)
+          ctx.restore()
+        })
+      global["graph"] = Graph
+    })
+}
+
 ws.onmessage = function (event) {
   var message = event.data // message is a string
   var reveived_data = JSON.parse(message)
   if (reveived_data.event == "data saved to json") {
-    fetch("http://localhost:8002/neures.json")
-      .then((response) => response.json())
-      .then((neures) => {
-        // render graph
-        var dagMode = "td"
-        global["neure_data"] = neures
-        if (neures.links.length > 200) {
-          // large graph use lr mode
-          dagMode = "lr"
-        }
-        Graph = ForceGraph()(document.getElementById("data"))
-          .dagMode(dagMode) //Choice between td (top-down), bu (bottom-up), lr (left-to-right), rl (right-to-left), radialout (outwards-radially) or radialin (inwards-radially)
-          // .dagLevelDistance(50) // length of the line of links
-          .graphData(global["neure_data"])
-          .nodeId("id")
-          .nodeLabel("id")
-          .nodeAutoColorBy("group")
-          .linkCanvasObjectMode(() => "after")
-          .linkDirectionalArrowLength(3)
-          .linkDirectionalArrowRelPos(1)
-          .nodeRelSize(node_size)
-          .onNodeClick((node) => {
-            // Center/zoom on node
-            var source_input = document.getElementById("source")
-            if (source_input.value == "") {
-              source_input.value = node.id
-            } else {
-              var target_input = document.getElementById("target")
-              target_input.value = node.id
-            }
-          })
-          .onNodeDragEnd((node) => {
-            node.fx = node.x
-            node.fy = node.y
-          })
-          .linkCanvasObject((link, ctx) => {
-            const MAX_FONT_SIZE = 3
-            const LABEL_NODE_MARGIN = Graph.nodeRelSize() * 1.5
-
-            const start = link.source
-            const end = link.target
-
-            // ignore unbound links
-            if (typeof start !== "object" || typeof end !== "object") return
-
-            // calculate label positioning
-            const textPos = Object.assign(
-              ...["x", "y"].map((c) => ({
-                [c]: start[c] + (end[c] - start[c]) / 2, // calc middle but to start point
-              }))
-            )
-
-            const relLink = { x: end.x - start.x, y: end.y - start.y }
-
-            const maxTextLength =
-              Math.sqrt(Math.pow(relLink.x, 2) + Math.pow(relLink.y, 2)) -
-              LABEL_NODE_MARGIN * 2
-
-            let textAngle = Math.atan2(relLink.y, relLink.x)
-            // maintain label vertical orientation for legibility
-            if (textAngle > Math.PI / 2) textAngle = -(Math.PI - textAngle)
-            if (textAngle < -Math.PI / 2) textAngle = -(-Math.PI - textAngle)
-
-            const label = `ls:${link.link_strength}  sn:${link.synapse_num}  nt:${link.neure_type}`
-
-            // estimate fontSize to fit in link length
-            ctx.font = "1px Sans-Serif"
-            const fontSize = Math.min(
-              MAX_FONT_SIZE,
-              maxTextLength / ctx.measureText(label).width
-            )
-            ctx.font = `${fontSize}px Sans-Serif`
-            const textWidth = ctx.measureText(label).width
-            const bckgDimensions = [textWidth, fontSize].map(
-              (n) => n + fontSize * 0.2
-            ) // some padding
-
-            // draw text label (with background rect)
-            ctx.save()
-            ctx.translate(textPos.x, textPos.y)
-            ctx.rotate(textAngle)
-
-            ctx.fillStyle = "rgba(255, 255, 255, 0.8)"
-            ctx.fillRect(
-              -bckgDimensions[0] / 2,
-              -bckgDimensions[1] / 2,
-              ...bckgDimensions
-            )
-
-            ctx.textAlign = "center"
-            ctx.textBaseline = "middle"
-            ctx.fillStyle = "darkgrey"
-            ctx.fillText(label, 0, 0)
-            ctx.restore()
-          })
-        global["graph"] = Graph
-      })
+    show_neures_json()
   } else {
     alert("empty data")
   }

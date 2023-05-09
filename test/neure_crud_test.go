@@ -79,17 +79,17 @@ func TestScanAll(t *testing.T) {
 		n.Byte2Struct(result)
 		return n.ElectricalConductivity == 443
 	}, false)
-	if len(*allNeuresBytes) == 0 {
+	if len(allNeuresBytes) == 0 {
 		t.Errorf("get all fail...\n")
 	} else {
 		allNeures := neure.TurnNeureBytes2Neures(allNeuresBytes)
-		for _, v := range *allNeures {
+		for _, v := range allNeures {
 			t.Logf("key: %s", v.ThisNeureId)
 			if v.ElectricalConductivity != 443 {
 				t.Errorf("get wrong neure, filter not work, value is : %d", v.ElectricalConductivity)
 			}
 		}
-		t.Logf("neures are: %d\n", len(*allNeures))
+		t.Logf("neures are: %d\n", len(allNeures))
 	}
 
 	// test first flag
@@ -102,7 +102,7 @@ func TestScanAll(t *testing.T) {
 		n.Byte2Struct(result)
 		return n.ElectricalConductivity == 443
 	}, true)
-	if len(*firstNeuresBytes) != 1 {
+	if len(firstNeuresBytes) != 1 {
 		t.Error("len not equal 1")
 	} else {
 		t.Log("Ok getting first")
@@ -116,16 +116,16 @@ func TestScanPrefixAll(t *testing.T) {
 		return n.ElectricalConductivity == 443
 	}, false)
 	prefixedNeures := neure.TurnNeureBytes2Neures(prefixedNeureBytes)
-	if len(*prefixedNeures) == 0 {
+	if len(prefixedNeures) == 0 {
 		t.Error("no data found")
 	} else {
-		for k := range *prefixedNeures {
-			t.Logf("key: %s", (*prefixedNeures)[k].ThisNeureId)
-			if (*prefixedNeures)[k].ElectricalConductivity != 443 {
+		for k := range prefixedNeures {
+			t.Logf("key: %s", (prefixedNeures)[k].ThisNeureId)
+			if (prefixedNeures)[k].ElectricalConductivity != 443 {
 				t.Error("wrong data found")
 			}
 		}
-		t.Logf("neures are: %d", len(*prefixedNeures))
+		t.Logf("neures are: %d", len(prefixedNeures))
 	}
 
 	// test first flag
@@ -134,10 +134,10 @@ func TestScanPrefixAll(t *testing.T) {
 		n.Byte2Struct(result)
 		return n.ElectricalConductivity == 443
 	}, true)
-	if len(*firstPrefixedNeureBytes) != 1 {
+	if len(firstPrefixedNeureBytes) != 1 {
 		t.Error("not found 1")
 	} else {
-		t.Logf("neures are: %d", len(*firstPrefixedNeureBytes))
+		t.Logf("neures are: %d", len(firstPrefixedNeureBytes))
 	}
 }
 

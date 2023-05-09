@@ -53,3 +53,18 @@ func GetMapKeys[T constraints.Integer | constraints.Float | string | struct{} | 
 	}
 	return
 }
+
+func GetUnrepeatedRandNum(max int, needNumber int) (resultIndex []int) {
+	// usage: slice1 := []float32{1.1, 2.2, 3.3}  resultIndex := GetUnrepeatedRandNum(len(slice1), 2)
+	var resultSlice = []int{}
+	for i := 0; i < max; i++ {
+		resultSlice = append(resultSlice, i)
+	}
+	for j := 0; j < needNumber; j++ {
+		index := rand.Intn(len(resultSlice))
+		randNum := resultSlice[index] // get a rand element from resultSlice
+		resultIndex = append(resultIndex, randNum)
+		resultSlice = append(resultSlice[:index], resultSlice[index+1:]...)
+	}
+	return
+}

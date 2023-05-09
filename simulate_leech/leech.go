@@ -7,9 +7,11 @@ import (
 	"graph_robot/simulate_leech/body"
 	"graph_robot/simulate_leech/brain"
 	"graph_robot/simulate_leech/utils"
+	commonUtils "graph_robot/utils"
 	"log"
 	"strings"
 	"sync"
+	"time"
 )
 
 type LeechBody struct {
@@ -182,7 +184,7 @@ func (l *Leech) InitLeech() {
 		utils.LinkNeureGroups(
 			utils.GetNeureIdsByKeyPrefix(l.Body.Organ, skinPrefix, &body.Skin{}),
 			utils.GetNeureIdsByKeyPrefix(l.Brain.Area, sensePrefix, &brain.Sense{}),
-			10, 1, config.PrefixNeureType["common"],
+			51, 1, config.PrefixNeureType["common"],
 			func(synapseIds []string) (targetSynapseIds []string) { return },
 		)
 	})
@@ -197,7 +199,7 @@ func (l *Leech) InitLeech() {
 		utils.LinkNeureGroups(
 			utils.GetNeureIdsByKeyPrefix(l.Body.Organ, sensePrefix, &brain.Sense{}),
 			utils.GetNeureIdsByKeyPrefix(l.Brain.Area, musclePrefix, &body.Muscle{}),
-			50, 1, config.PrefixNeureType["common"], // todo:sense和muscle的连接强度初始值50是否合理
+			51, 1, config.PrefixNeureType["common"], // todo:sense和muscle的连接强度初始值50是否合理
 			func(synapseIds []string) (targetSynapseIds []string) { return },
 		)
 
@@ -325,7 +327,6 @@ func (l *Leech) WakeUp() {
 			if link_type == config.PrefixNeureType["common"] {
 				utils.LinkTwoNeures(linkCondition)
 			} else {
-				// todo: decide which dataMap to pass, for now just l.Brain.Area
 				utils.LinkTwoNeures(linkCondition)
 			}
 			data := make(map[string]interface{})
@@ -334,8 +335,128 @@ func (l *Leech) WakeUp() {
 			linkCondition := envResponse["message"].(map[string]interface{})
 			log.Printf("get evn info: %+v\n", linkCondition)
 			// todo: do something with env info
+		case "experiment":
+			message := envResponse["message"].(map[string]interface{})
+			action := message["action"].(string)
+			switch action {
+			case "stimulate":
+				data := l.handleStimulate(message)
+				l.EnvRequest <- data
+			default:
+				log.Panic("wrong action:", action)
+			}
+
 		default:
 			log.Println("unknow event:", event)
 		}
 	}
+}
+
+func (l *Leech) handleStimulate(stimulateMessage map[string]interface{}) (signalPassInfo map[string]interface{}) {
+	var wg sync.WaitGroup
+	var signalPassNodeRecorder = make(chan []map[string]interface{}, 10) // to record the neures this stimulate pass by
+	var signalPassLinkRecorder = make(chan []map[string]interface{}, 10) // to record the neures this stimulate pass by
+	var neurePathNodes = []map[string]interface{}{}
+	var neurePathLinks = []map[string]interface{}{}
+	var doneSignal = make(chan struct{})
+	var resultNeureChan = make(chan string)
+	var resultNeureIds = []string{}
+
+	actionDetail := stimulateMessage["action_detail"].(map[string]interface{})
+	stimulateSkinPrefix := actionDetail["stimulate_skin_prefix"].(string)
+	stimulateSkinNeureNum := int(actionDetail["stimulate_skin_neure_number"].(float64))
+	stimulateLaterSkinPrefix := actionDetail["stimulate_later_skin_prefix"].(string)
+	skinNeureIds := utils.GetNeureIdsByGroupName[*body.Skin](l.Body.Organ, stimulateSkinPrefix+config.PrefixNumSplitSymbol+"collection")
+	if stimulateSkinNeureNum > len(skinNeureIds) {
+		log.Println("stimulateSkinNeureNum can not bigger than skinNeureIds length")
+		return
+	}
+
+	// pick rand skin neure in this group of skinNeureIds
+	randSkinNeureIdIndexs := commonUtils.GetUnrepeatedRandNum(len(skinNeureIds), stimulateSkinNeureNum)
+	for _, randSkinNeureIdIndex := range randSkinNeureIdIndexs {
+		neureObj := neure.GetNeureById(skinNeureIds[randSkinNeureIdIndex])
+		wg.Add(1)
+		// pass neurePathRecorder to SignalPass
+		go utils.SignalPass(neureObj, resultNeureChan, &wg, signalPassNodeRecorder, signalPassLinkRecorder)
+	}
+	if stimulateLaterSkinPrefix != "" {
+		// is sensitization experiment
+		stimulateLaterSkinNumber := int(actionDetail["stimulate_later_skin_number"].(float64))
+		log.Println(stimulateLaterSkinNumber)
+	}
+	go func() {
+		for {
+			select {
+			case resultNeureId := <-resultNeureChan:
+				resultNeureIds = append(resultNeureIds, resultNeureId)
+			case signalPassNodeRecord := <-signalPassNodeRecorder:
+				neurePathNodes = append(neurePathNodes, signalPassNodeRecord...)
+			case signalPassLinkRecord := <-signalPassLinkRecorder:
+				neurePathLinks = append(neurePathLinks, signalPassLinkRecord...)
+			case <-doneSignal:
+				break
+			}
+		}
+	}()
+	wg.Wait()
+	time.Sleep(1 * time.Second) // wait for one second so that make sure resultNeureChan buffer get into resultNeureIds
+	doneSignal <- struct{}{}
+	// todo: debug
+	log.Println("debug: resultNeureIds:", resultNeureIds)
+
+	// record signal pass info to frontend
+	signalPassInfo = make(map[string]interface{})
+	uniqueNodes := make(map[string]interface{})
+	uniqueLinks := make(map[string]interface{})
+	for _, node := range neurePathNodes {
+		if pathNode, ok := uniqueNodes[node["id"].(string)]; ok {
+			// means that this node had been in uniqueNodes
+			oldNode := pathNode.(map[string]interface{})
+			oldNodeGroup := oldNode["group"].(string)
+			newNodeGroup := node["group"].(string)
+			switch {
+			case newNodeGroup == "activated_neure":
+				// "activated_neure" has the most highest priority in all node
+				uniqueNodes[node["id"].(string)] = node
+			case newNodeGroup == "end_neure" && oldNodeGroup != "activated_neure":
+				// "end_neure" has second priority
+				uniqueNodes[node["id"].(string)] = node
+				// default:
+				// default has nothing to do
+			}
+		} else {
+			uniqueNodes[node["id"].(string)] = node
+		}
+	}
+	for _, link := range neurePathLinks {
+		linkId := link["source"].(string) + "*" + link["target"].(string)
+		if _, ok := uniqueLinks[linkId]; ok {
+			// means that this link had already in uniqueLinks
+			newLinkRes := link["link_result"].(string)
+			if newLinkRes == "link_success" {
+				// link_success is priority
+				uniqueLinks[linkId] = link
+			}
+		} else {
+			uniqueLinks[linkId] = link
+		}
+	}
+
+	links := []map[string]interface{}{}
+	nodes := []map[string]interface{}{}
+
+	for _, un := range uniqueNodes {
+		node := un.(map[string]interface{})
+		nodes = append(nodes, node)
+	}
+	for _, ul := range uniqueLinks {
+		link := ul.(map[string]interface{})
+		links = append(links, link)
+	}
+
+	signalPassInfo["links"] = links
+	signalPassInfo["nodes"] = nodes
+
+	return
 }

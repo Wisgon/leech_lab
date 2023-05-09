@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>visualization</title>
     <style>
+      /* todo: form float and has a key to fold */
       input,
       button,
       select {
@@ -110,7 +111,8 @@
         <option value="valuate-1">valuate-1</option>
         <option value="valuate-2">valuate-2</option>
       </select>
-      <button onclick="show_graph()">show</button>
+      <button onclick="show_graph()">send_request</button>
+      <button onclick="show_neures_json()">show_json_data</button>
     </form>
     <div id="data"></div>
     <script src="./visualization.js"></script>

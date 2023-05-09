@@ -83,13 +83,13 @@ func DeleteNeure(neure *Neure) {
 	}
 }
 
-func TurnNeureBytes2Neures(neureBytes *map[string][]byte) *map[string]*Neure {
+func TurnNeureBytes2Neures(neureBytes map[string][]byte) map[string]*Neure {
 	neures := make(map[string]*Neure)
-	for k, v := range *neureBytes {
+	for k, v := range neureBytes {
 		neures[k] = &Neure{}
 		neures[k].Byte2Struct(v)
 	}
-	return &neures
+	return neures
 }
 
 func GetOtherTypeOfNeurePrefix(prefix string, neureType string) string {

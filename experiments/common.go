@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -309,6 +310,146 @@ func main() {
 	// }
 	// delete(bbb[0], "444")
 	// fmt.Println("aaa2: ", aaa)
+
+	// // test past map pointer, result said that it's useless to pass pointer of map
+	// aaa := make(map[string]string)
+	// aaa["333"] = "000"
+	// aaa["222"] = "aaff"
+	// getMapPointer(&aaa)
+	// fmt.Println(aaa["333"])
+	// getMapValue(aaa)
+	// fmt.Println(aaa["222"]) // result is 444
+
+	// // test past slice pointer, result said that it's useless to pass pointer of slice unless you will append it
+	// bbb := []string{}
+	// bbb = append(bbb, "222")
+	// getSlicePointer(&bbb)
+	// fmt.Println(bbb[0])
+	// bbb = append(bbb, "kkk")
+	// getValueSlice(bbb)
+	// fmt.Println(bbb[1])
+
+	// // test add slice
+	// ccc := []string{}
+	// addSliceValue(ccc)
+	// fmt.Println(ccc) // it's empty
+
+	// // test add map
+	// ddd := make(map[string]string)
+	// addSliceMap(ddd)
+	// fmt.Println(ddd) // has key "222", not empty
+
+	// rand get element test
+	// rand.Seed(int64(time.Now().Nanosecond()))
+	// slice1 := []float32{1.1, 2.2, 3.3, 4.5, 5.5, 6.6, 7.7, 8.8, 9.9}
+	// resultIndex := GetUnrepeatedRandNum(len(slice1), 5)
+	// fmt.Println(resultIndex)
+
+	// mutex in pointer method test
+	// hp := HavePointerMethod{
+	// 	Weight: 0,
+	// }
+	// for i := 0; i < 100000; i++ {
+	// 	go func() {
+	// 		hp.AddWeight()
+	// 	}()
+	// }
+	// time.Sleep(1 * time.Second)
+	// fmt.Println("weight:", hp.Weight)
+
+	// context test:
+	ct := ContextTester{}
+	ct.StartManyGoRoutine()
+	time.Sleep(7 * time.Second)
+	fmt.Println("cancling")
+	ct.Cancle()
+	time.Sleep(5 * time.Second)
+}
+
+type ContextTester struct {
+	Cancle context.CancelFunc
+}
+
+func (c *ContextTester) StartManyGoRoutine() {
+	ctx, cancel := context.WithCancel(context.Background())
+	c.Cancle = cancel
+	for i := 0; i < 3; i++ {
+		go func(i int) {
+			c.goRoutine(ctx, i)
+		}(i)
+	}
+	// time.Sleep(3 * time.Second)
+	// cancel()
+}
+
+func (c *ContextTester) goRoutine(ctx context.Context, num int) {
+	defer func() {
+		fmt.Println("breaking num:", num)
+	}()
+	for {
+		breakSignal := false
+		select {
+		case <-ctx.Done():
+			breakSignal = true
+		default:
+			fmt.Println("running num:", num)
+		}
+		if breakSignal {
+			break
+		}
+		time.Sleep(2 * time.Second)
+	}
+}
+
+type HavePointerMethod struct {
+	mu     sync.Mutex
+	Weight int
+}
+
+func (h *HavePointerMethod) AddWeight() {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	h.Weight += 1
+}
+
+func GetUnrepeatedRandNum(max int, needNumber int) (resultIndex []int) {
+	// usage: slice1 := []float32{1.1, 2.2, 3.3}  resultIndex := GetUnrepeatedRandNum(len(slice1), 2)
+	var resultSlice = []int{}
+	for i := 0; i < max; i++ {
+		resultSlice = append(resultSlice, i)
+	}
+	for j := 0; j < needNumber; j++ {
+		index := rand.Intn(len(resultSlice))
+		randNum := resultSlice[index] // get a rand element from resultSlice
+		resultIndex = append(resultIndex, randNum)
+		resultSlice = append(resultSlice[:index], resultSlice[index+1:]...)
+	}
+	return
+}
+
+func addSliceMap(ddd map[string]string) {
+	ddd["222"] = "111"
+}
+
+func addSliceValue(ccc []string) {
+	ccc = append(ccc, "2121")
+}
+
+func getValueSlice(bbb []string) {
+	bbb[1] = "ppp"
+}
+
+func getSlicePointer(bbb *[]string) {
+	(*bbb)[0] = "111"
+}
+
+func getMapPointer(aaa *map[string]string) {
+	(*aaa)["333"] = "111"
+}
+
+func getMapValue(aaa map[string]string) {
+	aaa["222"] = "444"
 }
 
 func routineOuter() {

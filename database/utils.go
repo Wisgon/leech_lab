@@ -7,7 +7,7 @@ import (
 )
 
 func GetSeqNum(keyPrefix string) string {
-	uniqueNum, err := (*seqMap)[keyPrefix].Next()
+	uniqueNum, err := seqMap[keyPrefix].Next()
 	if err != nil {
 		log.Panic(err)
 	}

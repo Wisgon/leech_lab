@@ -35,9 +35,16 @@ func (s *Synapse) ActivateNextNeure(neureType string) (ok bool, nextNeure *Neure
 				// 再增加一次now weight的概率越大，但最大不会超过设置值（如0.3）
 				ok = nextNeure.TryActivate(s.LinkStrength * float32(s.SynapseNum))
 			}
+		} else {
+			log.Println("debug:neure link successfully:", nextNeure.ThisNeureId)
+			// each time activate, LinkStrength will reduce by a reduce rate because of the hibituation
+			s.LinkStrength = s.LinkStrength * float32(config.StrengthReduceRate)
 		}
 	case config.PrefixNeureType["regulate"]:
 		// 这是调节神经元的突触，不同类型的突触有不同的ActivateNextNeure方法
+		if nextNeure.NeureType == config.PrefixNeureType["common"] {
+			ok = false // regulate won't activate next neure if next neure is common neure, it will regulate the linkstrength of next neure
+		}
 	case config.PrefixNeureType["inhibitory"]:
 		// 抑制型神经元
 	default:

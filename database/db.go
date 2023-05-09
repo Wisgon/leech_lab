@@ -10,7 +10,7 @@ import (
 )
 
 var db *badger.DB
-var seqMap *map[string]*badger.Sequence
+var seqMap map[string]*badger.Sequence
 
 func InitDb(dbPath string, seqBandwidth int) {
 	db = getDB(dbPath)
@@ -25,7 +25,7 @@ func getDB(dbPath string) *badger.DB {
 	return db
 }
 
-func getSequenceObject(seqBandwidth int) *map[string]*badger.Sequence {
+func getSequenceObject(seqBandwidth int) map[string]*badger.Sequence {
 	// run this function will add a data which key name is the same name with prefix
 	seqMap := make(map[string]*badger.Sequence)
 	prefix := config.GetAllPrefix()
@@ -38,12 +38,12 @@ func getSequenceObject(seqBandwidth int) *map[string]*badger.Sequence {
 		}
 		seqMap[keyPrefix] = seq
 	}
-	return &seqMap
+	return seqMap
 }
 
 func CloseDb() {
-	for k := range *seqMap {
-		err := (*seqMap)[k].Release()
+	for k := range seqMap {
+		err := seqMap[k].Release()
 		if err != nil {
 			log.Println("*****", reflect.TypeOf(err))
 			log.Panic(err)
