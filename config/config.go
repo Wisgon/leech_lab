@@ -19,8 +19,8 @@ var Weight = float32(100)                      // 每个神经元的激活权重
 var RefreshNowWeightDuration = 1 * time.Second // 神经脉冲持续时间，如果这个时间内没有能激活这个神经元，那么now weight就会重置，模仿神经元需要一段时间积累神经脉冲才能激发的特性，如果这段时间没激发，神经递质会被回收，也就是now weight被重置
 var InSyncNeureMapDuration = 10 * time.Minute  // 可以在neure map里待的最长时间，超过这个时间会被存入数据库并移出map，如果经常激活的神经元太多，这个值就设置小一点
 // var ActivateFrequency = 200                    //神经元激活频率，单位为次/秒
-var StrengthReduceRate = 0.95 // every time harmless stimulate comes, LinkStrength = LinkStrength * StrengthReduceRate
-var MinimumStrength = 0.1     // when link strength geting smaller and smaller, this is the minimum value
+var DefaultSynapseNum = 10         //默认每个突触初始有10个分支突触与目标相连
+var AttenuationFunctionFactor = 30 //衰减函数因子，当synapse大于30个的时候就开始衰减的很慢，synapse的num越大衰减得越慢
 
 // database setting------------------------------------------------------------------------------------------------------
 var MaxTransactionNum = 100000 // according to experiments, this mechine can hold most 100000+ uncommit.

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -367,19 +366,19 @@ func main() {
 	// time.Sleep(5 * time.Second)
 
 	// test json marshal tag
-	nm := NeedMarshal{
-		BB: 9,
-	}
-	nb, err := json.Marshal(nm)
-	if err != nil {
-		panic(err)
-	}
-	nm2 := NeedMarshal{}
-	err = json.Unmarshal(nb, &nm2)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("nm2:", nm2) // good
+	// nm := NeedMarshal{
+	// 	BB: 9,
+	// }
+	// nb, err := json.Marshal(nm)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// nm2 := NeedMarshal{}
+	// err = json.Unmarshal(nb, &nm2)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println("nm2:", nm2) // good
 }
 
 type NeedMarshal struct {

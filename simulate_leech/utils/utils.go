@@ -40,7 +40,7 @@ func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.N
 		neureSource.ConnectNextNuere(&neure.Synapse{
 			NextNeureID:  target,
 			LinkStrength: float32(strength),
-			SynapseNum:   1,
+			// SynapseNum:   ,
 		})
 	} else {
 		if linkType != config.PrefixNeureType["regulate"] && linkType != config.PrefixNeureType["inhibitory"] {
