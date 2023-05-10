@@ -8,7 +8,6 @@ import (
 	"log"
 	"strings"
 	"sync"
-	"time"
 )
 
 type Sense struct {
@@ -47,11 +46,7 @@ func (s *Sense) createNeures() {
 	}
 	for i := 0; i < neureNum; i++ {
 		neureObj := neure.CreateOneNeure(s.KeyPrefix, &neure.Neure{
-			Synapses:               make(map[string]*neure.Synapse),
-			NowLinkedDendritesIds:  make(map[string]struct{}),
-			NeureType:              config.PrefixNeureType["common"],
-			LastTimeActivate:       time.Now(),
-			LastTimeResetNowWeight: time.Now(),
+			NeureType: config.PrefixNeureType["common"],
 		})
 		s.Neures = append(s.Neures, neureObj.ThisNeureId)
 	}

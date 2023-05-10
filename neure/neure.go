@@ -16,27 +16,92 @@ import (
 
 type Neure struct {
 	mu                     sync.Mutex
-	Synapses               map[string]*Synapse `json:"a"` // 軸突連接的突觸，有些神经元有多个突触，一旦激发，所有连接的突触都会尝试激活
-	NeureType              string              `json:"b"` //神经元的类型，有普通神经元，调节神经元和抑制神经元
-	NowLinkedDendritesIds  map[string]struct{} `json:"c"` // 現在已連接的树突前神经元编号
-	ElectricalConductivity int32               `json:"d"` // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值，但好像对程序模拟的大脑没什么作用。
-	ThisNeureId            string              `json:"e"` // the id of database
-	NowWeight              float32             `json:"f"` // 现在的权重，每刺激一次，增加一点，直到超过weight就被激活，被激活后会reset，超过一段时间无刺激也会reset
-	LastTimeActivate       time.Time           `json:"g"` // 最后一次激活的时间，精确到纳秒，可以在byte中自由转换
-	LastSignalCame         time.Time           `json:"h"` // 最后一次重置now weight的时间
-	GoToSleepFunc          context.CancelFunc
+	Synapses               map[string]*Synapse         `json:"a"` // 軸突連接的突觸，有些神经元有多个突触，一旦激发，所有连接的突触都会尝试激活
+	NeureType              string                      `json:"b"` //神经元的类型，有普通神经元，调节神经元和抑制神经元
+	NowLinkedDendritesIds  map[string]struct{}         `json:"c"` // 現在已連接的树突前神经元编号
+	ElectricalConductivity int32                       `json:"d"` // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值，但好像对程序模拟的大脑没什么作用。
+	ThisNeureId            string                      `json:"e"` // the id of database
+	NowWeight              float32                     `json:"-"` // 现在的权重，每刺激一次，增加一点，直到超过weight就被激活，被激活后会reset，超过一段时间无刺激也会reset
+	LastTimeActivate       time.Time                   `json:"-"` // 最后一次激活的时间，精确到纳秒，可以在byte中自由转换
+	LastSignalTime         time.Time                   `json:"-"` // 最后一次重置now weight的时间
+	CancelFunc             context.CancelFunc          `json:"-"` // use json:"-" to ignore when json marshal and unmarshal
+	SignalChannel          chan float32                `json:"-"`
+	SignalPassRecorder     chan map[string]interface{} `json:"-"`
 }
 
-func (n *Neure) WakeUp() {
-	// todo: use wakeup
+func (n *Neure) WakeUpNeure() {
 	// this method is called when neure load in NeureMap,periodly check status
 	ctx, cancel := context.WithCancel(context.Background())
-	n.GoToSleepFunc = cancel
+	n.CancelFunc = cancel
 	go n.checkNowWeight(ctx)
+	go n.listenSignal(ctx)
+}
+
+func (n *Neure) NeureSleep() {
+	n.CancelFunc()
+}
+
+func (n *Neure) listenSignal(ctx context.Context) {
+	// todo: how to get result and decode result, this is very important and difficult
+	for {
+		sleepSignal := false
+		select {
+		case <-ctx.Done():
+			sleepSignal = true
+		case weight := <-n.SignalChannel:
+			var signalPassThisNeureRecord = make(map[string]interface{})
+			var signalPassNodeRecord = []map[string]interface{}{}
+			var signalPassLinkRecord = []map[string]interface{}{}
+
+			sourceNode := make(map[string]interface{})
+			sourceNode["id"] = n.ThisNeureId
+			sourceNode["group"] = "start_neure"
+
+			n.mu.Lock()
+			now := time.Now()
+			n.LastSignalTime = now
+			if now.Sub(n.LastTimeActivate) > config.RefractoryDuration {
+				// only activate when neure not in refractory duration
+				n.NowWeight += weight
+				if n.NowWeight > config.Weight {
+					// activate this neure
+					n.NowWeight = 0
+					n.LastTimeActivate = now
+					// try activate next neures
+					for _, synapse := range n.Synapses {
+						nextNeure := synapse.ActivateNextNeure(n.NeureType)
+
+						// record signal pass info
+						targetNode := make(map[string]interface{})
+						link := make(map[string]interface{})
+						link["source"] = n.ThisNeureId
+						link["target"] = synapse.NextNeureID
+						link["link_strength"] = synapse.LinkStrength
+						link["synapse_num"] = synapse.SynapseNum
+						targetNode["id"] = synapse.NextNeureID
+						targetNode["group"] = "next_neure"
+						link["now_weight"] = nextNeure.NowWeight
+						signalPassNodeRecord = append(signalPassNodeRecord, targetNode)
+						signalPassLinkRecord = append(signalPassLinkRecord, link)
+					}
+				}
+			}
+			n.mu.Unlock()
+
+			// add source node at last
+			signalPassNodeRecord = append(signalPassNodeRecord, sourceNode)
+
+			signalPassThisNeureRecord["nodes"] = signalPassNodeRecord
+			signalPassThisNeureRecord["links"] = signalPassLinkRecord
+			n.SignalPassRecorder <- signalPassThisNeureRecord
+		}
+		if sleepSignal {
+			break
+		}
+	}
 }
 
 func (n *Neure) checkNowWeight(ctx context.Context) {
-	// todo:验证逻辑
 	for {
 		sleepSignal := false
 		select {
@@ -45,7 +110,7 @@ func (n *Neure) checkNowWeight(ctx context.Context) {
 		default:
 			n.mu.Lock()
 			now := time.Now()
-			if now.Sub(n.LastSignalCame) > config.RefreshNowWeightDuration {
+			if now.Sub(n.LastSignalTime) > config.RefreshNowWeightDuration {
 				n.NowWeight = 0
 			}
 			n.mu.Unlock()
@@ -59,9 +124,22 @@ func (n *Neure) checkNowWeight(ctx context.Context) {
 
 func (n *Neure) checkIfNeedToDie() {
 	// todo: check if need to die periodly
-	if false {
-		DeleteNeure(n)
-	}
+	// for {
+	// 	// check step here
+	// 	if false {
+	// 		DeleteNeure(n)
+	// 	}
+	// }
+
+}
+
+func (n *Neure) cleanUselessConections() {
+	// todo:
+	// for {
+	// 	// check step here
+	// 	n.DeleteConnection(xxx)
+	// }
+
 }
 
 func (n *Neure) SaveNeure2Db() {
@@ -98,24 +176,6 @@ func (n *Neure) ChangeElectricalConductivity(value int, op string) {
 	default:
 		log.Panic("invalid op with ElectricalConductivity")
 	}
-}
-
-func (n *Neure) TryActivate(weight float32) (activate bool) {
-	n.mu.Lock()
-	defer n.mu.Unlock()
-	now := time.Now()
-	n.LastSignalCame = now
-	if now.Sub(n.LastTimeActivate) > config.RefractoryDuration {
-		// only activate when neure not in refractory duration
-		log.Println("debug: adding nowweight:", n.ThisNeureId)
-		n.NowWeight += weight
-		if n.NowWeight > config.Weight {
-			activate = true
-			n.NowWeight = 0
-			n.LastTimeActivate = now
-		}
-	}
-	return
 }
 
 func (n *Neure) DeleteConnection(synapse *Synapse) {

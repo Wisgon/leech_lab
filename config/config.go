@@ -20,6 +20,7 @@ var RefreshNowWeightDuration = 1 * time.Second // 神经脉冲持续时间，如
 var InSyncNeureMapDuration = 10 * time.Minute  // 可以在neure map里待的最长时间，超过这个时间会被存入数据库并移出map，如果经常激活的神经元太多，这个值就设置小一点
 // var ActivateFrequency = 200                    //神经元激活频率，单位为次/秒
 var StrengthReduceRate = 0.95 // every time harmless stimulate comes, LinkStrength = LinkStrength * StrengthReduceRate
+var MinimumStrength = 0.1     // when link strength geting smaller and smaller, this is the minimum value
 
 // database setting------------------------------------------------------------------------------------------------------
 var MaxTransactionNum = 100000 // according to experiments, this mechine can hold most 100000+ uncommit.
@@ -38,3 +39,4 @@ var EachSkinPositionSurfaceNeureNum = 10                   //每个skin的area�
 var EachSkinPositionDeeperNeureNum = 50                    // 每个skin的area的深层神经元数量
 var EachSkinPositionDeepestNeureNum = 100
 var EachValuateNeureTypeNum = 1
+var SignalChannelBufferSizeDefault = 2

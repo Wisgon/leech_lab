@@ -7,7 +7,6 @@ import (
 	"graph_robot/neure"
 	"log"
 	"sync"
-	"time"
 )
 
 type Muscle struct {
@@ -33,11 +32,7 @@ func (m *Muscle) InitMuscle(wg *sync.WaitGroup) {
 
 func (m *Muscle) createNeures() {
 	neureObj := neure.CreateOneNeure(m.KeyPrefix, &neure.Neure{
-		Synapses:               make(map[string]*neure.Synapse),
-		NowLinkedDendritesIds:  make(map[string]struct{}),
-		NeureType:              config.PrefixNeureType["common"],
-		LastTimeActivate:       time.Now(),
-		LastTimeResetNowWeight: time.Now(),
+		NeureType: config.PrefixNeureType["common"],
 	})
 	m.Neures = append(m.Neures, neureObj.ThisNeureId)
 }

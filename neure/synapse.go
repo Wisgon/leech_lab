@@ -3,7 +3,6 @@ package neure
 import (
 	"graph_robot/config"
 	"log"
-	"math/rand"
 	"sync"
 	"time"
 )
@@ -18,10 +17,10 @@ type Synapse struct {
 }
 
 func (s *Synapse) CheckLinkStrength() {
-	// 设计一个函数，连接强度越小越容易被清除，强度越大越难清除
+	// todo:设计一个函数，连接强度越小越容易被清除，强度越大越难清除
 }
 
-func (s *Synapse) ActivateNextNeure(neureType string) (ok bool, nextNeure *Neure) {
+func (s *Synapse) ActivateNextNeure(neureType string) (nextNeure *Neure) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -29,21 +28,17 @@ func (s *Synapse) ActivateNextNeure(neureType string) (ok bool, nextNeure *Neure
 	case config.PrefixNeureType["common"]:
 		// 激活下一个神经元，根据不同的连接强度和下一个神经元的weight做出不同的行为
 		nextNeure = GetNeureById(s.NextNeureID)
-		ok = nextNeure.TryActivate(s.LinkStrength * float32(s.SynapseNum))
-		if !ok {
-			if (1-nextNeure.NowWeight/config.Weight)*config.BreakThroughCoefficient > rand.Float32() {
-				// 再增加一次now weight的概率越大，但最大不会超过设置值（如0.3）
-				ok = nextNeure.TryActivate(s.LinkStrength * float32(s.SynapseNum))
-			}
-		} else {
-			log.Println("debug:neure link successfully:", nextNeure.ThisNeureId)
-			// each time activate, LinkStrength will reduce by a reduce rate because of the hibituation
+		nextNeure.SignalChannel <- s.LinkStrength * float32(s.SynapseNum)
+		if s.LinkStrength > float32(config.MinimumStrength) {
+			// each time signal comes, and then there is no synapse enhance, LinkStrength will reduce by a reduce rate because of the hibituation
 			s.LinkStrength = s.LinkStrength * float32(config.StrengthReduceRate)
 		}
 	case config.PrefixNeureType["regulate"]:
 		// 这是调节神经元的突触，不同类型的突触有不同的ActivateNextNeure方法
 		if nextNeure.NeureType == config.PrefixNeureType["common"] {
-			ok = false // regulate won't activate next neure if next neure is common neure, it will regulate the linkstrength of next neure
+			// regulate won't activate next neure if next neure is common neure, it will regulate the linkstrength of next neure
+		} else {
+			nextNeure.SignalChannel <- config.Weight + 1 // directly activate
 		}
 	case config.PrefixNeureType["inhibitory"]:
 		// 抑制型神经元

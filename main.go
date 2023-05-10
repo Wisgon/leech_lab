@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"graph_robot/config"
 	"graph_robot/database"
 	"graph_robot/interact"
@@ -16,12 +17,15 @@ import (
 	"time"
 )
 
-func cleanup() {
+func cleanup(cancel context.CancelFunc) {
+	log.Println("closing all go rouitines")
+	cancel()
 	log.Println("closing db~~~")
 	// save neure map
 	neure.NeureMap.Range(func(key, value any) bool {
 		neureObj := value.(*neure.Neure)
 		neureObj.UpdateNeure2DB()
+		neureObj.NeureSleep()
 		return true
 	})
 	database.CloseDb()
@@ -30,31 +34,32 @@ func cleanup() {
 }
 
 func main() {
-	defer cleanup()
-	stopCheckNeureMapSignal := make(chan bool, 1)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cleanup(cancel)
+
 	rand.Seed(time.Now().UnixNano()) // set rand seed
 	database.InitDb(config.LeechDatasPath, config.SeqBandwidth)
 	defer func() {
 		if r := recover(); r != nil {
-			stopCheckNeureMapSignal <- true
-			cleanup()
+			cleanup(cancel)
 		}
 	}()
-
-	go neure.CheckNeureMap(stopCheckNeureMapSignal)
 
 	// get control c signal and invole cleanup, because control c will not execute the defer function
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
-		cleanup()
+		cleanup(cancel)
 		os.Exit(1)
 	}()
 
-	done := make(chan int, 1)
+	go neure.CheckNeureMap(ctx)
+
+	// leech---------------------------------------------------------------------
 	websocketRequest := make(chan map[string]interface{})
 	websocketResponse := make(chan map[string]interface{})
+	signalPassRecorder := make(chan map[string]interface{}, 1000) // for now the buffer is 1000
 	leech := leech.Leech{
 		Body: &leech.LeechBody{
 			Organ: &sync.Map{},
@@ -62,17 +67,20 @@ func main() {
 		Brain: &leech.LeechBrain{
 			Area: &sync.Map{},
 		},
-		EnvResponse: websocketResponse,
-		EnvRequest:  websocketRequest,
+		EnvResponse:        websocketResponse,
+		EnvRequest:         websocketRequest,
+		SignalPassRecorder: signalPassRecorder,
 	}
 	leech.LoadLeech()
 
-	go leech.WakeUp()
-	go interact.StartInteract(done, websocketRequest, websocketResponse)
-	go utils.ServerStaticFile(config.ProjectRoot + "/visualization/")
+	go leech.WakeUpLeech(ctx)
+	go leech.RecordSignalPass(ctx)
+	go interact.StartInteract(ctx, websocketRequest, websocketResponse)
+	// leech-------------------------------------------------------------------
 
+	go utils.ServerStaticFile(config.ProjectRoot + "/visualization/")
 	for {
-		log.Println("thinking...")
-		time.Sleep(10 * time.Minute)
+		// run forever
+		time.Sleep(60 * time.Minute)
 	}
 }

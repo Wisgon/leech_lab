@@ -3,6 +3,7 @@ package interact
 // this is for link to the world built with websocket server, brain as a websocket clientpackage main
 
 import (
+	"context"
 	"encoding/json"
 	"graph_robot/config"
 	"graph_robot/utils"
@@ -13,7 +14,7 @@ import (
 )
 
 func StartInteract(
-	done chan int,
+	ctx context.Context,
 	request chan map[string]interface{},
 	response chan map[string]interface{},
 ) {
@@ -28,7 +29,6 @@ func StartInteract(
 	defer c.Close()
 
 	go func() {
-		defer close(done)
 		for {
 			_, responseByte, err := c.ReadMessage()
 			if err != nil {
@@ -47,7 +47,7 @@ func StartInteract(
 
 	for {
 		select {
-		case <-done:
+		case <-ctx.Done():
 			log.Println("done signal reveived")
 			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {

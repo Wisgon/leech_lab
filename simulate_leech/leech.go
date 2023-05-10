@@ -1,6 +1,7 @@
 package leech
 
 import (
+	"context"
 	"graph_robot/config"
 	"graph_robot/database"
 	"graph_robot/neure"
@@ -161,10 +162,14 @@ func (lb *LeechBrain) Sense2Action() (bodyAction string) {
 }
 
 type Leech struct {
-	Brain       *LeechBrain
-	Body        *LeechBody
-	EnvResponse chan map[string]interface{}
-	EnvRequest  chan map[string]interface{}
+	mu                      sync.Mutex
+	Brain                   *LeechBrain
+	Body                    *LeechBody
+	EnvResponse             chan map[string]interface{}
+	EnvRequest              chan map[string]interface{}
+	SignalPassRecorder      chan map[string]interface{}
+	SignalPassNodeRecordMap []map[string]interface{} // every time after reading the map, must init it.
+	SignalPassLinkRecordMap []map[string]interface{}
 }
 
 func (l *Leech) InitLeech() {
@@ -299,69 +304,87 @@ func (l *Leech) LoadLeech() {
 	wg.Wait()
 }
 
-func (l *Leech) WakeUp() {
+func (l *Leech) RecordSignalPass(ctx context.Context) {
+	for {
+		breakSignal := false
+		select {
+		case signalPassInfo := <-l.SignalPassRecorder:
+			nodes := signalPassInfo["nodes"].([]map[string]interface{})
+			links := signalPassInfo["links"].([]map[string]interface{})
+			l.SignalPassNodeRecordMap = append(l.SignalPassNodeRecordMap, nodes...)
+			l.SignalPassLinkRecordMap = append(l.SignalPassLinkRecordMap, links...)
+		case <-ctx.Done():
+			breakSignal = true
+		}
+		if breakSignal {
+			break
+		}
+	}
+}
+
+func (l *Leech) WakeUpLeech(ctx context.Context) {
 	maps := make(map[string]*sync.Map)
 	maps["area"] = l.Brain.Area
 	maps["organ"] = l.Body.Organ
 	for {
-		envResponse := <-l.EnvResponse
-		event := envResponse["event"].(string)
-		switch event {
-		case "error":
-			message := envResponse["message"].(string)
-			log.Println("websocket error event: ", message)
-			log.Panic("env response error")
-		case "request_all_data":
-			data := utils.AssembleMapDataToFront(maps)
-			l.EnvRequest <- data
-		case "request_part_data":
-			parts := envResponse["message"].(map[string]interface{})
-			log.Println("here comes a prefix: ", parts)
-			data := utils.AssemblePartOfMapDataToFront(maps, parts)
-			l.EnvRequest <- data
-		case "link":
-			linkCondition := envResponse["message"].(map[string]interface{})
-			// linkCondition is a map {source:"xxx", strength:10, target:"yyy", link_type: "common", synapse_id:""}
-			log.Println("websocket link event: ", linkCondition)
-			link_type := linkCondition["link_type"].(string)
-			if link_type == config.PrefixNeureType["common"] {
-				utils.LinkTwoNeures(linkCondition)
-			} else {
-				utils.LinkTwoNeures(linkCondition)
-			}
-			data := make(map[string]interface{})
-			l.EnvRequest <- data
-		case "env_info":
-			linkCondition := envResponse["message"].(map[string]interface{})
-			log.Printf("get evn info: %+v\n", linkCondition)
-			// todo: do something with env info
-		case "experiment":
-			message := envResponse["message"].(map[string]interface{})
-			action := message["action"].(string)
-			switch action {
-			case "stimulate":
-				data := l.handleStimulate(message)
+		breakSignal := false
+		select {
+		case envResponse := <-l.EnvResponse:
+			event := envResponse["event"].(string)
+			switch event {
+			case "error":
+				message := envResponse["message"].(string)
+				log.Println("websocket error event: ", message)
+				log.Panic("env response error")
+			case "request_all_data":
+				data := utils.AssembleMapDataToFront(maps)
 				l.EnvRequest <- data
-			default:
-				log.Panic("wrong action:", action)
-			}
+			case "request_part_data":
+				parts := envResponse["message"].(map[string]interface{})
+				log.Println("here comes a prefix: ", parts)
+				data := utils.AssemblePartOfMapDataToFront(maps, parts)
+				l.EnvRequest <- data
+			case "link":
+				linkCondition := envResponse["message"].(map[string]interface{})
+				// linkCondition is a map {source:"xxx", strength:10, target:"yyy", link_type: "common", synapse_id:""}
+				log.Println("websocket link event: ", linkCondition)
+				link_type := linkCondition["link_type"].(string)
+				if link_type == config.PrefixNeureType["common"] {
+					utils.LinkTwoNeures(linkCondition)
+				} else {
+					utils.LinkTwoNeures(linkCondition)
+				}
+				data := make(map[string]interface{})
+				l.EnvRequest <- data
+			case "env_info":
+				linkCondition := envResponse["message"].(map[string]interface{})
+				log.Printf("get evn info: %+v\n", linkCondition)
+				// todo: do something with env info
+			case "experiment":
+				message := envResponse["message"].(map[string]interface{})
+				action := message["action"].(string)
+				switch action {
+				case "stimulate":
+					data := l.handleStimulate(message)
+					l.EnvRequest <- data
+				default:
+					log.Panic("wrong action:", action)
+				}
 
-		default:
-			log.Println("unknow event:", event)
+			default:
+				log.Println("unknow event:", event)
+			}
+		case <-ctx.Done():
+			breakSignal = true
+		}
+		if breakSignal {
+			break
 		}
 	}
 }
 
 func (l *Leech) handleStimulate(stimulateMessage map[string]interface{}) (signalPassInfo map[string]interface{}) {
-	var wg sync.WaitGroup
-	var signalPassNodeRecorder = make(chan []map[string]interface{}, 10) // to record the neures this stimulate pass by
-	var signalPassLinkRecorder = make(chan []map[string]interface{}, 10) // to record the neures this stimulate pass by
-	var neurePathNodes = []map[string]interface{}{}
-	var neurePathLinks = []map[string]interface{}{}
-	var doneSignal = make(chan struct{})
-	var resultNeureChan = make(chan string)
-	var resultNeureIds = []string{}
-
+	// todo: debug
 	actionDetail := stimulateMessage["action_detail"].(map[string]interface{})
 	stimulateSkinPrefix := actionDetail["stimulate_skin_prefix"].(string)
 	stimulateSkinNeureNum := int(actionDetail["stimulate_skin_neure_number"].(float64))
@@ -376,51 +399,29 @@ func (l *Leech) handleStimulate(stimulateMessage map[string]interface{}) (signal
 	randSkinNeureIdIndexs := commonUtils.GetUnrepeatedRandNum(len(skinNeureIds), stimulateSkinNeureNum)
 	for _, randSkinNeureIdIndex := range randSkinNeureIdIndexs {
 		neureObj := neure.GetNeureById(skinNeureIds[randSkinNeureIdIndex])
-		wg.Add(1)
-		// pass neurePathRecorder to SignalPass
-		go utils.SignalPass(neureObj, resultNeureChan, &wg, signalPassNodeRecorder, signalPassLinkRecorder)
+		// activate these start neures directly
+		neureObj.SignalChannel <- 101.1
 	}
 	if stimulateLaterSkinPrefix != "" {
-		// is sensitization experiment
+		// todo: is sensitization experiment
 		stimulateLaterSkinNumber := int(actionDetail["stimulate_later_skin_number"].(float64))
 		log.Println(stimulateLaterSkinNumber)
 	}
-	go func() {
-		for {
-			select {
-			case resultNeureId := <-resultNeureChan:
-				resultNeureIds = append(resultNeureIds, resultNeureId)
-			case signalPassNodeRecord := <-signalPassNodeRecorder:
-				neurePathNodes = append(neurePathNodes, signalPassNodeRecord...)
-			case signalPassLinkRecord := <-signalPassLinkRecorder:
-				neurePathLinks = append(neurePathLinks, signalPassLinkRecord...)
-			case <-doneSignal:
-				break
-			}
-		}
-	}()
-	wg.Wait()
-	time.Sleep(1 * time.Second) // wait for one second so that make sure resultNeureChan buffer get into resultNeureIds
-	doneSignal <- struct{}{}
-	// todo: debug
-	log.Println("debug: resultNeureIds:", resultNeureIds)
+
+	// you can't know when this stimulate is go to the end neure, just time.Sleep() to wait for a reasonable time and then draw the signal graph
+	time.Sleep(2 * time.Second)
 
 	// record signal pass info to frontend
 	signalPassInfo = make(map[string]interface{})
 	uniqueNodes := make(map[string]interface{})
 	uniqueLinks := make(map[string]interface{})
-	for _, node := range neurePathNodes {
-		if pathNode, ok := uniqueNodes[node["id"].(string)]; ok {
+	for _, node := range l.SignalPassNodeRecordMap {
+		if _, ok := uniqueNodes[node["id"].(string)]; ok {
 			// means that this node had been in uniqueNodes
-			oldNode := pathNode.(map[string]interface{})
-			oldNodeGroup := oldNode["group"].(string)
 			newNodeGroup := node["group"].(string)
 			switch {
-			case newNodeGroup == "activated_neure":
-				// "activated_neure" has the most highest priority in all node
-				uniqueNodes[node["id"].(string)] = node
-			case newNodeGroup == "end_neure" && oldNodeGroup != "activated_neure":
-				// "end_neure" has second priority
+			case newNodeGroup == "start_neure":
+				// "start_neure" has the most highest priority in all node, it means that this neure had been activated
 				uniqueNodes[node["id"].(string)] = node
 				// default:
 				// default has nothing to do
@@ -429,19 +430,20 @@ func (l *Leech) handleStimulate(stimulateMessage map[string]interface{}) (signal
 			uniqueNodes[node["id"].(string)] = node
 		}
 	}
-	for _, link := range neurePathLinks {
+	// after record nodes, empty the record list
+	l.mu.Lock()
+	l.SignalPassNodeRecordMap = []map[string]interface{}{}
+	l.mu.Unlock()
+
+	// record links
+	for _, link := range l.SignalPassLinkRecordMap {
 		linkId := link["source"].(string) + "*" + link["target"].(string)
-		if _, ok := uniqueLinks[linkId]; ok {
-			// means that this link had already in uniqueLinks
-			newLinkRes := link["link_result"].(string)
-			if newLinkRes == "link_success" {
-				// link_success is priority
-				uniqueLinks[linkId] = link
-			}
-		} else {
-			uniqueLinks[linkId] = link
-		}
+		uniqueLinks[linkId] = link
 	}
+	// after record links, empty the record list
+	l.mu.Lock()
+	l.SignalPassLinkRecordMap = []map[string]interface{}{}
+	l.mu.Unlock()
 
 	links := []map[string]interface{}{}
 	nodes := []map[string]interface{}{}

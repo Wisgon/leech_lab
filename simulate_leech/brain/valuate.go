@@ -7,7 +7,6 @@ import (
 	"graph_robot/neure"
 	"log"
 	"sync"
-	"time"
 )
 
 type Valuate struct {
@@ -43,11 +42,7 @@ func (v *Valuate) Struct2Byte() []byte {
 func (v *Valuate) createNeures() {
 	for i := 0; i < config.EachValuateNeureTypeNum; i++ {
 		neureObj := neure.CreateOneNeure(v.KeyPrefix, &neure.Neure{
-			Synapses:               make(map[string]*neure.Synapse),
-			NowLinkedDendritesIds:  make(map[string]struct{}),
-			NeureType:              config.PrefixNeureType["common"],
-			LastTimeActivate:       time.Now(),
-			LastTimeResetNowWeight: time.Now(),
+			NeureType: config.PrefixNeureType["common"],
 		})
 		v.Neures = append(v.Neures, neureObj.ThisNeureId)
 	}

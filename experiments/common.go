@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -358,12 +359,32 @@ func main() {
 	// fmt.Println("weight:", hp.Weight)
 
 	// context test:
-	ct := ContextTester{}
-	ct.StartManyGoRoutine()
-	time.Sleep(7 * time.Second)
-	fmt.Println("cancling")
-	ct.Cancle()
-	time.Sleep(5 * time.Second)
+	// ct := ContextTester{}
+	// ct.StartManyGoRoutine()
+	// time.Sleep(7 * time.Second)
+	// fmt.Println("cancling")
+	// ct.Cancle()
+	// time.Sleep(5 * time.Second)
+
+	// test json marshal tag
+	nm := NeedMarshal{
+		BB: 9,
+	}
+	nb, err := json.Marshal(nm)
+	if err != nil {
+		panic(err)
+	}
+	nm2 := NeedMarshal{}
+	err = json.Unmarshal(nb, &nm2)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("nm2:", nm2) // good
+}
+
+type NeedMarshal struct {
+	AA chan int `json:"-"`
+	BB int      `json:"bb"`
 }
 
 type ContextTester struct {

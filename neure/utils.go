@@ -1,6 +1,7 @@
 package neure
 
 import (
+	"context"
 	"fmt"
 	"graph_robot/config"
 	"graph_robot/database"
@@ -12,7 +13,7 @@ import (
 
 var NeureMap = &sync.Map{}
 
-func CheckNeureMap(stopSignal chan bool) {
+func CheckNeureMap(ctx context.Context) {
 	// check neure map, if length of neureMap bigger than MaxNeureMapNum, save it to db and remove it
 	var breakSignal = false
 	for {
@@ -22,10 +23,11 @@ func CheckNeureMap(stopSignal chan bool) {
 			lastTimeActivate := neureObj.LastTimeActivate
 			if time.Since(lastTimeActivate) > config.InSyncNeureMapDuration {
 				neureObj.UpdateNeure2DB()
+				neureObj.NeureSleep()
 				NeureMap.Delete(keyString)
 			}
 			select {
-			case <-stopSignal:
+			case <-ctx.Done():
 				breakSignal = true
 				return false // break neure map range loop
 			default:
@@ -40,11 +42,28 @@ func CheckNeureMap(stopSignal chan bool) {
 }
 
 func CreateOneNeure(keyPrefix string, neure *Neure) *Neure {
+	neure.Synapses = make(map[string]*Synapse)
+	neure.NowLinkedDendritesIds = make(map[string]struct{})
+	now := time.Now()
+	neure.LastTimeActivate = now
+	neure.LastSignalTime = now
+	bufferSize := config.SignalChannelBufferSizeDefault
+	switch {
+	case strings.Contains(keyPrefix, config.PrefixArea["sense"]) && strings.Contains(keyPrefix, "normal"):
+		bufferSize = config.EachSkinPositionSurfaceNeureNum
+	case strings.Contains(keyPrefix, config.PrefixArea["sense"]) && strings.Contains(keyPrefix, "bigger"):
+		bufferSize = config.EachSkinPositionDeeperNeureNum
+	case strings.Contains(keyPrefix, config.PrefixArea["sense"]) && strings.Contains(keyPrefix, "extremely"):
+		bufferSize = config.EachSkinPositionDeepestNeureNum
+	}
+	neure.SignalChannel = make(chan float32, bufferSize)
+
 	uniqueNum := database.GetSeqNum(keyPrefix)
 	key := keyPrefix + config.PrefixNumSplitSymbol + fmt.Sprint(uniqueNum)
 	neure.ThisNeureId = key
 	neure.SaveNeure2Db()
 	NeureMap.Store(key, neure)
+	neure.WakeUpNeure() // sotre to map and then wakeup
 	return neure
 }
 
@@ -56,6 +75,7 @@ func GetNeureById(id string) *Neure {
 		neure.Byte2Struct(neureByte)
 		// store neure pointer to map
 		NeureMap.Store(id, neure)
+		neure.WakeUpNeure()
 		return neure
 	} else {
 		neure := np.(*Neure)

@@ -182,9 +182,9 @@ function show_neures_json() {
           if (textAngle < -Math.PI / 2) textAngle = -(-Math.PI - textAngle)
 
           var label = ""
-          if (link.link_result != "") {
+          if (link.now_weight != null) {
             // means that it's stimulate show
-            label = `ls:${link.link_strength}  sn:${link.synapse_num}  lr:${link.link_result} nw:${link.now_weight}`
+            label = `ls:${link.link_strength}  sn:${link.synapse_num}  nw:${link.now_weight}`
           } else {
             label = `ls:${link.link_strength}  sn:${link.synapse_num}  nt:${link.neure_type}`
           }

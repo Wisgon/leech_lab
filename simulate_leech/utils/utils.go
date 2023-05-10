@@ -13,58 +13,11 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 )
 
 type CreatureParts interface {
 	*body.Skin | *body.Muscle | *brain.Sense | *brain.Valuate
 	GetNeures() []string
-}
-
-func SignalPass(neureObj *neure.Neure, resultNeureChan chan string, wg *sync.WaitGroup, signalPassNodeRecorder chan []map[string]interface{}, signalPassLinkRecorder chan []map[string]interface{}) {
-	defer wg.Done()
-
-	var signalPassNodeRecord = []map[string]interface{}{}
-	var signalPassLinkRecord = []map[string]interface{}{}
-
-	sourceNode := make(map[string]interface{})
-	sourceNode["id"] = neureObj.ThisNeureId
-	sourceNode["group"] = "start_neure"
-	if len(neureObj.Synapses) == 0 {
-		// todo: result is not always synapse length 0,must be a more complicative result judgement condition
-		// this signal pass reach to the end
-		resultNeureChan <- neureObj.ThisNeureId
-		return
-	}
-	for _, synapse := range neureObj.Synapses {
-		targetNode := make(map[string]interface{})
-		link := make(map[string]interface{})
-		link["source"] = neureObj.ThisNeureId
-		link["target"] = synapse.NextNeureID
-		link["link_strength"] = synapse.LinkStrength
-		link["synapse_num"] = synapse.SynapseNum
-		targetNode["id"] = synapse.NextNeureID
-		ok, nextNeure := synapse.ActivateNextNeure(neureObj.NeureType)
-		if ok {
-			wg.Add(1)
-			go SignalPass(nextNeure, resultNeureChan, wg, signalPassNodeRecorder, signalPassLinkRecorder)
-			// pass success
-			link["link_result"] = "link_success"
-			targetNode["group"] = "activated_neure"
-		} else {
-			link["link_result"] = "link_fail"
-			targetNode["group"] = "end_neure"
-		}
-		link["now_weight"] = nextNeure.NowWeight
-		signalPassNodeRecord = append(signalPassNodeRecord, targetNode)
-		signalPassLinkRecord = append(signalPassLinkRecord, link)
-	}
-
-	// add source node at last
-	signalPassNodeRecord = append(signalPassNodeRecord, sourceNode)
-
-	signalPassNodeRecorder <- signalPassNodeRecord
-	signalPassLinkRecorder <- signalPassLinkRecord
 }
 
 func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.Neure) {
@@ -100,11 +53,7 @@ func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.N
 		sourcePrefix := strings.Split(source, config.PrefixNumSplitSymbol)[0]
 		newNeurePrefix := neure.GetOtherTypeOfNeurePrefix(sourcePrefix, linkType)
 		regulateNeure = neure.CreateOneNeure(newNeurePrefix, &neure.Neure{
-			Synapses:               make(map[string]*neure.Synapse),
-			NowLinkedDendritesIds:  make(map[string]struct{}),
-			NeureType:              linkType,
-			LastTimeActivate:       time.Now(),
-			LastTimeResetNowWeight: time.Now(),
+			NeureType: linkType,
 		})
 		neureSource := neure.GetNeureById(source)
 		// first, connect source and regulate neure
@@ -257,7 +206,7 @@ func LoadFromMapByKeyPrefix[T CreatureParts](dataMap *sync.Map, keyPrefix string
 		if len(values) == 0 {
 			log.Panic("key:", keyPrefix, " is empty slice")
 		}
-		return values[0]
+		return values[0] // there is only one skin in one particular prefix
 	} else {
 		dataByte := database.GetDataById(mapKey)
 		if len(dataByte) == 0 {
