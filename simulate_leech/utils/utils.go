@@ -23,24 +23,54 @@ type CreatureParts interface {
 func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.Neure) {
 	source, target, synapse_id := linkCondition["source"].(string), linkCondition["target"].(string), linkCondition["synapse_id"].(string)
 	linkType := linkCondition["link_type"].(string)
-	var strength float64
-	var err error
-	switch strengthType := linkCondition["strength"].(type) {
+	var strength float32
+	switch strengthUnknowType := linkCondition["strength"].(type) {
 	case string:
-		strength, err = strconv.ParseFloat(strengthType, 64)
+		strength64, err := strconv.ParseFloat(strengthUnknowType, 64)
 		if err != nil {
-			log.Println("error: parse strength fail, link fail")
-			return
+			log.Panic("error: parse strength fail, link fail:", err)
 		}
+		strength = float32(strength64)
 	case float32:
-		strength = float64(strengthType)
+		strength = strengthUnknowType
+	default:
+		log.Panic("error strength type:", linkCondition["strength"])
+	}
+	var synapseNum int32
+	switch synapseNumUnknowType := linkCondition["synapse_num"].(type) {
+	case string:
+		synapseNum64, err := strconv.ParseInt(synapseNumUnknowType, 0, 64)
+		if err != nil {
+			log.Panic("error: parse synapse num error: ", err)
+		}
+		synapseNum = int32(synapseNum64)
+	case int:
+		synapseNum = int32(synapseNumUnknowType)
+	default:
+		log.Panic("error synapse num type:", linkCondition["synapse_num"])
+	}
+	var hibituationbility bool
+	switch hibituationbilityUnknowType := linkCondition["hibituationbility"].(type) {
+	case string:
+		if hibituationbilityUnknowType == "true" {
+			hibituationbility = true
+		} else if hibituationbilityUnknowType == "false" {
+			hibituationbility = false
+		} else {
+			log.Panic("error hibituationbility value:", linkCondition["hibituationbility"])
+		}
+	case bool:
+		hibituationbility = hibituationbilityUnknowType
+	default:
+		log.Panic("error hibituationbility type:", linkCondition["hibituationbility"])
 	}
 	if linkType == config.PrefixNeureType["common"] {
 		neureSource := neure.GetNeureById(source)
 		neureSource.ConnectNextNuere(&neure.Synapse{
-			NextNeureID:  target,
-			LinkStrength: float32(strength),
-			// SynapseNum:   ,
+			NextNeureID:       target,
+			LinkStrength:      float32(strength),
+			SynapseNum:        synapseNum,
+			Hibituationbility: hibituationbility,
 		})
 	} else {
 		if linkType != config.PrefixNeureType["regulate"] && linkType != config.PrefixNeureType["inhibitory"] {
@@ -58,33 +88,46 @@ func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.N
 		neureSource := neure.GetNeureById(source)
 		// first, connect source and regulate neure
 		neureSource.ConnectNextNuere(&neure.Synapse{
-			NextNeureID:  regulateNeure.ThisNeureId,
-			LinkStrength: 101,
-			SynapseNum:   1,
+			NextNeureID:       target,
+			LinkStrength:      float32(strength),
+			SynapseNum:        synapseNum,
+			Hibituationbility: hibituationbility,
 		})
 		// second, connect regulate neure to target synapse
 		regulateNeure.ConnectNextNuere(&neure.Synapse{
 			NextNeureID:        target,
-			LinkStrength:       101, // todo: is regulate need strength?
-			SynapseNum:         1,
+			LinkStrength:       float32(strength),
+			SynapseNum:         synapseNum,
+			Hibituationbility:  hibituationbility,
 			NextNeureSynapseId: synapse_id,
 		})
 	}
 	return
 }
 
-func LinkNeureGroups(sourceNeures []string, targetNeures []string, strength float32, synapseNum int32, linkType string, fu func(synapseIds []string) (targetSynapseIds []string)) (newNeureIds []string) {
+func LinkNeureGroups(sourceNeures []string, targetNeures []string, linkCondition map[string]interface{}, fu func(synapseIds []string) (targetSynapseIds []string), linkRandomly bool) (newNeureIds []string) {
 	if len(sourceNeures) == 0 || len(targetNeures) == 0 {
 		return
 	}
+	linkType := linkCondition["link_type"].(string)
+	everyTargetLinkNum := int(len(sourceNeures) / len(targetNeures))
+	if everyTargetLinkNum == 0 {
+		everyTargetLinkNum = 1
+	}
+	nowTargetIndex := -1
 	// f is a function that give the synapseIds which get from target neures and return target synapseIds
-	for _, neureId := range sourceNeures {
-		linkCondition := make(map[string]interface{})
-		nextNeureId := targetNeures[rand.Intn(len(targetNeures))] // link to random neure in targetNeures
+	for i, neureId := range sourceNeures {
+		var nextNeureId string
+		if linkRandomly {
+			nextNeureId = targetNeures[rand.Intn(len(targetNeures))] // link to random neure in targetNeures
+		} else {
+			if i%everyTargetLinkNum == 0 {
+				nowTargetIndex += 1
+			}
+			nextNeureId = targetNeures[nowTargetIndex]
+		}
 		linkCondition["source"] = neureId
 		linkCondition["target"] = nextNeureId
-		linkCondition["strength"] = strength
-		linkCondition["link_type"] = linkType
 		if linkType == config.PrefixNeureType["common"] {
 			linkCondition["synapse_id"] = ""
 			LinkTwoNeures(linkCondition)

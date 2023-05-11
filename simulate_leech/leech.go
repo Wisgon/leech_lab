@@ -180,21 +180,33 @@ func (l *Leech) InitLeech() {
 	go l.Body.InitBody(&wg)
 
 	wg.Wait()
+	var linkCondition map[string]interface{}
 
 	// after create neures, we can link neures, these neures is inborn neures, won't be deleted
 	// first, link common type of skin and sense
+	linkCondition = make(map[string]interface{})
+	linkCondition["strength"] = config.DefaultStrength
+	linkCondition["synapse_num"] = 21          // this strength and synapse num, about 5 neure can activate next neure
+	linkCondition["hibituationbility"] = false // skin and sense don't need hibituation
+	linkCondition["link_type"] = config.PrefixNeureType["common"]
 	body.IterSkin(func(skinNeureType, position string) {
 		skinPrefix := config.PrefixArea["skin"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
 		sensePrefix := config.PrefixArea["sense"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + skinNeureType + config.PrefixNameSplitSymbol + position
 		utils.LinkNeureGroups(
 			utils.GetNeureIdsByKeyPrefix(l.Body.Organ, skinPrefix, &body.Skin{}),
 			utils.GetNeureIdsByKeyPrefix(l.Brain.Area, sensePrefix, &brain.Sense{}),
-			51, 1, config.PrefixNeureType["common"],
+			linkCondition,
 			func(synapseIds []string) (targetSynapseIds []string) { return },
+			false,
 		)
 	})
 
 	// senond, link common type of sense and muscle and valuate
+	linkCondition = make(map[string]interface{})
+	linkCondition["strength"] = config.DefaultStrength
+	linkCondition["synapse_num"] = 21         // this strength and synapse num, about 5 neure can activate next neure
+	linkCondition["hibituationbility"] = true // muscle and sense need hibituation
+	linkCondition["link_type"] = config.PrefixNeureType["common"]
 	brain.IterSense(func(senseNeureType, position string) {
 		opposite := utils.GetOpposite(position)
 		// link to muscle
@@ -204,8 +216,9 @@ func (l *Leech) InitLeech() {
 		utils.LinkNeureGroups(
 			utils.GetNeureIdsByKeyPrefix(l.Body.Organ, sensePrefix, &brain.Sense{}),
 			utils.GetNeureIdsByKeyPrefix(l.Brain.Area, musclePrefix, &body.Muscle{}),
-			51, 1, config.PrefixNeureType["common"], // todo:sense和muscle的连接强度初始值50是否合理
+			linkCondition,
 			func(synapseIds []string) (targetSynapseIds []string) { return },
+			false,
 		)
 
 		// link to valuate
@@ -223,11 +236,18 @@ func (l *Leech) InitLeech() {
 		default:
 			log.Panic("unknow senseNeureType")
 		}
+
+		linkCondition = make(map[string]interface{})
+		linkCondition["strength"] = config.DefaultStrength
+		linkCondition["synapse_num"] = 101
+		linkCondition["hibituationbility"] = false // muscle and sense need hibituation
+		linkCondition["link_type"] = config.PrefixNeureType["common"]
 		utils.LinkNeureGroups(
 			utils.GetNeureIdsByKeyPrefix(l.Body.Organ, sensePrefix, &brain.Sense{}),
 			utils.GetNeureIdsByKeyPrefix(l.Brain.Area, valuatePrefix, &brain.Valuate{}),
-			101, 1, config.PrefixNeureType["common"],
+			linkCondition,
 			func(synapseIds []string) (targetSynapseIds []string) { return },
+			false,
 		)
 	})
 
@@ -251,14 +271,19 @@ func (l *Leech) InitLeech() {
 					senseGroupNeureIds := utils.GetNeureIdsByGroupName[*brain.Sense](l.Brain.Area, senseKeyPrefix)
 					opposite := utils.GetOpposite(position)
 					musclePrefix := config.PrefixArea["muscle"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + "move" + opposite
-					newNeureIds := utils.LinkNeureGroups(valuateGroupNeureIds, senseGroupNeureIds, 101, 1, neureType, func(synapseIds []string) (targetSynapseIds []string) {
+					linkCondition = make(map[string]interface{})
+					linkCondition["strength"] = config.DefaultStrength
+					linkCondition["synapse_num"] = 101
+					linkCondition["hibituationbility"] = false // muscle and sense need hibituation
+					linkCondition["link_type"] = neureType
+					newNeureIds := utils.LinkNeureGroups(valuateGroupNeureIds, senseGroupNeureIds, linkCondition, func(synapseIds []string) (targetSynapseIds []string) {
 						for _, synapseId := range synapseIds {
 							if strings.Contains(synapseId, musclePrefix) {
 								targetSynapseIds = append(targetSynapseIds, synapseId)
 							}
 						}
 						return
-					})
+					}, false)
 					newNeures = append(newNeures, newNeureIds...)
 				}
 				// valuate-2 link regulate neure
@@ -348,12 +373,7 @@ func (l *Leech) WakeUpLeech(ctx context.Context) {
 				linkCondition := envResponse["message"].(map[string]interface{})
 				// linkCondition is a map {source:"xxx", strength:10, target:"yyy", link_type: "common", synapse_id:""}
 				log.Println("websocket link event: ", linkCondition)
-				link_type := linkCondition["link_type"].(string)
-				if link_type == config.PrefixNeureType["common"] {
-					utils.LinkTwoNeures(linkCondition)
-				} else {
-					utils.LinkTwoNeures(linkCondition)
-				}
+				utils.LinkTwoNeures(linkCondition)
 				data := make(map[string]interface{})
 				l.EnvRequest <- data
 			case "env_info":

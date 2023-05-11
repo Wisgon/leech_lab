@@ -21,6 +21,7 @@ var InSyncNeureMapDuration = 10 * time.Minute  // 可以在neure map里待的最
 // var ActivateFrequency = 200                    //神经元激活频率，单位为次/秒
 var DefaultSynapseNum = 10         //默认每个突触初始有10个分支突触与目标相连
 var AttenuationFunctionFactor = 30 //衰减函数因子，当synapse大于30个的时候就开始衰减的很慢，synapse的num越大衰减得越慢
+var DefaultStrength = 1.1
 
 // database setting------------------------------------------------------------------------------------------------------
 var MaxTransactionNum = 100000 // according to experiments, this mechine can hold most 100000+ uncommit.

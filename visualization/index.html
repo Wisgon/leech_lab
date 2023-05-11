@@ -16,7 +16,8 @@
     <script src="./websocket.js"></script>
   </head>
   <body>
-    <form action="javascript:void(0);">
+    <!-- for now, link two neure is useless-->
+    <!-- <form action="javascript:void(0);">
       source:
       <input id="source" type="text" value="" />
       target:
@@ -32,10 +33,7 @@
       synapse_id:
       <input id="synapse_id" type="text" value="" />
       <button onclick="send_data()">LinkSubmit</button>
-      search node:
-      <input id="search" type="text" value="" />
-      <button onclick="search_node()">search</button>
-    </form>
+    </form> -->
     <form action="javascript:void(0);">
       Prefix:
       <select id="select_area">
@@ -113,6 +111,9 @@
       </select>
       <button onclick="show_graph()">send_request</button>
       <button onclick="show_neures_json()">show_json_data</button>
+      search node:
+      <input id="search" type="text" value="" />
+      <button onclick="search_node()">search</button>
     </form>
     <div id="data"></div>
     <script src="./visualization.js"></script>
