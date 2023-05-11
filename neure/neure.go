@@ -26,13 +26,18 @@ type Neure struct {
 	LastSignalTime         time.Time                   `json:"-"` // 最后一次重置now weight的时间
 	CancelFunc             context.CancelFunc          `json:"-"` // use json:"-" to ignore when json marshal and unmarshal
 	SignalChannel          chan float32                `json:"-"`
+	NowWeightChannel       chan float32                `json:"-"`
+	ChannelBufferSize      int32                       `json:"f"`
 	SignalPassRecorder     chan map[string]interface{} `json:"-"`
 }
 
 func (n *Neure) WakeUpNeure() {
 	// this method is called when neure load in NeureMap,periodly check status
+	n.SignalPassRecorder = SignalPassRecorder
 	ctx, cancel := context.WithCancel(context.Background())
 	n.CancelFunc = cancel
+	n.SignalChannel = make(chan float32, n.ChannelBufferSize)
+	n.NowWeightChannel = make(chan float32, n.ChannelBufferSize)
 	go n.checkNowWeight(ctx)
 	go n.listenSignal(ctx)
 }
@@ -43,8 +48,11 @@ func (n *Neure) NeureSleep() {
 
 func (n *Neure) listenSignal(ctx context.Context) {
 	// todo: how to get result and decode result, this is very important and difficult
+	sleepSignal := false
 	for {
-		sleepSignal := false
+		if sleepSignal {
+			break
+		}
 		select {
 		case <-ctx.Done():
 			sleepSignal = true
@@ -57,34 +65,48 @@ func (n *Neure) listenSignal(ctx context.Context) {
 			sourceNode["id"] = n.ThisNeureId
 			sourceNode["group"] = "start_neure"
 
+			// record target neure
+			uniqueLinks := make(map[string]map[string]interface{}) // use for record now weight
+			for _, synapse := range n.Synapses {
+				targetNode := make(map[string]interface{})
+				targetNode["id"] = synapse.NextNeureID
+				targetNode["group"] = "next_neure"
+				signalPassNodeRecord = append(signalPassNodeRecord, targetNode)
+				// record signal pass info
+				link := make(map[string]interface{})
+				link["source"] = n.ThisNeureId
+				link["target"] = synapse.NextNeureID
+				link["link_strength"] = synapse.LinkStrength
+				link["synapse_num"] = synapse.SynapseNum
+				link["now_weight"] = -1
+				uniqueLinks[n.ThisNeureId+synapse.NextNeureID] = link
+				signalPassLinkRecord = append(signalPassLinkRecord, link)
+			}
+
 			n.mu.Lock()
 			now := time.Now()
 			n.LastSignalTime = now
 			if now.Sub(n.LastTimeActivate) > config.RefractoryDuration {
 				// only activate when neure not in refractory duration
 				n.NowWeight += weight
-				if n.NowWeight > config.Weight {
+				n.NowWeightChannel <- n.NowWeight
+				// todo: pointer 不一样！ 排查原因
+				log.Printf("debug: `````````outside:%s, now weight is:%f, pointer is:%p", n.ThisNeureId, n.NowWeight, n)
+				if n.NowWeight > config.WeightThreshold {
 					// activate this neure
+					sourceNode["group"] = "activated"
 					n.NowWeight = 0
 					n.LastTimeActivate = now
 					// try activate next neures
 					for _, synapse := range n.Synapses {
-						nextNeure := synapse.ActivateNextNeure(n.NeureType)
-
-						// record signal pass info
-						targetNode := make(map[string]interface{})
-						link := make(map[string]interface{})
-						link["source"] = n.ThisNeureId
-						link["target"] = synapse.NextNeureID
-						link["link_strength"] = synapse.LinkStrength
-						link["synapse_num"] = synapse.SynapseNum
-						targetNode["id"] = synapse.NextNeureID
-						targetNode["group"] = "next_neure"
-						link["now_weight"] = nextNeure.NowWeight
-						signalPassNodeRecord = append(signalPassNodeRecord, targetNode)
-						signalPassLinkRecord = append(signalPassLinkRecord, link)
+						nextNeure, nowWeight := synapse.ActivateNextNeure(n.NeureType)
+						// record now weight
+						uniqueLinks[n.ThisNeureId+synapse.NextNeureID]["now_weight"] = nowWeight
+						log.Println("debug: #######inside neure:", nextNeure.ThisNeureId, " now weight is:", nowWeight)
 					}
 				}
+			} else {
+				n.NowWeightChannel <- n.NowWeight
 			}
 			n.mu.Unlock()
 
@@ -95,29 +117,25 @@ func (n *Neure) listenSignal(ctx context.Context) {
 			signalPassThisNeureRecord["links"] = signalPassLinkRecord
 			n.SignalPassRecorder <- signalPassThisNeureRecord
 		}
-		if sleepSignal {
-			break
-		}
 	}
 }
 
 func (n *Neure) checkNowWeight(ctx context.Context) {
+	sleepSignal := false
+	go func() {
+		<-ctx.Done()
+		sleepSignal = true
+	}()
 	for {
-		sleepSignal := false
-		select {
-		case <-ctx.Done():
-			sleepSignal = true
-		default:
-			n.mu.Lock()
-			now := time.Now()
-			if now.Sub(n.LastSignalTime) > config.RefreshNowWeightDuration {
-				n.NowWeight = 0
-			}
-			n.mu.Unlock()
-		}
 		if sleepSignal {
 			break
 		}
+		n.mu.Lock()
+		now := time.Now()
+		if now.Sub(n.LastSignalTime) > config.RefreshNowWeightDuration {
+			n.NowWeight = 0
+		}
+		n.mu.Unlock()
 		time.Sleep(config.RefreshNowWeightDuration)
 	}
 }

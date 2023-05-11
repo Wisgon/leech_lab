@@ -18,17 +18,18 @@ import (
 )
 
 func cleanup(cancel context.CancelFunc) {
-	log.Println("closing all go rouitines")
-	cancel()
-	log.Println("closing db~~~")
 	// save neure map
+	log.Println("closing db~~~")
 	neure.NeureMap.Range(func(key, value any) bool {
 		neureObj := value.(*neure.Neure)
 		neureObj.UpdateNeure2DB()
-		neureObj.NeureSleep()
+		neureObj.NeureSleep() // todo:运行久了会关不掉，可能是这个sleep的原因，排查
 		return true
 	})
 	database.CloseDb()
+
+	log.Println("closing all go rouitines")
+	cancel()
 	// some other cleanup here ~~~
 
 }
@@ -59,7 +60,6 @@ func main() {
 	// leech---------------------------------------------------------------------
 	websocketRequest := make(chan map[string]interface{})
 	websocketResponse := make(chan map[string]interface{})
-	signalPassRecorder := make(chan map[string]interface{}, 1000) // for now the buffer is 1000
 	leech := leech.Leech{
 		Body: &leech.LeechBody{
 			Organ: &sync.Map{},
@@ -69,7 +69,7 @@ func main() {
 		},
 		EnvResponse:        websocketResponse,
 		EnvRequest:         websocketRequest,
-		SignalPassRecorder: signalPassRecorder,
+		SignalPassRecorder: neure.SignalPassRecorder,
 	}
 	leech.LoadLeech()
 

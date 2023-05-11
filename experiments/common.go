@@ -431,6 +431,7 @@ func (h *HavePointerMethod) AddWeight() {
 	defer h.mu.Unlock()
 
 	h.Weight += 1
+	fmt.Println("h.Weight", h.Weight) // h.Weight严格安顺序print
 }
 
 func GetUnrepeatedRandNum(max int, needNumber int) (resultIndex []int) {

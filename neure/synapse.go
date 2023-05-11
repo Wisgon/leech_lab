@@ -19,7 +19,7 @@ type Synapse struct {
 	AttenuationAccumulative float64 `json:"n"` // 衰减量总计,如果超过1，则向下取整化为整数然后从突出数量中扣掉
 }
 
-func (s *Synapse) ActivateNextNeure(neureType string) (nextNeure *Neure) {
+func (s *Synapse) ActivateNextNeure(neureType string) (nextNeure *Neure, nowWeight float32) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -29,6 +29,7 @@ func (s *Synapse) ActivateNextNeure(neureType string) (nextNeure *Neure) {
 		nextNeure = GetNeureById(s.NextNeureID)
 		// send signal, try to activate next neure, but we can't know whether it is activate, only next neure know.
 		nextNeure.SignalChannel <- s.LinkStrength * float32(s.SynapseNum)
+		nowWeight = <-nextNeure.NowWeightChannel
 		if s.Hibituationbility && s.SynapseNum > 1 {
 			// each time signal comes, and then there is no synapse enhance, SynapseNum will reduce by a Attenuation Function because of the hibituation
 			s.AttenuationAccumulative += AttenuationFunction(s.SynapseNum)
@@ -48,7 +49,7 @@ func (s *Synapse) ActivateNextNeure(neureType string) (nextNeure *Neure) {
 		if nextNeure.NeureType == config.PrefixNeureType["common"] {
 			// regulate won't activate next neure if next neure is common neure, it will regulate the linkstrength of next neure
 		} else {
-			nextNeure.SignalChannel <- config.Weight + 1 // directly activate
+			nextNeure.SignalChannel <- config.WeightThreshold + 1 // directly activate
 		}
 	case config.PrefixNeureType["inhibitory"]:
 		// 抑制型神经元

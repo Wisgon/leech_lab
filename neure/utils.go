@@ -12,11 +12,19 @@ import (
 )
 
 var NeureMap = &sync.Map{}
+var SignalPassRecorder = make(chan map[string]interface{}, 1000) // for now the buffer is 1000
 
 func CheckNeureMap(ctx context.Context) {
 	// check neure map, if length of neureMap bigger than MaxNeureMapNum, save it to db and remove it
 	var breakSignal = false
+	go func() {
+		<-ctx.Done()
+		breakSignal = true
+	}()
 	for {
+		if breakSignal {
+			break
+		}
 		NeureMap.Range(func(key, value any) bool {
 			keyString := key.(string)
 			neureObj := value.(*Neure)
@@ -26,17 +34,12 @@ func CheckNeureMap(ctx context.Context) {
 				neureObj.NeureSleep()
 				NeureMap.Delete(keyString)
 			}
-			select {
-			case <-ctx.Done():
-				breakSignal = true
-				return false // break neure map range loop
-			default:
+			if breakSignal {
+				return false
+			} else {
 				return true
 			}
 		})
-		if breakSignal {
-			break
-		}
 		time.Sleep(config.InSyncNeureMapDuration + 1*time.Minute)
 	}
 }
@@ -56,6 +59,7 @@ func CreateOneNeure(keyPrefix string, neure *Neure) *Neure {
 	case strings.Contains(keyPrefix, config.PrefixArea["sense"]) && strings.Contains(keyPrefix, "extremely"):
 		bufferSize = config.EachSkinPositionDeepestNeureNum
 	}
+	neure.ChannelBufferSize = int32(bufferSize)
 	neure.SignalChannel = make(chan float32, bufferSize)
 
 	uniqueNum := database.GetSeqNum(keyPrefix)
@@ -68,19 +72,21 @@ func CreateOneNeure(keyPrefix string, neure *Neure) *Neure {
 }
 
 func GetNeureById(id string) *Neure {
-	np, ok := NeureMap.Load(id)
+	_, ok := NeureMap.Load(id)
 	if !ok {
 		neure := &Neure{}
 		neureByte := database.GetDataById(id)
 		neure.Byte2Struct(neureByte)
 		// store neure pointer to map
-		NeureMap.Store(id, neure)
-		neure.WakeUpNeure()
-		return neure
-	} else {
-		neure := np.(*Neure)
-		return neure
+		_, ok = NeureMap.Load(id) // check again because you must think about concurrent, this can make sure every goroutine load the same neure.
+		if !ok {
+			NeureMap.Store(id, neure)
+			neure.WakeUpNeure() // sotre to map and then wakeup
+		}
 	}
+	np, _ := NeureMap.Load(id)
+	neure := np.(*Neure)
+	return neure
 }
 
 func DeleteNeure(neure *Neure) {

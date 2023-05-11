@@ -30,6 +30,11 @@ func StartInteract(
 
 	go func() {
 		for {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Println("ending read message from websocket~~~")
+				}
+			}()
 			_, responseByte, err := c.ReadMessage()
 			if err != nil {
 				log.Println("read error:" + err.Error())

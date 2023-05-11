@@ -142,13 +142,15 @@ function show_neures_json() {
         .nodeRelSize(node_size)
         .onNodeClick((node) => {
           // Center/zoom on node
-          var source_input = document.getElementById("source")
-          if (source_input.value == "") {
-            source_input.value = node.id
-          } else {
-            var target_input = document.getElementById("target")
-            target_input.value = node.id
-          }
+          // var source_input = document.getElementById("source")
+          // if (source_input.value == "") {
+          //   source_input.value = node.id
+          // } else {
+          //   var target_input = document.getElementById("target")
+          //   target_input.value = node.id
+          // }
+          var search_input = document.getElementById("search")
+          search_input.value = node.id
         })
         .onNodeDragEnd((node) => {
           node.fx = node.x

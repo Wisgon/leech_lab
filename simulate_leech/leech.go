@@ -331,8 +331,11 @@ func (l *Leech) LoadLeech() {
 }
 
 func (l *Leech) RecordSignalPass(ctx context.Context) {
+	breakSignal := false
 	for {
-		breakSignal := false
+		if breakSignal {
+			break
+		}
 		select {
 		case signalPassInfo := <-l.SignalPassRecorder:
 			nodes := signalPassInfo["nodes"].([]map[string]interface{})
@@ -342,9 +345,6 @@ func (l *Leech) RecordSignalPass(ctx context.Context) {
 		case <-ctx.Done():
 			breakSignal = true
 		}
-		if breakSignal {
-			break
-		}
 	}
 }
 
@@ -352,8 +352,11 @@ func (l *Leech) WakeUpLeech(ctx context.Context) {
 	maps := make(map[string]*sync.Map)
 	maps["area"] = l.Brain.Area
 	maps["organ"] = l.Body.Organ
+	breakSignal := false
 	for {
-		breakSignal := false
+		if breakSignal {
+			break
+		}
 		select {
 		case envResponse := <-l.EnvResponse:
 			event := envResponse["event"].(string)
@@ -398,9 +401,6 @@ func (l *Leech) WakeUpLeech(ctx context.Context) {
 		case <-ctx.Done():
 			breakSignal = true
 		}
-		if breakSignal {
-			break
-		}
 	}
 }
 
@@ -420,7 +420,9 @@ func (l *Leech) handleStimulate(stimulateMessage map[string]interface{}) (signal
 	for _, randSkinNeureIdIndex := range randSkinNeureIdIndexs {
 		neureObj := neure.GetNeureById(skinNeureIds[randSkinNeureIdIndex])
 		// activate these start neures directly
-		neureObj.SignalChannel <- 101.1
+		go func() {
+			neureObj.SignalChannel <- 101.1
+		}()
 	}
 	if stimulateLaterSkinPrefix != "" {
 		// todo: is sensitization experiment
@@ -430,6 +432,7 @@ func (l *Leech) handleStimulate(stimulateMessage map[string]interface{}) (signal
 
 	// you can't know when this stimulate is go to the end neure, just time.Sleep() to wait for a reasonable time and then draw the signal graph
 	time.Sleep(2 * time.Second)
+	log.Println("stimulate end")
 
 	// record signal pass info to frontend
 	signalPassInfo = make(map[string]interface{})
@@ -440,8 +443,11 @@ func (l *Leech) handleStimulate(stimulateMessage map[string]interface{}) (signal
 			// means that this node had been in uniqueNodes
 			newNodeGroup := node["group"].(string)
 			switch {
-			case newNodeGroup == "start_neure":
-				// "start_neure" has the most highest priority in all node, it means that this neure had been activated
+			case newNodeGroup == "activated":
+				// "activated" has the most highest priority in all node, it means that this neure had been activated
+				uniqueNodes[node["id"].(string)] = node
+			case newNodeGroup == "next_neure" && newNodeGroup != "activated":
+				// "next_neure" has second priority
 				uniqueNodes[node["id"].(string)] = node
 				// default:
 				// default has nothing to do
@@ -458,7 +464,35 @@ func (l *Leech) handleStimulate(stimulateMessage map[string]interface{}) (signal
 	// record links
 	for _, link := range l.SignalPassLinkRecordMap {
 		linkId := link["source"].(string) + "*" + link["target"].(string)
-		uniqueLinks[linkId] = link
+		var nowWeight float32
+		switch nowWeightUnknowType := link["now_weight"].(type) {
+		case float32:
+			nowWeight = nowWeightUnknowType
+		case int:
+			nowWeight = float32(nowWeightUnknowType)
+		default:
+			log.Panic("now weight wrong type")
+		}
+		oldLink, ok := uniqueLinks[linkId]
+		if ok {
+			oldLinkMap := oldLink.(map[string]interface{})
+			var oldWeight float32
+			switch oldWeightUnknowType := oldLinkMap["now_weight"].(type) {
+			case float32:
+				oldWeight = oldWeightUnknowType
+			case int:
+				oldWeight = float32(oldWeightUnknowType)
+			default:
+				log.Panic("old weight wrong type")
+			}
+			if nowWeight > oldWeight {
+				// use the biggest now_weight
+				uniqueLinks[linkId] = link
+			}
+		} else {
+			uniqueLinks[linkId] = link
+		}
+
 	}
 	// after record links, empty the record list
 	l.mu.Lock()
