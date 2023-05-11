@@ -33,6 +33,8 @@ func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.N
 		strength = float32(strength64)
 	case float32:
 		strength = strengthUnknowType
+	case float64:
+		strength = float32(strengthUnknowType)
 	default:
 		log.Panic("error strength type:", linkCondition["strength"])
 	}
@@ -45,6 +47,10 @@ func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.N
 		}
 		synapseNum = int32(synapseNum64)
 	case int:
+		synapseNum = int32(synapseNumUnknowType)
+	case int32:
+		synapseNum = synapseNumUnknowType
+	case int64:
 		synapseNum = int32(synapseNumUnknowType)
 	default:
 		log.Panic("error synapse num type:", linkCondition["synapse_num"])
@@ -88,7 +94,7 @@ func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.N
 		neureSource := neure.GetNeureById(source)
 		// first, connect source and regulate neure
 		neureSource.ConnectNextNuere(&neure.Synapse{
-			NextNeureID:       target,
+			NextNeureID:       regulateNeure.ThisNeureId,
 			LinkStrength:      float32(strength),
 			SynapseNum:        synapseNum,
 			Hibituationbility: hibituationbility,

@@ -202,17 +202,17 @@ func (l *Leech) InitLeech() {
 	})
 
 	// senond, link common type of sense and muscle and valuate
-	linkCondition = make(map[string]interface{})
-	linkCondition["strength"] = config.DefaultStrength
-	linkCondition["synapse_num"] = 21         // this strength and synapse num, about 5 neure can activate next neure
-	linkCondition["hibituationbility"] = true // muscle and sense need hibituation
-	linkCondition["link_type"] = config.PrefixNeureType["common"]
 	brain.IterSense(func(senseNeureType, position string) {
 		opposite := utils.GetOpposite(position)
 		// link to muscle
 		sensePrefix := config.PrefixArea["sense"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + senseNeureType + config.PrefixNameSplitSymbol + position
 		// sense link the opposite of muscle
 		musclePrefix := config.PrefixArea["muscle"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + "move" + opposite
+		linkCondition = make(map[string]interface{})
+		linkCondition["strength"] = config.DefaultStrength
+		linkCondition["synapse_num"] = 21         // this strength and synapse num, about 5 neure can activate next neure
+		linkCondition["hibituationbility"] = true // muscle and sense need hibituation
+		linkCondition["link_type"] = config.PrefixNeureType["common"]
 		utils.LinkNeureGroups(
 			utils.GetNeureIdsByKeyPrefix(l.Body.Organ, sensePrefix, &brain.Sense{}),
 			utils.GetNeureIdsByKeyPrefix(l.Brain.Area, musclePrefix, &body.Muscle{}),
@@ -254,6 +254,7 @@ func (l *Leech) InitLeech() {
 	// third, link valuate regulate to synapse that link sense and muscle
 	groups := make(map[string][]string)
 	brain.IterValuate(func(valuateSource, valuateLevel string) {
+		// because regulate valuate neures had not been created, so we need these valuate common keyprefix
 		valuateGroupKeyPrefix := config.PrefixArea["valuate"] + config.PrefixNameSplitSymbol + config.PrefixNeureType["common"] + config.PrefixNameSplitSymbol + valuateSource + config.PrefixNameSplitSymbol + valuateLevel
 		valuateGroupNeureIds := utils.GetNeureIdsByGroupName[*brain.Valuate](l.Brain.Area, valuateGroupKeyPrefix+config.PrefixNumSplitSymbol+"collection")
 		switch valuateSource {
@@ -262,7 +263,7 @@ func (l *Leech) InitLeech() {
 				// sense only has regulate link
 				return
 			}
-			// regulate and inhibitory neure must link all the synapse between sense and muscle
+			// regulate neure must link all the synapse between sense and muscle
 			newNeures := []string{}
 			var groupName string
 			brain.IterSense(func(senseNeureType, position string) {
@@ -404,7 +405,6 @@ func (l *Leech) WakeUpLeech(ctx context.Context) {
 }
 
 func (l *Leech) handleStimulate(stimulateMessage map[string]interface{}) (signalPassInfo map[string]interface{}) {
-	// todo: debug
 	actionDetail := stimulateMessage["action_detail"].(map[string]interface{})
 	stimulateSkinPrefix := actionDetail["stimulate_skin_prefix"].(string)
 	stimulateSkinNeureNum := int(actionDetail["stimulate_skin_neure_number"].(float64))

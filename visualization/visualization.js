@@ -105,6 +105,7 @@ function show_graph() {
     }
     if (
       select_valuate_source == "sense" &&
+      select_neure_type == "regulate" &&
       select_valuate_level != "valuate-2"
     ) {
       alert("source sense only have regulate level valuate-2")
