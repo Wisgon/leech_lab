@@ -40,7 +40,6 @@ func (s *Synapse) ActivateNextNeure(neureType string) (nextNeure *Neure) {
 			// each time signal comes, and then there is no synapse enhance, SynapseNum will reduce by a Attenuation Function because of the hibituation
 			s.AttenuationAccumulative += AttenuationFunction(s.SynapseNum)
 			// when s.SynapseNum is very big, AttenuationFunction(s.SynapseNum) is very small. so the more synapseNum is, the stable the link is.
-			log.Println("debug: reducing synapse num, accumulation is:", s.AttenuationAccumulative, " this neure id is:", s.ThisNeureId, " now synapse num is:", s.SynapseNum)
 			if s.AttenuationAccumulative > 1 {
 				// when AttenuationAccumulative is bigger than 1, it can be turn to int so that SynapseNum can subtract it.
 				s.SynapseNum -= int32(s.AttenuationAccumulative)

@@ -19,7 +19,7 @@ def habituation_experiment(websocket=None, stimulate_times=10, duration_time=5):
                         "action": "stimulate",
                         "action_detail": {
                             "stimulate_skin_prefix": "skin_common_biggerPress_leftMiddleUp",
-                            "stimulate_skin_neure_number": 10,  # how many neure activate in this stimulate
+                            "stimulate_skin_neure_number": 100,  # how many neure activate in this stimulate
                             "stimulate_later_skin_prefix": "",  # for habituation, here is ""
                             "stimulate_later_skin_number": 0,
                         },
