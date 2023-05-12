@@ -31,4 +31,4 @@ def habituation_experiment(websocket=None, stimulate_times=10, duration_time=5):
 
 
 if __name__ == "__main__":
-    habituation_experiment(stimulate_times=1)
+    habituation_experiment(stimulate_times=1, duration_time=2)

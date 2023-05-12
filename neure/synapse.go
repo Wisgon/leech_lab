@@ -17,9 +17,10 @@ type Synapse struct {
 	NextNeureSynapseId      string  `json:"l"` // 这个只有regulate和inhibitory神经元才有的，方便找到下一个调节的synapse
 	Hibituationbility       bool    `json:"m"` // not all synapse need hibituation
 	AttenuationAccumulative float64 `json:"n"` // 衰减量总计,如果超过1，则向下取整化为整数然后从突出数量中扣掉
+	ThisNeureId             string  `json:"o"`
 }
 
-func (s *Synapse) ActivateNextNeure(neureType string) (nextNeure *Neure, nowWeight float32) {
+func (s *Synapse) ActivateNextNeure(neureType string) (nextNeure *Neure) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -27,13 +28,19 @@ func (s *Synapse) ActivateNextNeure(neureType string) (nextNeure *Neure, nowWeig
 	case config.PrefixNeureType["common"]:
 		// 激活下一个神经元，根据不同的连接强度和下一个神经元的weight做出不同的行为
 		nextNeure = GetNeureById(s.NextNeureID)
+		addWeight := s.LinkStrength * float32(s.SynapseNum)
+		signalInfo := make(map[string]interface{})
+		signalInfo["weight"] = addWeight
+		signalInfo["source_neure_id"] = s.ThisNeureId
 		// send signal, try to activate next neure, but we can't know whether it is activate, only next neure know.
-		nextNeure.SignalChannel <- s.LinkStrength * float32(s.SynapseNum)
-		nowWeight = <-nextNeure.NowWeightChannel
+		go func() {
+			nextNeure.SignalChannel <- signalInfo
+		}()
 		if s.Hibituationbility && s.SynapseNum > 1 {
 			// each time signal comes, and then there is no synapse enhance, SynapseNum will reduce by a Attenuation Function because of the hibituation
 			s.AttenuationAccumulative += AttenuationFunction(s.SynapseNum)
 			// when s.SynapseNum is very big, AttenuationFunction(s.SynapseNum) is very small. so the more synapseNum is, the stable the link is.
+			log.Println("debug: reducing synapse num, accumulation is:", s.AttenuationAccumulative, " this neure id is:", s.ThisNeureId, " now synapse num is:", s.SynapseNum)
 			if s.AttenuationAccumulative > 1 {
 				// when AttenuationAccumulative is bigger than 1, it can be turn to int so that SynapseNum can subtract it.
 				s.SynapseNum -= int32(s.AttenuationAccumulative)
@@ -45,11 +52,14 @@ func (s *Synapse) ActivateNextNeure(neureType string) (nextNeure *Neure, nowWeig
 			}
 		}
 	case config.PrefixNeureType["regulate"]:
+		signalInfo := make(map[string]interface{})
+		signalInfo["source_neure_id"] = s.ThisNeureId
 		// 这是调节神经元的突触，不同类型的突触有不同的ActivateNextNeure方法
 		if nextNeure.NeureType == config.PrefixNeureType["common"] {
 			// regulate won't activate next neure if next neure is common neure, it will regulate the linkstrength of next neure
 		} else {
-			nextNeure.SignalChannel <- config.WeightThreshold + 1 // directly activate
+			signalInfo["weight"] = config.WeightThreshold + 1
+			nextNeure.SignalChannel <- signalInfo // directly activate
 		}
 	case config.PrefixNeureType["inhibitory"]:
 		// 抑制型神经元

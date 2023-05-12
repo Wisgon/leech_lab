@@ -23,7 +23,7 @@ func cleanup(cancel context.CancelFunc) {
 	neure.NeureMap.Range(func(key, value any) bool {
 		neureObj := value.(*neure.Neure)
 		neureObj.UpdateNeure2DB()
-		neureObj.NeureSleep() // todo:运行久了会关不掉，可能是这个sleep的原因，排查
+		neureObj.NeureSleep()
 		return true
 	})
 	database.CloseDb()

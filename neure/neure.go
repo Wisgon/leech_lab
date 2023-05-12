@@ -25,8 +25,7 @@ type Neure struct {
 	LastTimeActivate       time.Time                   `json:"-"` // 最后一次激活的时间，精确到纳秒，可以在byte中自由转换
 	LastSignalTime         time.Time                   `json:"-"` // 最后一次重置now weight的时间
 	CancelFunc             context.CancelFunc          `json:"-"` // use json:"-" to ignore when json marshal and unmarshal
-	SignalChannel          chan float32                `json:"-"`
-	NowWeightChannel       chan float32                `json:"-"`
+	SignalChannel          chan map[string]interface{} `json:"-"`
 	ChannelBufferSize      int32                       `json:"f"`
 	SignalPassRecorder     chan map[string]interface{} `json:"-"`
 }
@@ -36,8 +35,7 @@ func (n *Neure) WakeUpNeure() {
 	n.SignalPassRecorder = SignalPassRecorder
 	ctx, cancel := context.WithCancel(context.Background())
 	n.CancelFunc = cancel
-	n.SignalChannel = make(chan float32, n.ChannelBufferSize)
-	n.NowWeightChannel = make(chan float32, n.ChannelBufferSize)
+	n.SignalChannel = make(chan map[string]interface{}, n.ChannelBufferSize)
 	go n.checkNowWeight(ctx)
 	go n.listenSignal(ctx)
 }
@@ -48,22 +46,31 @@ func (n *Neure) NeureSleep() {
 
 func (n *Neure) listenSignal(ctx context.Context) {
 	// todo: how to get result and decode result, this is very important and difficult
-	sleepSignal := false
 	for {
-		if sleepSignal {
-			break
-		}
 		select {
 		case <-ctx.Done():
-			sleepSignal = true
-		case weight := <-n.SignalChannel:
+			return
+		case signalInfo := <-n.SignalChannel:
+			var weight float32
+			switch weightUnknowType := signalInfo["weight"].(type) {
+			case float32:
+				weight = weightUnknowType
+			case float64:
+				weight = float32(weightUnknowType)
+			}
+			preNeureId := signalInfo["source_neure_id"].(string)
 			var signalPassThisNeureRecord = make(map[string]interface{})
 			var signalPassNodeRecord = []map[string]interface{}{}
 			var signalPassLinkRecord = []map[string]interface{}{}
 
+			preLink := make(map[string]interface{})
+			preLink["source"] = preNeureId
+			preLink["target"] = n.ThisNeureId
+
 			sourceNode := make(map[string]interface{})
 			sourceNode["id"] = n.ThisNeureId
 			sourceNode["group"] = "start_neure"
+			preLink["added_weight"] = 0
 
 			// record target neure
 			uniqueLinks := make(map[string]map[string]interface{}) // use for record now weight
@@ -78,7 +85,7 @@ func (n *Neure) listenSignal(ctx context.Context) {
 				link["target"] = synapse.NextNeureID
 				link["link_strength"] = synapse.LinkStrength
 				link["synapse_num"] = synapse.SynapseNum
-				link["now_weight"] = -1
+				link["added_weight"] = 0
 				uniqueLinks[n.ThisNeureId+synapse.NextNeureID] = link
 				signalPassLinkRecord = append(signalPassLinkRecord, link)
 			}
@@ -89,9 +96,8 @@ func (n *Neure) listenSignal(ctx context.Context) {
 			if now.Sub(n.LastTimeActivate) > config.RefractoryDuration {
 				// only activate when neure not in refractory duration
 				n.NowWeight += weight
-				n.NowWeightChannel <- n.NowWeight
-				// todo: pointer 不一样！ 排查原因
-				log.Printf("debug: `````````outside:%s, now weight is:%f, pointer is:%p", n.ThisNeureId, n.NowWeight, n)
+				// record added weight result
+				preLink["added_weight"] = n.NowWeight
 				if n.NowWeight > config.WeightThreshold {
 					// activate this neure
 					sourceNode["group"] = "activated"
@@ -99,19 +105,18 @@ func (n *Neure) listenSignal(ctx context.Context) {
 					n.LastTimeActivate = now
 					// try activate next neures
 					for _, synapse := range n.Synapses {
-						nextNeure, nowWeight := synapse.ActivateNextNeure(n.NeureType)
-						// record now weight
-						uniqueLinks[n.ThisNeureId+synapse.NextNeureID]["now_weight"] = nowWeight
-						log.Println("debug: #######inside neure:", nextNeure.ThisNeureId, " now weight is:", nowWeight)
+						_ = synapse.ActivateNextNeure(n.NeureType)
 					}
 				}
-			} else {
-				n.NowWeightChannel <- n.NowWeight
 			}
 			n.mu.Unlock()
 
 			// add source node at last
 			signalPassNodeRecord = append(signalPassNodeRecord, sourceNode)
+			if preNeureId != "" {
+				// "" means the signal is come from code, not neure
+				signalPassLinkRecord = append(signalPassLinkRecord, preLink)
+			}
 
 			signalPassThisNeureRecord["nodes"] = signalPassNodeRecord
 			signalPassThisNeureRecord["links"] = signalPassLinkRecord
@@ -209,7 +214,9 @@ func (n *Neure) DeleteConnection(synapse *Synapse) {
 
 func (n *Neure) ConnectNextNuere(synapse *Synapse) {
 	n.mu.Lock()
-	defer n.mu.Unlock()
+	defer func() {
+		n.mu.Unlock()
+	}()
 
 	nextNeure := GetNeureById(synapse.NextNeureID)
 	n.Synapses[synapse.NextNeureID] = synapse
@@ -219,7 +226,6 @@ func (n *Neure) ConnectNextNuere(synapse *Synapse) {
 func (n *Neure) Struct2Byte() []byte {
 	n.mu.Lock()
 	defer n.mu.Unlock()
-
 	nb, err := json.Marshal(n)
 	if err != nil {
 		log.Panic("json marshal error: " + err.Error())

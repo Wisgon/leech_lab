@@ -25,6 +25,8 @@ func CheckNeureMap(ctx context.Context) {
 		if breakSignal {
 			break
 		}
+		time.Sleep(config.InSyncNeureMapDuration + 1*time.Minute)
+		log.Println("checking all neure~~~")
 		NeureMap.Range(func(key, value any) bool {
 			keyString := key.(string)
 			neureObj := value.(*Neure)
@@ -40,7 +42,6 @@ func CheckNeureMap(ctx context.Context) {
 				return true
 			}
 		})
-		time.Sleep(config.InSyncNeureMapDuration + 1*time.Minute)
 	}
 }
 
@@ -60,7 +61,7 @@ func CreateOneNeure(keyPrefix string, neure *Neure) *Neure {
 		bufferSize = config.EachSkinPositionDeepestNeureNum
 	}
 	neure.ChannelBufferSize = int32(bufferSize)
-	neure.SignalChannel = make(chan float32, bufferSize)
+	neure.SignalChannel = make(chan map[string]interface{}, bufferSize)
 
 	uniqueNum := database.GetSeqNum(keyPrefix)
 	key := keyPrefix + config.PrefixNumSplitSymbol + fmt.Sprint(uniqueNum)

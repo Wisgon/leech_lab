@@ -77,6 +77,7 @@ func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.N
 			LinkStrength:      float32(strength),
 			SynapseNum:        synapseNum,
 			Hibituationbility: hibituationbility,
+			ThisNeureId:       neureSource.ThisNeureId,
 		})
 	} else {
 		if linkType != config.PrefixNeureType["regulate"] && linkType != config.PrefixNeureType["inhibitory"] {
@@ -98,6 +99,7 @@ func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.N
 			LinkStrength:      float32(strength),
 			SynapseNum:        synapseNum,
 			Hibituationbility: hibituationbility,
+			ThisNeureId:       neureSource.ThisNeureId,
 		})
 		// second, connect regulate neure to target synapse
 		regulateNeure.ConnectNextNuere(&neure.Synapse{
@@ -106,6 +108,7 @@ func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.N
 			SynapseNum:         synapseNum,
 			Hibituationbility:  hibituationbility,
 			NextNeureSynapseId: synapse_id,
+			ThisNeureId:        regulateNeure.ThisNeureId,
 		})
 	}
 	return

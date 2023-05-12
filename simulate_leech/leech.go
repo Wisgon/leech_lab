@@ -411,8 +411,7 @@ func (l *Leech) handleStimulate(stimulateMessage map[string]interface{}) (signal
 	stimulateLaterSkinPrefix := actionDetail["stimulate_later_skin_prefix"].(string)
 	skinNeureIds := utils.GetNeureIdsByGroupName[*body.Skin](l.Body.Organ, stimulateSkinPrefix+config.PrefixNumSplitSymbol+"collection")
 	if stimulateSkinNeureNum > len(skinNeureIds) {
-		log.Println("stimulateSkinNeureNum can not bigger than skinNeureIds length")
-		return
+		stimulateSkinNeureNum = len(skinNeureIds)
 	}
 
 	// pick rand skin neure in this group of skinNeureIds
@@ -421,7 +420,10 @@ func (l *Leech) handleStimulate(stimulateMessage map[string]interface{}) (signal
 		neureObj := neure.GetNeureById(skinNeureIds[randSkinNeureIdIndex])
 		// activate these start neures directly
 		go func() {
-			neureObj.SignalChannel <- 101.1
+			signalInfo := make(map[string]interface{})
+			signalInfo["weight"] = 101.1
+			signalInfo["source_neure_id"] = ""
+			neureObj.SignalChannel <- signalInfo
 		}()
 	}
 	if stimulateLaterSkinPrefix != "" {
@@ -439,14 +441,16 @@ func (l *Leech) handleStimulate(stimulateMessage map[string]interface{}) (signal
 	uniqueNodes := make(map[string]interface{})
 	uniqueLinks := make(map[string]interface{})
 	for _, node := range l.SignalPassNodeRecordMap {
-		if _, ok := uniqueNodes[node["id"].(string)]; ok {
+		if oldNodeInt, ok := uniqueNodes[node["id"].(string)]; ok {
+			oldNode := oldNodeInt.(map[string]interface{})
+			oldNodeGroup := oldNode["group"].(string)
 			// means that this node had been in uniqueNodes
 			newNodeGroup := node["group"].(string)
 			switch {
 			case newNodeGroup == "activated":
 				// "activated" has the most highest priority in all node, it means that this neure had been activated
 				uniqueNodes[node["id"].(string)] = node
-			case newNodeGroup == "next_neure" && newNodeGroup != "activated":
+			case oldNodeGroup != "activated" && newNodeGroup == "next_neure":
 				// "next_neure" has second priority
 				uniqueNodes[node["id"].(string)] = node
 				// default:
@@ -464,20 +468,22 @@ func (l *Leech) handleStimulate(stimulateMessage map[string]interface{}) (signal
 	// record links
 	for _, link := range l.SignalPassLinkRecordMap {
 		linkId := link["source"].(string) + "*" + link["target"].(string)
-		var nowWeight float32
-		switch nowWeightUnknowType := link["now_weight"].(type) {
+		var addedWeight float32
+		switch addedWeightUnknowType := link["added_weight"].(type) {
 		case float32:
-			nowWeight = nowWeightUnknowType
+			addedWeight = addedWeightUnknowType
 		case int:
-			nowWeight = float32(nowWeightUnknowType)
+			addedWeight = float32(addedWeightUnknowType)
+		case float64:
+			addedWeight = float32(addedWeightUnknowType)
 		default:
-			log.Panic("now weight wrong type")
+			log.Panic("added weight wrong type")
 		}
 		oldLink, ok := uniqueLinks[linkId]
 		if ok {
 			oldLinkMap := oldLink.(map[string]interface{})
 			var oldWeight float32
-			switch oldWeightUnknowType := oldLinkMap["now_weight"].(type) {
+			switch oldWeightUnknowType := oldLinkMap["added_weight"].(type) {
 			case float32:
 				oldWeight = oldWeightUnknowType
 			case int:
@@ -485,8 +491,15 @@ func (l *Leech) handleStimulate(stimulateMessage map[string]interface{}) (signal
 			default:
 				log.Panic("old weight wrong type")
 			}
-			if nowWeight > oldWeight {
+			if addedWeight > oldWeight {
 				// use the biggest now_weight
+				_, ok := link["synapse_num"]
+				_, oldOk := oldLinkMap["synapse_num"]
+				if !ok && oldOk {
+					// link is created with preLink, so it has no "synapse_num"
+					link["synapse_num"] = oldLinkMap["synapse_num"]
+					link["link_strength"] = oldLinkMap["link_strength"]
+				}
 				uniqueLinks[linkId] = link
 			}
 		} else {
