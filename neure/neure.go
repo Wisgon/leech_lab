@@ -120,7 +120,9 @@ func (n *Neure) listenSignal(ctx context.Context) {
 
 			signalPassThisNeureRecord["nodes"] = signalPassNodeRecord
 			signalPassThisNeureRecord["links"] = signalPassLinkRecord
-			n.SignalPassRecorder <- signalPassThisNeureRecord
+			go func() {
+				n.SignalPassRecorder <- signalPassThisNeureRecord
+			}()
 		}
 	}
 }
@@ -145,8 +147,8 @@ func (n *Neure) checkNowWeight(ctx context.Context) {
 	}
 }
 
-func (n *Neure) checkIfNeedToDie() {
-	// todo: check if need to die periodly
+func (n *Neure) checkIfNeedToDelete() {
+	// todo: periodly check if need to delete
 	// for {
 	// 	// check step here
 	// 	if false {

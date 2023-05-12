@@ -58,7 +58,9 @@ func (s *Synapse) ActivateNextNeure(neureType string) (nextNeure *Neure) {
 			// regulate won't activate next neure if next neure is common neure, it will regulate the linkstrength of next neure
 		} else {
 			signalInfo["weight"] = config.WeightThreshold + 1
-			nextNeure.SignalChannel <- signalInfo // directly activate
+			go func() {
+				nextNeure.SignalChannel <- signalInfo // directly activate
+			}()
 		}
 	case config.PrefixNeureType["inhibitory"]:
 		// 抑制型神经元

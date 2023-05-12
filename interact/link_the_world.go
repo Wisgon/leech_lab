@@ -41,7 +41,9 @@ func StartInteract(
 				log.Println("read unmarshal error:" + err.Error())
 			}
 			log.Printf("recv: %+v", responseMap)
-			response <- responseMap
+			go func() {
+				response <- responseMap
+			}()
 		}
 	}()
 

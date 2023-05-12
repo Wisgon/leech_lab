@@ -367,19 +367,25 @@ func (l *Leech) WakeUpLeech(ctx context.Context) {
 				log.Panic("env response error")
 			case "request_all_data":
 				data := utils.AssembleMapDataToFront(maps)
-				l.EnvRequest <- data
+				go func() {
+					l.EnvRequest <- data
+				}()
 			case "request_part_data":
 				parts := envResponse["message"].(map[string]interface{})
 				log.Println("here comes a prefix: ", parts)
 				data := utils.AssemblePartOfMapDataToFront(maps, parts)
-				l.EnvRequest <- data
+				go func() {
+					l.EnvRequest <- data
+				}()
 			case "link":
 				linkCondition := envResponse["message"].(map[string]interface{})
 				// linkCondition is a map {source:"xxx", strength:10, target:"yyy", link_type: "common", synapse_id:""}
 				log.Println("websocket link event: ", linkCondition)
 				utils.LinkTwoNeures(linkCondition)
 				data := make(map[string]interface{})
-				l.EnvRequest <- data
+				go func() {
+					l.EnvRequest <- data
+				}()
 			case "env_info":
 				linkCondition := envResponse["message"].(map[string]interface{})
 				log.Printf("get evn info: %+v\n", linkCondition)
@@ -390,7 +396,9 @@ func (l *Leech) WakeUpLeech(ctx context.Context) {
 				switch action {
 				case "stimulate":
 					data := l.handleStimulate(message)
-					l.EnvRequest <- data
+					go func() {
+						l.EnvRequest <- data
+					}()
 				default:
 					log.Panic("wrong action:", action)
 				}
