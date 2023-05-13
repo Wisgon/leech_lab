@@ -118,16 +118,12 @@ function show_graph() {
 }
 
 function show_neures_json() {
+  var dagMode = document.getElementById("select_dag").value
   fetch("http://localhost:8002/neures.json")
     .then((response) => response.json())
     .then((neures) => {
       // render graph
-      var dagMode = "td"
       global["neure_data"] = neures
-      if (neures.links.length > 200) {
-        // large graph use lr mode
-        dagMode = "lr"
-      }
       Graph = ForceGraph()(document.getElementById("data"))
         .dagMode(dagMode) //Choice between td (top-down), bu (bottom-up), lr (left-to-right), rl (right-to-left), radialout (outwards-radially) or radialin (inwards-radially)
         // .dagLevelDistance(50) // length of the line of links
@@ -185,7 +181,9 @@ function show_neures_json() {
           if (textAngle < -Math.PI / 2) textAngle = -(-Math.PI - textAngle)
 
           var label = ""
-          if (link.added_weight != null) {
+          if (link.LTPS != null) {
+            label = `ls:${link.link_strength}  sn:${link.synapse_num}  LTPS:${link.LTPS}`
+          } else if (link.added_weight != null) {
             // means that it's stimulate show
             label = `ls:${link.link_strength}  sn:${link.synapse_num}  aw:${link.added_weight}`
           } else {

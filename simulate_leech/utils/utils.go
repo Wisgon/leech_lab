@@ -23,18 +23,18 @@ type CreatureParts interface {
 func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.Neure) {
 	source, target, synapse_id := linkCondition["source"].(string), linkCondition["target"].(string), linkCondition["synapse_id"].(string)
 	linkType := linkCondition["link_type"].(string)
-	var strength float32
+	var strength float64
 	switch strengthUnknowType := linkCondition["strength"].(type) {
 	case string:
 		strength64, err := strconv.ParseFloat(strengthUnknowType, 64)
 		if err != nil {
 			log.Panic("error: parse strength fail, link fail:", err)
 		}
-		strength = float32(strength64)
+		strength = strength64
 	case float32:
-		strength = strengthUnknowType
+		strength = float64(strengthUnknowType)
 	case float64:
-		strength = float32(strengthUnknowType)
+		strength = float64(strengthUnknowType)
 	default:
 		log.Panic("error strength type:", linkCondition["strength"])
 	}
@@ -74,7 +74,7 @@ func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.N
 		neureSource := neure.GetNeureById(source)
 		neureSource.ConnectNextNuere(&neure.Synapse{
 			NextNeureID:       target,
-			LinkStrength:      float32(strength),
+			LinkStrength:      strength,
 			SynapseNum:        synapseNum,
 			Hibituationbility: hibituationbility,
 			ThisNeureId:       neureSource.ThisNeureId,
@@ -93,10 +93,11 @@ func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.N
 			NeureType: linkType,
 		})
 		neureSource := neure.GetNeureById(source)
+		LTPStrength := GetLTPStrengthBySource(source)
 		// first, connect source and regulate neure
 		neureSource.ConnectNextNuere(&neure.Synapse{
 			NextNeureID:       regulateNeure.ThisNeureId,
-			LinkStrength:      float32(strength),
+			LinkStrength:      strength,
 			SynapseNum:        synapseNum,
 			Hibituationbility: hibituationbility,
 			ThisNeureId:       neureSource.ThisNeureId,
@@ -104,14 +105,24 @@ func LinkTwoNeures(linkCondition map[string]interface{}) (regulateNeure *neure.N
 		// second, connect regulate neure to target synapse
 		regulateNeure.ConnectNextNuere(&neure.Synapse{
 			NextNeureID:        target,
-			LinkStrength:       float32(strength),
+			LinkStrength:       strength,
 			SynapseNum:         synapseNum,
 			Hibituationbility:  hibituationbility,
 			NextNeureSynapseId: synapse_id,
 			ThisNeureId:        regulateNeure.ThisNeureId,
+			LTPStrength:        LTPStrength, // regulateNeure has LTPStrength that can send to next synapse to strengthen up a value equal LTPStrength
 		})
 	}
 	return
+}
+
+func GetLTPStrengthBySource(sourceId string) float64 {
+	switch {
+	case strings.Contains(sourceId, config.PrefixValuateSource["sense"]) && strings.Contains(sourceId, config.PrefixValuateLevel["valuate-2"]):
+		return 101.0
+	default:
+		return 11.0
+	}
 }
 
 func LinkNeureGroups(sourceNeures []string, targetNeures []string, linkCondition map[string]interface{}, fu func(synapseIds []string) (targetSynapseIds []string), linkRandomly bool) (newNeureIds []string) {

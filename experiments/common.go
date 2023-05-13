@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"reflect"
 	"sync"
 	"time"
 )
@@ -379,6 +380,15 @@ func main() {
 	// 	panic(err)
 	// }
 	// fmt.Println("nm2:", nm2) // good
+
+	// test time.time to int
+	t1 := time.Now()
+	time.Sleep(5 * time.Second)
+	t2 := time.Now()
+	t := t2.Sub(t1)
+	fmt.Println("type t:", reflect.TypeOf(t))
+	ti := t.Seconds()
+	fmt.Println("ti:", ti, " type:", reflect.TypeOf(ti))
 }
 
 type NeedMarshal struct {

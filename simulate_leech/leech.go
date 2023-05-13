@@ -260,7 +260,7 @@ func (l *Leech) InitLeech() {
 		switch valuateSource {
 		case config.PrefixValuateSource["sense"]:
 			if valuateLevel != config.PrefixValuateLevel["valuate-2"] {
-				// sense only has regulate link
+				// sense only has regulate link level valuate-2
 				return
 			}
 			// regulate neure must link all the synapse between sense and muscle

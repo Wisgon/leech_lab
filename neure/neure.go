@@ -6,6 +6,7 @@ import (
 	"graph_robot/config"
 	"graph_robot/database"
 	"log"
+	"strings"
 	"sync"
 	"time"
 )
@@ -21,12 +22,12 @@ type Neure struct {
 	NowLinkedDendritesIds  map[string]struct{}         `json:"c"` // 現在已連接的树突前神经元编号
 	ElectricalConductivity int32                       `json:"d"` // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值，但好像对程序模拟的大脑没什么作用。
 	ThisNeureId            string                      `json:"e"` // the id of database
-	NowWeight              float32                     `json:"-"` // 现在的权重，每刺激一次，增加一点，直到超过weight就被激活，被激活后会reset，超过一段时间无刺激也会reset
-	LastTimeActivate       time.Time                   `json:"-"` // 最后一次激活的时间，精确到纳秒，可以在byte中自由转换
-	LastSignalTime         time.Time                   `json:"-"` // 最后一次重置now weight的时间
+	NowWeight              float32                     `json:"f"` // 现在的权重，每刺激一次，增加一点，直到超过weight就被激活，被激活后会reset，超过一段时间无刺激也会reset
+	LastTimeActivate       time.Time                   `json:"g"` // 最后一次激活的时间，精确到纳秒，可以在byte中自由转换
+	LastSignalTime         time.Time                   `json:"h"` // 最后一次重置now weight的时间
 	CancelFunc             context.CancelFunc          `json:"-"` // use json:"-" to ignore when json marshal and unmarshal
 	SignalChannel          chan map[string]interface{} `json:"-"`
-	ChannelBufferSize      int32                       `json:"f"`
+	ChannelBufferSize      int32                       `json:"t"`
 	SignalPassRecorder     chan map[string]interface{} `json:"-"`
 }
 
@@ -86,6 +87,9 @@ func (n *Neure) listenSignal(ctx context.Context) {
 				link["link_strength"] = synapse.LinkStrength
 				link["synapse_num"] = synapse.SynapseNum
 				link["added_weight"] = 0
+				if strings.Contains(n.ThisNeureId, config.PrefixArea["valuate"]) && (strings.Contains(n.ThisNeureId, config.PrefixNeureType["regulate"]) || strings.Contains(n.ThisNeureId, config.PrefixNeureType["inhibitory"])) {
+					link["LTPS"] = synapse.LTPStrength
+				}
 				uniqueLinks[n.ThisNeureId+synapse.NextNeureID] = link
 				signalPassLinkRecord = append(signalPassLinkRecord, link)
 			}
@@ -105,7 +109,7 @@ func (n *Neure) listenSignal(ctx context.Context) {
 					n.LastTimeActivate = now
 					// try activate next neures
 					for _, synapse := range n.Synapses {
-						_ = synapse.ActivateNextNeure(n.NeureType)
+						_ = synapse.ActivateNextNeure(n)
 					}
 				}
 			}
