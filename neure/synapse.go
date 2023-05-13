@@ -27,16 +27,21 @@ func (s *Synapse) HandleRegulationStimulate(LTPStrength float64, thisNeure *Neur
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	now := time.Now()
-	s.LTPStartTime = now
-	s.LTPStrength = LTPStrength
+	if now.Sub(s.LTPStartTime) > config.LinkStrengthIncDuration {
+		// means that this is a new LTP, in one LinkStrengthIncDuration only strengthen once
+		s.LTPStartTime = now
+		s.LTPStrength = LTPStrength
 
-	// 设计一个函数，当长时程增强的刺激来到时，可以把最近的activate的神经元事件关联起来，时间越近，那么积累的增强系数就越大，在反复刺激时增强的synapse num就越多
-	// 长时程增强的积累值的计算是，新积累值等于新来的LTPStrength加上旧积累值乘于一个时间衰减函数，这个时间是最后刺激的时间，时间越长，衰减值越多，时间越短，越无限接近于1
-	durationTime := now.Sub(thisNeure.LastTimeActivate)
-	s.LTPAccumulation = LTPStrength + s.LTPAccumulation*LTPAccumulationAttenuationFunction(durationTime.Seconds())
-	if s.LTPAccumulation > float64(config.LongTermMemoryLTPAThreshold) {
-		s.SynapseNum += int32(config.SurpassThresholdSynapseNumAdd)
-		s.LTPAccumulation = 0 // reset
+		// 设计一个函数，当长时程增强的刺激来到时，可以把最近的activate的神经元事件关联起来，时间越近，那么积累的增强系数就越大，在反复刺激时增强的synapse num就越多
+		// 长时程增强的积累值的计算是，新积累值等于新来的LTPStrength加上旧积累值乘于一个时间衰减函数，这个时间是最后刺激的时间，时间越长，衰减值越多，时间越短，越无限接近于1
+		durationTime := now.Sub(thisNeure.LastTimeActivate)
+		s.LTPAccumulation = LTPStrength + s.LTPAccumulation*LTPAccumulationAttenuationFunction(durationTime.Seconds())
+
+		if s.LTPAccumulation > float64(config.LongTermMemoryLTPAThreshold) {
+			s.SynapseNum += int32(config.SurpassThresholdSynapseNumAdd)
+			log.Println("debug: neure:", thisNeure.ThisNeureId, " next:", s.NextNeureID, " adding syncNum:", s.SynapseNum)
+			s.LTPAccumulation = 0 // reset
+		}
 	}
 }
 
@@ -51,6 +56,7 @@ func (s *Synapse) ActivateNextNeure(thisNeure *Neure) (nextNeure *Neure) {
 		// 激活下一个神经元，根据不同的连接强度和下一个神经元的weight做出不同的行为
 		addWeight := s.LinkStrength * float64(s.SynapseNum)
 		if time.Since(s.LTPStartTime) < config.LinkStrengthIncDuration {
+			// the synapse is in LTP
 			addWeight += float64(s.LTPStrength)
 		}
 		signalInfo := make(map[string]interface{})
@@ -82,7 +88,7 @@ func (s *Synapse) ActivateNextNeure(thisNeure *Neure) (nextNeure *Neure) {
 			// 短时记忆就是直接让突触处于长时程增强状态，这时候的strength要加上LTPStrength
 			// regulate won't activate next neure if next neure is common neure, it will regulate the linkstrength of next neure，模仿敏感化（或者叫长时程增强）
 			nextSynapse := nextNeure.Synapses[s.NextNeureSynapseId]
-			nextSynapse.HandleRegulationStimulate(s.LTPStrength, thisNeure)
+			nextSynapse.HandleRegulationStimulate(s.LTPStrength, nextNeure)
 		} else {
 			signalInfo["weight"] = config.WeightThreshold + 1
 			go func() {

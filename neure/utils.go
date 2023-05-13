@@ -48,9 +48,10 @@ func CheckNeureMap(ctx context.Context) {
 func CreateOneNeure(keyPrefix string, neure *Neure) *Neure {
 	neure.Synapses = make(map[string]*Synapse)
 	neure.NowLinkedDendritesIds = make(map[string]struct{})
-	now := time.Now()
-	neure.LastTimeActivate = now
-	neure.LastSignalTime = now
+	// don't set lastTimeActivate at now time.
+	// now := time.Now()
+	// neure.LastTimeActivate = now
+	// neure.LastSignalTime = now
 	bufferSize := config.SignalChannelBufferSizeDefault
 	switch {
 	case strings.Contains(keyPrefix, config.PrefixArea["sense"]) && strings.Contains(keyPrefix, "normal"):

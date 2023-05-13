@@ -416,7 +416,6 @@ func (l *Leech) handleStimulate(stimulateMessage map[string]interface{}) (signal
 	actionDetail := stimulateMessage["action_detail"].(map[string]interface{})
 	stimulateSkinPrefix := actionDetail["stimulate_skin_prefix"].(string)
 	stimulateSkinNeureNum := int(actionDetail["stimulate_skin_neure_number"].(float64))
-	stimulateLaterSkinPrefix := actionDetail["stimulate_later_skin_prefix"].(string)
 	skinNeureIds := utils.GetNeureIdsByGroupName[*body.Skin](l.Body.Organ, stimulateSkinPrefix+config.PrefixNumSplitSymbol+"collection")
 	if stimulateSkinNeureNum > len(skinNeureIds) {
 		stimulateSkinNeureNum = len(skinNeureIds)
@@ -433,11 +432,6 @@ func (l *Leech) handleStimulate(stimulateMessage map[string]interface{}) (signal
 			signalInfo["source_neure_id"] = ""
 			neureObj.SignalChannel <- signalInfo
 		}()
-	}
-	if stimulateLaterSkinPrefix != "" {
-		// todo: is sensitization experiment
-		stimulateLaterSkinNumber := int(actionDetail["stimulate_later_skin_number"].(float64))
-		log.Println(stimulateLaterSkinNumber)
 	}
 
 	// you can't know when this stimulate is go to the end neure, just time.Sleep() to wait for a reasonable time and then draw the signal graph

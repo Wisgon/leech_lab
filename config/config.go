@@ -12,7 +12,8 @@ var PrefixNumSplitSymbol = "@"
 var PrefixNameSplitSymbol = "_"
 var RefractoryDuration = 5 * time.Millisecond // 神经元的不应期
 
-var LinkStrengthIncDuration = 6 * time.Minute  // 长时程增强一次的持续时间，以分钟为单位
+var LinkStrengthIncDuration = 5 * time.Minute // 长时程增强一次的持续时间，以分钟为单位
+// var LinkStrengthIncDuration = 3 * time.Second  // debug
 var BreakThroughCoefficient = float32(0.3)     // 突破系数，越大的话，与next weight越接近越容易突破
 var WeightThreshold = float32(100)             // 每个神经元的激活权重都是固定的，会变化的是连接强度
 var RefreshNowWeightDuration = 1 * time.Second // 神经脉冲持续时间，如果这个时间内没有能激活这个神经元，那么now weight就会重置，模仿神经元需要一段时间积累神经脉冲才能激发的特性，如果这段时间没激发，神经递质会被回收，也就是now weight被重置
