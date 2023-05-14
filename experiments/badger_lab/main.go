@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"graph_robot/utils"
 	"log"
 
 	"github.com/dgraph-io/badger/v4"
@@ -32,9 +33,9 @@ func (n *TestStruct) Byte2Struct(neureByte []byte) {
 }
 
 func main() {
-	// Open the Badger database located in the /home/zhilong/Documents/my_projects/graph_robot/experiments/badger_lab/datas directory.
+	// Open the Badger database located in the /path/to/project/experiments/badger_lab/datas directory.
 	// It will be created if it doesn't exist.
-	db, err := badger.Open(badger.DefaultOptions("/home/zhilong/Documents/my_projects/graph_robot/experiments/badger_lab/datas"))
+	db, err := badger.Open(badger.DefaultOptions(utils.GetProjectRoot() + "/experiments/badger_lab/datas"))
 	if err != nil {
 		log.Fatal(err)
 	}

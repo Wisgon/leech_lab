@@ -23,7 +23,7 @@ func GetProjectRoot() string {
 	// get the root path of project
 	_, b, _, _ := runtime.Caller(0)
 	d := path.Join(path.Dir(b))
-	return filepath.Dir(d) // this mechine is "/home/zhilong/Documents/my_projects/graph_robot"
+	return filepath.Dir(d) // "/xxx/yyy/graph_robot"
 }
 
 func RemoveUniqueValueFromSlice[T constraints.Integer | constraints.Float | string](value T, s *[]T) {
