@@ -15,3 +15,13 @@
   - I have implemented long-term-memory mechanisms and visualized it for now. But still have no idea about how to use these mechanisms to implement the whole process of human mind.
   - Here is the picture of visualization running on golang:
   ![visulization](doc/visulization.png)
+  
+- How to run
+  - cd to project root
+  - run `go mod tidy`
+  - prepare a python environment, install packages using "world/requirements.txt"
+  - cd to "scripts" folder, run `go run init_creature.go`
+  - open a terminal, cd to "world" folder, use python environment to run `python main.py`
+  - back to project root, run `go run main.go`
+  - then you can see a web page in "localhost:8002",this page can show the neures that created in step 4.
+  - and then you can open another terminal and use python environment to run "world/lab.py", this will make a long-term memory experiment on our "leech".
