@@ -61,7 +61,6 @@ async def server8001():
     # Set the stop condition when receiving SIGTERM.
     loop = asyncio.get_running_loop()
     stop = loop.create_future()
-    loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
 
     async with websockets.serve(handler, "", 8001, create_protocol=QueryParamProtocol):
         print("start webdocket~~~8001")
