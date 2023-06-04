@@ -14,3 +14,4 @@
   This picture is the part of mechanism of long-term memory in biological, I extracted the function of neures to code of this project.
   - I have implemented long-term-memory mechanisms and visualized it for now. But still have no idea about how to use these mechanisms to implement the whole process of human mind.
   - Here is the picture of visualization running on golang:
+  ![visulization](doc/visulization.png)
