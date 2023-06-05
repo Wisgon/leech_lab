@@ -23,5 +23,6 @@
   - cd to "scripts" folder, run `go run init_creature.go`
   - open a terminal, cd to "world" folder, use python environment to run `python main.py`
   - back to project root, run `go run main.go`
-  - then you can see a web page in "localhost:8002",this page can show the neures that created in step 4.
   - and then you can open another terminal and use python environment to run "world/lab.py", this will make a long-term memory experiment on our "leech".
+  - then you can see a web page in "localhost:8002",this page can show the neures that created in step 4.
+  - select any selection of the checkbox on the left side of "show_json_data" button, it will show the graph of neures that relate to the experiment just we have made.
