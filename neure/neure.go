@@ -17,7 +17,7 @@ import (
 
 type Neure struct {
 	mu                     sync.Mutex
-	Synapses               map[string]*Synapse         `json:"a"` // 軸突連接的突觸，有些神经元有多个突触，一旦激发，所有连接的突触都会尝试激活
+	Synapses               map[string]*Synapse         `json:"a"` // 軸突連接的突觸，有些神经元有多个突触，一旦激发，所有连接的突触都会尝试激活，但一般神经元只有一个轴突
 	NeureType              string                      `json:"b"` //神经元的类型，有普通神经元，调节神经元和抑制神经元
 	NowLinkedDendritesIds  map[string]struct{}         `json:"c"` // 現在已連接的树突前神经元编号
 	ElectricalConductivity int32                       `json:"d"` // 導電性，越大這個軸突導電性越弱，因為每次經過這個軸突，電流強度都要減去這個值，但好像对程序模拟的大脑没什么作用。
