@@ -16,7 +16,7 @@ type Synapse struct {
 	LinkStrength            float64   `json:"k"` // 连接强度，在长时程增强的时候增强，过后减弱
 	NextNeureSynapseId      string    `json:"l"` // 这个只有regulate和inhibitory神经元才有的，方便找到下一个调节的synapse
 	Hibituationbility       bool      `json:"m"` // not all synapse need hibituation
-	AttenuationAccumulation float64   `json:"n"` // 衰减量总计,如果超过1，则向下取整化为整数然后从突出数量中扣掉
+	AttenuationAccumulation float64   `json:"n"` // 衰减量总计,如果超过1，则向下取整化为整数然后从突触数量中扣掉
 	ThisNeureId             string    `json:"o"` // 该突触所在神经元
 	LTPAccumulation         float64   `json:"p"` // 长时程增强积累值
 	LTPStartTime            time.Time `json:"q"` // 长时程增强的开始时间，这个和持续时间有关，如果超过持续时间，长时程增强结束
